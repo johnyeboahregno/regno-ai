@@ -37,18 +37,19 @@ async function main() {
 
   for (const file of files) {
     const name = basename(file, '.md'); // coding, testing, tdd, ci-cd, go, rust, …
+    const isTech = file.includes('/technologies/');
     const content = readFileSync(file, 'utf8');
     const sourceUrl = `standards://${name}`;
     await db.collection('standards').updateOne(
       { name },
-      { $set: { name, content, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+      { $set: { name, content, tech: isTech ? name : null, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
       { upsert: true },
     );
     // Also index into cortex_index so standards show in the Docs menu.
     await db.collection('cortex_index').updateOne(
       { sourceUrl },
       {
-        $set: { title: name, content, domain: 'standards', sourceUrl, status: 'indexed', developer: 'base', indexedAt: new Date() },
+        $set: { title: name, content, domain: isTech ? 'standards/technologies' : 'standards', sourceUrl, status: 'indexed', developer: 'base', indexedAt: new Date() },
       },
       { upsert: true },
     );

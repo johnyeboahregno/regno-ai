@@ -8,6 +8,7 @@
 
   const nav = [
     { href: '/app/chat', label: 'Architect' },
+    { href: '/app/agents', label: 'Agents' },
     { href: '/app', label: 'Dashboard' },
     { href: '/app/nexus', label: 'NEXUS' },
     { href: '/app/canvas', label: 'Canvas' },

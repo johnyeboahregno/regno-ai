@@ -6,14 +6,17 @@
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
 
-export async function buildContext(needs: string[], developer?: string): Promise<string> {
+export async function buildContext(needs: string[], developer?: string, technologies?: string[]): Promise<string> {
   const db = await getDb();
   const blocks: string[] = [];
 
   // Base standards — immutable core, always injected first, highest priority.
   const standards = await db.collection(Collections.STANDARDS).find({}).sort({ name: 1 }).toArray();
-  if (standards.length) {
-    const text = standards
+  const general = standards.filter((s) => !s.tech);
+  const tech = standards.filter((s) => s.tech && (technologies ?? []).includes(String(s.tech)));
+  const selected = [...general, ...tech];
+  if (selected.length) {
+    const text = selected
       .map((s) => `### ${String(s.name).toUpperCase()}\n${s.content}`)
       .join('\n\n');
     blocks.push(`## BASE STANDARDS (non-negotiable — follow these always)\n${text}`);

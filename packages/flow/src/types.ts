@@ -13,6 +13,7 @@ export interface AgentDef {
   slug: string;
   name: string;
   triggers?: string[];
+  technologies?: string[];
   capabilities?: { tools?: string[] };
   planTemplate?: { depthStrategy?: 'auto' | 'fixed'; phases?: AgentPhase[] };
   costCeilingUsd?: number;

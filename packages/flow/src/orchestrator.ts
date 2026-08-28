@@ -57,7 +57,7 @@ export async function runExecution(
   let finalOutput = '';
   for (const phase of plan.phases) {
     emit('v2_phase_progress', { phase: phase.name, status: 'running' });
-    const ctx = await buildContext(phase.needs, settings.developer);
+    const ctx = await buildContext(phase.needs, settings.developer, agent.technologies);
     const output = await chat(
       [
         {

@@ -17,6 +17,7 @@ export const Collections = {
   DEVELOPERS: 'developers',
   PERSONAS: 'personas',
   ARTIFACTS: 'artifacts',
+  AGENTS: 'agents',
   CORTEX: 'cortex',
   CORTEX_AGENTS: 'cortex_agents',
   CORTEX_PATTERNS: 'cortex_patterns',
