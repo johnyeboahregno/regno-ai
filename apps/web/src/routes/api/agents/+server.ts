@@ -13,6 +13,7 @@ function slugify(name: string): string {
 export async function GET({ cookies }) {
   const user = await requireSession(cookies);
   if (!user) return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  if (user.role !== 'owner') return json({ ok: false, error: 'Admin only' }, { status: 403 });
   const db = await getDb();
   const items = await db.collection(Collections.AGENTS).find({}).sort({ createdAt: -1 }).toArray();
   const agents = items.map((a) => ({
@@ -32,6 +33,7 @@ export async function GET({ cookies }) {
 export async function POST({ request, cookies }) {
   const user = await requireSession(cookies);
   if (!user) return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  if (user.role !== 'owner') return json({ ok: false, error: 'Admin only' }, { status: 403 });
 
   const body = (await request.json().catch(() => ({}))) as {
     name?: string;

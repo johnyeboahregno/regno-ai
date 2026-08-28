@@ -8,7 +8,7 @@
 
   const nav = [
     { href: '/app/chat', label: 'Architect' },
-    { href: '/app/agents', label: 'Architects' },
+    ...(data.user.role === 'owner' ? [{ href: '/app/agents', label: 'Architects' }] : []),
     { href: '/app', label: 'Dashboard' },
     { href: '/app/nexus', label: 'NEXUS' },
     { href: '/app/canvas', label: 'Canvas' },

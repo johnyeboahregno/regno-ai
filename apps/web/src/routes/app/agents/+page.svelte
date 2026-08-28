@@ -18,6 +18,7 @@
   let error = '';
   let message = '';
   let agents: Agent[] = [];
+  let origin = '';
 
   async function load() {
     try {
@@ -61,7 +62,10 @@
     }
   }
 
-  onMount(load);
+  onMount(() => {
+    origin = window.location.protocol + '//' + window.location.hostname;
+    load();
+  });
 </script>
 
 <div class="page-head">
@@ -135,7 +139,7 @@
 <div class="eyebrow blue mb mt2">Agents</div>
 <div class="panel" style="overflow-x:auto;">
   <table>
-    <thead><tr><th>Name</th><th>Technologies</th><th>Namespace</th><th>Port</th><th>Status</th></tr></thead>
+    <thead><tr><th>Name</th><th>Technologies</th><th>Namespace</th><th>Port</th><th>Status</th><th></th></tr></thead>
     <tbody>
       {#each agents as a}
         <tr>
@@ -144,10 +148,17 @@
           <td class="mono">{a.namespace}</td>
           <td>{a.port ?? '—'}</td>
           <td><span class="tag" class:signal={a.status === 'ready'}>{a.status}</span></td>
+          <td>
+            {#if a.status === 'ready' && a.port}
+              <a href="{origin}:{a.port}" target="_blank" class="btn solid" style="padding:6px 12px;">Open →</a>
+            {:else}
+              <span class="faint small">…</span>
+            {/if}
+          </td>
         </tr>
       {/each}
       {#if agents.length === 0}
-        <tr><td colspan="5" class="faint">No agents yet — create your first one above.</td></tr>
+        <tr><td colspan="6" class="faint">No architects yet — create your first one above.</td></tr>
       {/if}
     </tbody>
   </table>
