@@ -68,6 +68,16 @@ async function main() {
     execSync(`kubectl -n ${ns} exec ${wpod} -- node scripts/${script}`, { stdio: 'ignore' });
   }
 
+  // Ingest the agent's repos into its own brain, tagged with its flavour.
+  const repos = (process.argv[3] ?? '').split(',').map((r) => r.trim()).filter(Boolean);
+  if (repos.length) {
+    console.log(`[spawn-agent] ingesting ${repos.length} repos as flavour ${slug}…`);
+    execSync(
+      `kubectl -n ${ns} exec ${wpod} -- env DEVELOPER=${slug} GITHUB_REPOS=${repos.join(',')} node scripts/seed-github.mjs`,
+      { stdio: 'inherit' },
+    );
+  }
+
   await mark('ready');
   console.log(`SPAWNED ${ns} ready on port ${port}`);
 }

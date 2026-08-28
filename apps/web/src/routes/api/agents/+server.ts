@@ -2,7 +2,7 @@
 // Creating an agent: registers it, compiles its standards, and spawns a namespace.
 import { json } from '@sveltejs/kit';
 import { spawn } from 'node:child_process';
-import { getDb } from '@regno/db';
+import { getDb, storeCredential } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { requireSession } from '$lib/server/auth.js';
 
@@ -85,8 +85,20 @@ export async function POST({ request, cookies }) {
     { upsert: true },
   );
 
-  // 3. Spawn the namespace asynchronously (detached, updates status when done).
-  spawn('node', ['/app/scripts/spawn-agent.mjs', slug, String(port)], {
+  // 3. Store any datasource connection in the encrypted credentials vault.
+  for (const ds of datasources as Array<{ type?: string; connection?: string }>) {
+    if (ds?.type && ds?.connection) {
+      await storeCredential({
+        name: `${slug}-${ds.type}`,
+        type: String(ds.type),
+        provider: String(ds.type),
+        secret: String(ds.connection),
+      });
+    }
+  }
+
+  // 4. Spawn the namespace asynchronously (detached, updates status when done).
+  spawn('node', ['/app/scripts/spawn-agent.mjs', slug, String(port), repos.join(',')], {
     detached: true,
     stdio: 'ignore',
   }).unref();

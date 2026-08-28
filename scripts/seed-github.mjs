@@ -94,12 +94,21 @@ function gitLog(dir) {
 }
 
 async function main() {
-  if (!TOKEN) {
-    console.error('[seed-github] GITHUB_TOKEN is not set');
-    process.exit(1);
+  let repos;
+  if (process.env.GITHUB_REPOS) {
+    repos = process.env.GITHUB_REPOS.split(',').map((r) => r.trim()).filter(Boolean).map((repo) => {
+      const [owner, name] = repo.split('/');
+      return { name: name || repo, clone_url: `https://github.com/${repo}.git` };
+    });
+    console.log(`[seed-github] ${repos.length} repos (explicit list)`);
+  } else {
+    if (!TOKEN) {
+      console.error('[seed-github] GITHUB_TOKEN is not set (needed for org listing)');
+      process.exit(1);
+    }
+    repos = await listRepos();
+    console.log(`[seed-github] ${repos.length} repos in ${ORG}`);
   }
-  const repos = await listRepos();
-  console.log(`[seed-github] ${repos.length} repos in ${ORG}`);
 
   const key = process.env.OPENAI_API_KEY ?? '';
   if (!key) console.warn('[seed-github] OPENAI_API_KEY not set — storing raw docs only (no embeddings)');
