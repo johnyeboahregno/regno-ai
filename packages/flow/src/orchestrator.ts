@@ -12,6 +12,7 @@ import { createPlanFromAgent, selectComposeFirstDepth } from './plan.js';
 import { buildTools } from './tools.js';
 import { buildContext } from './context.js';
 import { gradeOutput } from './quality.js';
+import { documentExecution } from './documentation.js';
 import type { AgentDef, ExecutionResult, ExecutionSettings } from './types.js';
 
 export type EventSink = (event: string, data: unknown) => void;
@@ -123,6 +124,14 @@ export async function runExecution(
     finalScore: graded.score,
     phases: phaseResults,
   };
+
+  // 7. Documentation pipeline — auto-document the artifact (best-effort).
+  try {
+    await documentExecution(prompt, result);
+  } catch (e) {
+    console.warn('[orchestrator] documentation skipped:', (e as Error).message);
+  }
+
   emit('v2_execution_result', result);
   return result;
 }

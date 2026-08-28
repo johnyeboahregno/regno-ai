@@ -5,4 +5,5 @@ export * from './tools.js';
 export * from './context.js';
 export * from './quality.js';
 export * from './queue.js';
+export * from './documentation.js';
 export * from './orchestrator.js';
