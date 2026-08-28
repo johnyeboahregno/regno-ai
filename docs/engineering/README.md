@@ -46,6 +46,7 @@
 | 12 | [`12-memory-and-patterns.md`](./12-memory-and-patterns.md) | Manual memory/pattern tools |
 | 13 | [`13-sma-cloning-model.md`](./13-sma-cloning-model.md) | Base standards + flavour + personas |
 | 14 | [`14-rebuild-from-scratch.md`](./14-rebuild-from-scratch.md) | The master reproducibility runbook |
+| 15 | [`15-per-developer-cloning.md`](./15-per-developer-cloning.md) | Clone a namespace per developer |
 
 ## Golden rule
 
