@@ -3,6 +3,19 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-29 — Architects (full stack + own brain + base knowledge)
+
+- **Agent wizard** (`/app/agents` → "Regno Architects"): admin parent screen to create a
+  **complete new stack** — name → technologies → repos → datasource.
+- **Brain per architect**: each spawns a k3s namespace with its own Mongo/Qdrant/Neo4j.
+- **Base knowledge connection**: `BASE_QDRANT_URL` injected; NEXUS search queries own + base
+  (read-only), results tagged `own`/`base`.
+- **Best-practice standards library**: 13 docs — TDD, integration testing, performance testing,
+  CI/CD, coding, documentation, complexity + per-tech (web-typescript, go, rust, python, ros).
+- **Per-agent tech standards**: `AgentDef.technologies` → `buildContext` injects matching standards.
+- **RBAC** (`k8s/rbac.yaml`): web pod can spawn namespaces; `scripts/spawn-agent.mjs` + kubectl in image.
+- **Documentation pipeline**: every artifact auto-documented (`documentExecution` → `artifacts`).
+
 ## 2026-08-28 — Personalisation & persona foundation
 
 - **Docs-in-base**: `seed-brain.mjs` now ingests `.md` **and** `.html` raw into Mongo `cortex_index`

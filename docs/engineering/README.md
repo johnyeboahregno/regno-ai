@@ -49,6 +49,7 @@
 | 15 | [`15-per-developer-cloning.md`](./15-per-developer-cloning.md) | Clone a namespace per developer |
 | 16 | [`16-documentation-pipeline.md`](./16-documentation-pipeline.md) | Auto-document every artifact |
 | 17 | [`17-agent-wizard-spawner.md`](./17-agent-wizard-spawner.md) | Create agents + spawn namespaces |
+| 18 | [`18-architect-brain-model.md`](./18-architect-brain-model.md) | Architect = full stack + own brain + base knowledge |
 
 ## Golden rule
 

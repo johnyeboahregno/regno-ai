@@ -60,9 +60,13 @@ flowchart TB
 
 ## Cloning model
 
-- Each developer = an isolated instance (k3s **namespace** per developer on this box, or a fresh VM).
-- Provision = base image + base seed + ingest developer's repos → flavour learned.
-- The base is shared/versioned; the flavour is per-developer.
+- Each **Regno Architect** is a **complete new stack** (a k3s namespace) with its **own brain**
+  (Mongo/Qdrant/Neo4j) — its own context, docs, and knowledge.
+- Each architect has a **read-only connection to the shared base knowledge** (docs + standards),
+  so it can gain new knowledge from the base while keeping its own private knowledge.
+- An admin **parent page** ("Regno Architects") walks through creating a whole new stack:
+  name → technologies → repos → datasource.
+- The base is shared/versioned; the flavour is per-architect.
 
 ## Documentation telemetry (everything is documented)
 
