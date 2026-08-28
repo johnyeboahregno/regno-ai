@@ -1,0 +1,294 @@
+# Regno Architect Me — Kubernetes manifests (k3s, single node)
+# Namespace-scoped, uses the local-path provisioner for storage.
+# Secret `regno-env` is created separately from .env.prod.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qdrant-pvc
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: neo4j-pvc
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+# ── MongoDB ──────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mongo }
+  template:
+    metadata:
+      labels: { app: mongo }
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          imagePullPolicy: IfNotPresent
+          args: ["--bind_ip_all"]
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: regno
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: regno-env, key: MONGO_PASSWORD }
+          ports: [{ containerPort: 27017 }]
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  selector: { app: mongo }
+  ports: [{ port: 27017, targetPort: 27017 }]
+---
+# ── Qdrant ───────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: qdrant }
+  template:
+    metadata:
+      labels: { app: qdrant }
+    spec:
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { containerPort: 6333 }
+            - { containerPort: 6334 }
+          volumeMounts:
+            - name: storage
+              mountPath: /qdrant/storage
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: qdrant-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+spec:
+  selector: { app: qdrant }
+  ports:
+    - { name: http, port: 6333, targetPort: 6333 }
+    - { name: grpc, port: 6334, targetPort: 6334 }
+---
+# ── Neo4j ────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: neo4j }
+  template:
+    metadata:
+      labels: { app: neo4j }
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: neo4j
+          image: neo4j:5
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NEO4J_AUTH
+              valueFrom:
+                secretKeyRef: { name: regno-env, key: NEO4J_AUTH }
+            - name: NEO4J_PLUGINS
+              value: '["apoc"]'
+            - name: NEO4J_server_memory_heap_initial__size
+              value: "4G"
+            - name: NEO4J_server_memory_heap_max__size
+              value: "4G"
+          ports:
+            - { containerPort: 7474 }
+            - { containerPort: 7687 }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: neo4j-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+spec:
+  selector: { app: neo4j }
+  ports:
+    - { name: http, port: 7474, targetPort: 7474 }
+    - { name: bolt, port: 7687, targetPort: 7687 }
+---
+# ── Redis ────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: redis }
+  template:
+    metadata:
+      labels: { app: redis }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          args: ["redis-server", "--appendonly", "yes"]
+          ports: [{ containerPort: 6379 }]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: redis-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector: { app: redis }
+  ports: [{ port: 6379, targetPort: 6379 }]
+---
+# ── Web (SvelteKit app + API) ───────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: { app: web }
+  template:
+    metadata:
+      labels: { app: web }
+    spec:
+      containers:
+        - name: web
+          image: regno-architect-web:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 3000, hostPort: 3000 }]
+          envFrom:
+            - secretRef: { name: regno-env }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector: { app: web }
+  ports:
+    - { port: 3000, targetPort: 3000 }
+---
+# ── Execution (BullMQ workers) ──────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: execution
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: execution }
+  template:
+    metadata:
+      labels: { app: execution }
+    spec:
+      containers:
+        - name: execution
+          image: regno-architect-execution:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef: { name: regno-env }
+---
+# ── Realtime (SSE) ──────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realtime
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: { app: realtime }
+  template:
+    metadata:
+      labels: { app: realtime }
+    spec:
+      containers:
+        - name: realtime
+          image: regno-architect-realtime:latest
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 3002, hostPort: 3002 }]
+          envFrom:
+            - secretRef: { name: regno-env }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: realtime
+spec:
+  selector: { app: realtime }
+  ports:
+    - { port: 3002, targetPort: 3002 }

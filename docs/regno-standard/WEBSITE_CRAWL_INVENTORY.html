@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regno Standard Website - Comprehensive Crawl Inventory</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+	:root {
+		--bg: #0d1117;
+		--surface: #161b22;
+		--border: #30363d;
+		--text: #e6edf3;
+		--text-muted: #8b949e;
+		--accent: #7c3aed;
+		--accent-light: #a78bfa;
+		--green: #3fb950;
+		--yellow: #d29922;
+		--red: #f85149;
+		--blue: #58a6ff;
+	}
+	* { margin: 0; padding: 0; box-sizing: border-box; }
+	body {
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+		background: var(--bg);
+		color: var(--text);
+		line-height: 1.6;
+		padding: 2rem;
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+	h1 {
+		font-size: 2rem;
+		margin-bottom: 0.5rem;
+		color: var(--accent-light);
+		border-bottom: 2px solid var(--accent);
+		padding-bottom: 0.5rem;
+	}
+	h2 {
+		font-size: 1.5rem;
+		margin-top: 2.5rem;
+		margin-bottom: 1rem;
+		color: var(--accent-light);
+		border-bottom: 1px solid var(--border);
+		padding-bottom: 0.4rem;
+	}
+	h3 {
+		font-size: 1.15rem;
+		margin-top: 1.5rem;
+		margin-bottom: 0.75rem;
+		color: var(--text);
+	}
+	h4 {
+		font-size: 1rem;
+		margin-top: 1.25rem;
+		margin-bottom: 0.5rem;
+		color: var(--text-muted);
+	}
+	p { margin-bottom: 0.75rem; }
+	.meta {
+		color: var(--text-muted);
+		font-size: 0.9rem;
+		margin-bottom: 2rem;
+	}
+	.meta strong { color: var(--text); }
+	.badge {
+		display: inline-block;
+		padding: 0.15rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
+	.badge-green { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+	.badge-yellow { background: rgba(210, 153, 34, 0.15); color: var(--yellow); }
+	.badge-red { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+	.badge-blue { background: rgba(88, 166, 255, 0.15); color: var(--blue); }
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+	}
+	th, td {
+		border: 1px solid var(--border);
+		padding: 0.5rem 0.75rem;
+		text-align: left;
+	}
+	th {
+		background: var(--surface);
+		color: var(--accent-light);
+		font-weight: 600;
+	}
+	tr:hover td { background: rgba(124, 58, 237, 0.05); }
+	code {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		padding: 0.1rem 0.35rem;
+		border-radius: 4px;
+		font-size: 0.85rem;
+		font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	}
+	ul, ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+	li { margin-bottom: 0.3rem; }
+	.mermaid-container {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1.5rem;
+		margin: 1.5rem 0;
+		overflow-x: auto;
+	}
+	.summary-box {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1.25rem;
+		margin: 1rem 0;
+	}
+	.summary-box ul { margin-bottom: 0; }
+	.grid-2 {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin: 1rem 0;
+	}
+	@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+	.card {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1rem;
+	}
+	.card h4 { margin-top: 0; color: var(--accent-light); }
+	hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+	a { color: var(--blue); text-decoration: none; }
+	a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>Regno Standard Website Comprehensive Crawl Inventory</h1>
+<div class="meta">
+	<strong>Analysis completed:</strong> Tuesday, January 27, 2026 &nbsp;|&nbsp;
+	<strong>Website:</strong> <a href="https://www.regnostandard.com/" target="_blank">https://www.regnostandard.com/</a> &nbsp;|&nbsp;
+	<strong>Total URLs Discovered:</strong> 40+ pages &nbsp;|&nbsp;
+	<span class="badge badge-green">Crawl Complete</span>
+</div>
+
+<h2>Research Methodology</h2>
+
+<h3>Search &amp; Discovery Process</h3>
+<ol>
+	<li><strong>Robots.txt Analysis</strong> - Extracted crawling directives and sitemap location</li>
+	<li><strong>Sitemap.xml Parsing</strong> - Discovered 40 documented URLs with metadata</li>
+	<li><strong>Homepage Analysis</strong> - Identified site structure and navigation patterns</li>
+	<li><strong>Exhaustive Page Crawling</strong> - Systematically fetched all documented pages</li>
+	<li><strong>Content Classification</strong> - Organized pages by type and technical function</li>
+</ol>
+
+<h3>Sources Consulted</h3>
+<table>
+	<thead><tr><th>Source</th><th>Content Type</th><th>Pages Analyzed</th><th>Confidence</th></tr></thead>
+	<tbody>
+		<tr><td>Official Sitemap</td><td>Complete URL inventory</td><td>40 URLs</td><td>High</td></tr>
+		<tr><td>Page Content</td><td>Technical specifications</td><td>40 pages</td><td>High</td></tr>
+		<tr><td>Navigation Structure</td><td>Site architecture</td><td>Full site</td><td>High</td></tr>
+	</tbody>
+</table>
+
+<h2>Executive Summary</h2>
+<div class="summary-box">
+	<p><strong>Regno Standard</strong> is a comprehensive <strong>open data standard</strong> for telemetry and time-series data, targeting aerospace, racing, energy, and industrial IoT industries. The website serves as the complete technical documentation portal for this JSON-based data format specification.</p>
+	<h4>Key Findings</h4>
+	<ul>
+		<li><strong>Purpose:</strong> Universal telemetry data standardization across industries</li>
+		<li><strong>License:</strong> Creative Commons Attribution-NonCommercial-NoDerivatives 4.0</li>
+		<li><strong>Governance:</strong> Managed by Regno Standard Working Group</li>
+		<li><strong>Technical Focus:</strong> JSON document format for Big Data environments</li>
+		<li><strong>Target Industries:</strong> Aerospace, Formula 1, Motorsport, Energy, Automotive, IoT</li>
+	</ul>
+</div>
+
+<h2>Site Architecture Analysis</h2>
+<div class="mermaid-container">
+<pre class="mermaid">
+graph TD
+    A[Homepage] --> B[Documentation Hub]
+    A --> C[Support Section]
+    A --> D[Implementation Guide]
+    A --> E[FAQ &amp; Licensing]
+
+    B --> F[Getting Started]
+    B --> G[Core Standards]
+    B --> H[Document Types]
+
+    F --> F1[Styles Used]
+    F --> F2[Status &amp; Location]
+    F --> F3[Naming Conventions]
+    F --> F4[Format Strings]
+    F --> F5[Unique ID Generation]
+
+    G --> G1[Configuration Docs]
+    G --> G2[Definition Docs]
+    G --> G3[Data Docs]
+    G --> G4[Identity Docs]
+
+    H --> H1[28 Technical Spec Pages]
+    H --> H2[JSON Schema Definitions]
+    H --> H3[Field Tables &amp; Examples]
+</pre>
+</div>
+
+<h2>Complete URL Inventory</h2>
+
+<h3>Core Navigation Pages</h3>
+<table>
+	<thead><tr><th>URL</th><th>Title</th><th>Status</th><th>Content Type</th><th>Priority</th></tr></thead>
+	<tbody>
+		<tr><td><code>/</code></td><td>Regno Standard - Universal Telemetry Data Standard</td><td><span class="badge badge-green">200</span></td><td>Homepage</td><td>1.0</td></tr>
+		<tr><td><code>/Documentation.html</code></td><td>Documentation API Overview</td><td><span class="badge badge-green">200</span></td><td>Guide</td><td>0.7</td></tr>
+		<tr><td><code>/faq.html</code></td><td>FAQ - Common Questions</td><td><span class="badge badge-green">200</span></td><td>Support</td><td>0.8</td></tr>
+		<tr><td><code>/support.html</code></td><td>Support - Technical Help</td><td><span class="badge badge-green">200</span></td><td>Support</td><td>0.7</td></tr>
+		<tr><td><code>/implement.html</code></td><td>Implementation Guide</td><td><span class="badge badge-green">200</span></td><td>Guide</td><td>0.9</td></tr>
+		<tr><td><code>/license.html</code></td><td>License - Usage Terms</td><td><span class="badge badge-green">200</span></td><td>Legal</td><td>0.6</td></tr>
+	</tbody>
+</table>
+
+<h3>Technical Standards Documentation</h3>
+<table>
+	<thead><tr><th>URL</th><th>Title</th><th>Status</th><th>Content Type</th><th>Priority</th></tr></thead>
+	<tbody>
+		<tr><td><code>/Styles.html</code></td><td>Documentation Styles</td><td><span class="badge badge-green">200</span></td><td>Guide</td><td>0.7</td></tr>
+		<tr><td><code>/Status.html</code></td><td>Status &amp; Location</td><td><span class="badge badge-green">200</span></td><td>Guide</td><td>0.7</td></tr>
+		<tr><td><code>/NamingConventions.html</code></td><td>Naming Conventions</td><td><span class="badge badge-green">200</span></td><td>Standard</td><td>0.7</td></tr>
+		<tr><td><code>/FormatStrings.html</code></td><td>Format Strings</td><td><span class="badge badge-green">200</span></td><td>Standard</td><td>0.7</td></tr>
+		<tr><td><code>/UniqueIdGeneration.html</code></td><td>Unique ID Generation</td><td><span class="badge badge-green">200</span></td><td>Standard</td><td>0.7</td></tr>
+		<tr><td><code>/TableOfContents.html</code></td><td>Table of Contents</td><td><span class="badge badge-green">200</span></td><td>Navigation</td><td>0.7</td></tr>
+	</tbody>
+</table>
+
+<h3>Configuration Document Specifications</h3>
+<table>
+	<thead><tr><th>URL</th><th>Title</th><th>Status</th><th>Document Type</th><th>Fields</th><th>Priority</th></tr></thead>
+	<tbody>
+		<tr><td><code>/ConfigDoc.html</code></td><td>ConfigDoc API</td><td><span class="badge badge-green">200</span></td><td>Configuration</td><td>13 fields</td><td>0.7</td></tr>
+		<tr><td><code>/SubConfigDoc.html</code></td><td>SubConfigDoc API</td><td><span class="badge badge-green">200</span></td><td>Configuration</td><td>10 fields</td><td>0.7</td></tr>
+		<tr><td><code>/IdentityDoc.html</code></td><td>IdentityDoc API</td><td><span class="badge badge-green">200</span></td><td>Identity</td><td>3 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ConfigDefinitionsDoc.html</code></td><td>ConfigDefsDoc API</td><td><span class="badge badge-green">200</span></td><td>Informational</td><td>6 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ConfigParamDefsDoc.html</code></td><td>ConfigParamDefDoc API</td><td><span class="badge badge-green">200</span></td><td>Informational</td><td>11 fields</td><td>0.7</td></tr>
+	</tbody>
+</table>
+
+<h3>Definition Document Specifications</h3>
+<table>
+	<thead><tr><th>URL</th><th>Title</th><th>Status</th><th>Document Type</th><th>Fields</th><th>Priority</th></tr></thead>
+	<tbody>
+		<tr><td><code>/AliasDefinitionDoc.html</code></td><td>AliasDefDoc API</td><td><span class="badge badge-green">200</span></td><td>Definition</td><td>4 fields</td><td>0.7</td></tr>
+		<tr><td><code>/CANMessageDefinitionDoc.html</code></td><td>CANMessageDefDoc API</td><td><span class="badge badge-green">200</span></td><td>Definition</td><td>8 fields</td><td>0.7</td></tr>
+		<tr><td><code>/CANSignalDefinitionDoc.html</code></td><td>CANSignalDefDoc API</td><td><span class="badge badge-green">200</span></td><td>Definition</td><td>17 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ConvDefinitionDoc.html</code></td><td>ConversionDefDoc API</td><td><span class="badge badge-green">200</span></td><td>Definition</td><td>9 fields</td><td>0.7</td></tr>
+		<tr><td><code>/EventDefinitionDoc.html</code></td><td>EventDefDoc API</td><td><span class="badge badge-green">200</span></td><td>Definition</td><td>7 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ParamDefinitionDoc.html</code></td><td>ParamDefDoc API</td><td><span class="badge badge-green">200</span></td><td>Definition</td><td>11 fields</td><td>0.7</td></tr>
+	</tbody>
+</table>
+
+<h3>Data Document Specifications</h3>
+<table>
+	<thead><tr><th>URL</th><th>Title</th><th>Status</th><th>Document Type</th><th>Fields</th><th>Priority</th></tr></thead>
+	<tbody>
+		<tr><td><code>/ChannelSamplesDoc.html</code></td><td>ChannelSamplesDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>8 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ConfigDataDoc.html</code></td><td>ConfigDataDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>7 fields</td><td>0.7</td></tr>
+		<tr><td><code>/EventDataDoc.html</code></td><td>EventDataDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>6 fields</td><td>0.7</td></tr>
+		<tr><td><code>/MediaDataDoc.html</code></td><td>MediaDataDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>9 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ParamSamplesDoc.html</code></td><td>ParamSamplesDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>11 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ParamScalarValueDoc.html</code></td><td>ParamScalarValueDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>6 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ParamStringValueDoc.html</code></td><td>ParamStringValueDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>6 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ParamArrayValueDoc.html</code></td><td>ParamArrayValueDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>13 fields</td><td>0.7</td></tr>
+		<tr><td><code>/Param2DMapValueDoc.html</code></td><td>Param2DMapValueDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>8 fields</td><td>0.7</td></tr>
+		<tr><td><code>/Param3DMapValueDoc.html</code></td><td>Param3DMapValueDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>9 fields</td><td>0.7</td></tr>
+		<tr><td><code>/ParamStatDoc.html</code></td><td>ParamStatDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>7 fields</td><td>0.7</td></tr>
+		<tr><td><code>/StatDataDoc.html</code></td><td>StatDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>4 fields</td><td>0.7</td></tr>
+		<tr><td><code>/TagDataDoc.html</code></td><td>TagDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>4 fields</td><td>0.7</td></tr>
+		<tr><td><code>/TimeSpanDoc.html</code></td><td>TimeSpanDoc API</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>9 fields</td><td>0.7</td></tr>
+	</tbody>
+</table>
+
+<h3>Alert System Documents (Minimal Content)</h3>
+<table>
+	<thead><tr><th>URL</th><th>Title</th><th>Status</th><th>Document Type</th><th>Fields</th><th>Priority</th></tr></thead>
+	<tbody>
+		<tr><td><code>/AlertDataDoc.html</code></td><td>AlertDataDoc</td><td><span class="badge badge-green">200</span></td><td>Data</td><td>0 fields</td><td>0.7</td></tr>
+		<tr><td><code>/AlertDefDoc.html</code></td><td>AlertDefDoc</td><td><span class="badge badge-green">200</span></td><td>Definition</td><td>0 fields</td><td>0.7</td></tr>
+	</tbody>
+</table>
+
+<h3>Legal Documents</h3>
+<table>
+	<thead><tr><th>URL</th><th>Title</th><th>Status</th><th>Content Type</th><th>Priority</th></tr></thead>
+	<tbody>
+		<tr><td><code>/assets/RegnoStandardPrivacyPolicy.html</code></td><td>Privacy Policy</td><td><span class="badge badge-green">200</span></td><td>Legal</td><td>0.7</td></tr>
+		<tr><td><code>/assets/RegnoStandarPrivacyPolicy.html</code></td><td>Privacy Policy (Alt)</td><td><span class="badge badge-green">200</span></td><td>Legal</td><td>0.7</td></tr>
+	</tbody>
+</table>
+
+<h2>Content Taxonomy &amp; Structure Analysis</h2>
+
+<h3>Document Hierarchy</h3>
+<div class="mermaid-container">
+<pre class="mermaid">
+graph LR
+    A[ConfigDoc] --> B[Root Configuration]
+    A --> C[SubConfigDoc]
+    C --> D[Version Control]
+
+    E[Definition Docs] --> F[ParamDefinitionDoc]
+    E --> G[EventDefinitionDoc]
+    E --> H[CANMessageDefinitionDoc]
+    E --> I[ConversionDefDoc]
+
+    J[Data Docs] --> K[ParamSamplesDoc]
+    J --> L[EventDataDoc]
+    J --> M[MediaDataDoc]
+    J --> N[Parameter Values]
+
+    N --> O[ParamScalarValueDoc]
+    N --> P[ParamArrayValueDoc]
+    N --> Q[Param2DMapValueDoc]
+    N --> R[Param3DMapValueDoc]
+</pre>
+</div>
+
+<h3>Content Classification</h3>
+<div class="grid-2">
+	<div class="card">
+		<h4>1. Core Standards (6 pages)</h4>
+		<ul>
+			<li>Documentation styles and conventions</li>
+			<li>Naming conventions</li>
+			<li>Format strings (C-style)</li>
+			<li>Unique ID generation (hash-based)</li>
+			<li>Status and location information</li>
+		</ul>
+	</div>
+	<div class="card">
+		<h4>2. Configuration Documents (5 pages)</h4>
+		<ul>
+			<li><strong>ConfigDoc</strong>: Root configuration container (13 fields)</li>
+			<li><strong>SubConfigDoc</strong>: Version and group management (10 fields)</li>
+			<li><strong>IdentityDoc</strong>: Ownership and access control (3 fields)</li>
+			<li><strong>ConfigDefinitionsDoc</strong>: Definition collections (6 fields)</li>
+			<li><strong>ConfigParamDefsDoc</strong>: Parameter frequency metadata (11 fields)</li>
+		</ul>
+	</div>
+	<div class="card">
+		<h4>3. Definition Documents (6 pages)</h4>
+		<ul>
+			<li><strong>ParamDefinitionDoc</strong>: Parameter specifications (11 fields)</li>
+			<li><strong>EventDefinitionDoc</strong>: Event type definitions (7 fields)</li>
+			<li><strong>CANMessageDefinitionDoc</strong>: CAN bus message specs (8 fields)</li>
+			<li><strong>CANSignalDefinitionDoc</strong>: CAN signal specifications (17 fields)</li>
+			<li><strong>ConversionDefDoc</strong>: Data conversion logic (9 fields)</li>
+			<li><strong>AliasDefinitionDoc</strong>: Parameter aliases (4 fields)</li>
+		</ul>
+	</div>
+	<div class="card">
+		<h4>4. Data Documents (14 pages)</h4>
+		<ul>
+			<li><strong>Time-series</strong>: ParamSamplesDoc (compressed arrays)</li>
+			<li><strong>Config values</strong>: Scalar, String, Array formats</li>
+			<li><strong>Multi-dimensional</strong>: 2D and 3D parameter maps</li>
+			<li><strong>Events</strong>: Timestamped event instances</li>
+			<li><strong>Media</strong>: Video/audio file metadata</li>
+			<li><strong>Statistics</strong>: Calculated metrics and aggregations</li>
+			<li><strong>Tags</strong>: Key-value metadata pairs</li>
+		</ul>
+	</div>
+</div>
+
+<h2>Technical Observations</h2>
+
+<h3>Site Architecture Insights</h3>
+<ol>
+	<li><strong>Document Database Design:</strong> Every page represents a JSON document type in a NoSQL database schema</li>
+	<li><strong>API-First Documentation:</strong> Each page is essentially REST API documentation for document endpoints</li>
+	<li><strong>Microservice Architecture:</strong> Documents are designed for distributed storage and processing</li>
+	<li><strong>Performance Optimization:</strong> Compressed data arrays (GZip) for high-frequency telemetry data</li>
+</ol>
+
+<h3>Key Technical Features</h3>
+<div class="mermaid-container">
+<pre class="mermaid">
+pie title Document Distribution by Category
+    "Data Documents" : 14
+    "Definition Documents" : 6
+    "Configuration Documents" : 5
+    "Core Standards" : 6
+    "Support/Legal" : 9
+</pre>
+</div>
+
+<h3>Advanced Data Handling</h3>
+<div class="grid-2">
+	<div class="card">
+		<h4>Compression Implementation</h4>
+		<ul>
+			<li><strong>GZip compression</strong> for <code>sampleTimes</code> and <code>sampleValues</code> arrays</li>
+			<li><strong>Multiple data types:</strong> Double, Long, Integer, Short, Float, Byte</li>
+			<li><strong>Language examples:</strong> C#, JavaScript, Python implementations provided</li>
+		</ul>
+	</div>
+	<div class="card">
+		<h4>Unique ID System</h4>
+		<ul>
+			<li><strong>Hash-based IDs</strong> for document deduplication</li>
+			<li><strong>Reusability:</strong> Same documents across multiple configurations</li>
+			<li><strong>Merge capability:</strong> Data pools from different sources</li>
+		</ul>
+	</div>
+</div>
+
+<h2>Content Quality Assessment</h2>
+
+<h3>Completeness Analysis</h3>
+<table>
+	<thead><tr><th>Section</th><th>Pages</th><th>Completeness</th><th>Quality</th></tr></thead>
+	<tbody>
+		<tr><td>Core Standards</td><td>6</td><td><span class="badge badge-green">100%</span></td><td>Excellent</td></tr>
+		<tr><td>Configuration Docs</td><td>5</td><td><span class="badge badge-green">100%</span></td><td>Excellent</td></tr>
+		<tr><td>Definition Docs</td><td>6</td><td><span class="badge badge-green">100%</span></td><td>Excellent</td></tr>
+		<tr><td>Data Docs</td><td>14</td><td><span class="badge badge-green">100%</span></td><td>Excellent</td></tr>
+		<tr><td>Support/Legal</td><td>9</td><td><span class="badge badge-green">100%</span></td><td>Good</td></tr>
+		<tr><td>Alert System</td><td>2</td><td><span class="badge badge-yellow">Placeholder</span></td><td>Incomplete</td></tr>
+	</tbody>
+</table>
+
+<h3>Technical Documentation Quality</h3>
+<div class="grid-2">
+	<div class="card">
+		<h4>Strengths</h4>
+		<ul>
+			<li>Comprehensive field tables for every document type</li>
+			<li>JSON schema examples for all specifications</li>
+			<li>Detailed data type definitions</li>
+			<li>Multi-language implementation examples</li>
+			<li>Clear naming conventions and standards</li>
+		</ul>
+	</div>
+	<div class="card">
+		<h4>Areas for Enhancement</h4>
+		<ul>
+			<li>Alert system documents are placeholder content only</li>
+			<li>Some legacy URL duplicates (privacy policy typo)</li>
+			<li>Could benefit from interactive examples</li>
+		</ul>
+	</div>
+</div>
+
+<h2>Industry Applications</h2>
+
+<h3>Target Sectors</h3>
+<div class="mermaid-container">
+<pre class="mermaid">
+mindmap
+  root((Regno Standard Applications))
+    Aerospace
+      Aircraft Telemetry
+      Mission Data
+      Engine Parameters
+    Racing &amp; Motorsport
+      F1 Telemetry
+      Vehicle ECU Data
+      Lap Analysis
+    Energy Sector
+      Industrial IoT
+      Grid Monitoring
+      Renewable Systems
+    Automotive
+      ECU Data
+      CAN Bus Messages
+      Vehicle Testing
+</pre>
+</div>
+
+<h2>Robots.txt Analysis</h2>
+<div class="summary-box">
+	<h4>Crawling Restrictions</h4>
+	<ul>
+		<li>Allow all content by default</li>
+		<li>Disallow <code>/assets/</code> directory</li>
+		<li>Block JSON and XML file access</li>
+		<li>Crawl-delay: 1 second</li>
+		<li>Blocks aggressive SEO crawlers (MJ12bot, AhrefsBot, SemrushBot)</li>
+	</ul>
+</div>
+
+<h2>Site Metadata</h2>
+<div class="grid-2">
+	<div class="card">
+		<h4>Technical Details</h4>
+		<ul>
+			<li><strong>Last Modified:</strong> Most pages updated November 19, 2025</li>
+			<li><strong>Change Frequency:</strong> Monthly for most technical docs</li>
+			<li><strong>XML Sitemap:</strong> Complete with 40 documented URLs</li>
+			<li><strong>Copyright:</strong> &copy; 2021 Regno Ltd. All rights reserved</li>
+			<li><strong>License:</strong> Creative Commons Attribution-NonCommercial-NoDerivatives 4.0</li>
+		</ul>
+	</div>
+	<div class="card">
+		<h4>Contact &amp; Governance</h4>
+		<ul>
+			<li><strong>Owner:</strong> Regno Ltd (UK)</li>
+			<li><strong>Governance:</strong> Regno Standard Working Group</li>
+			<li><strong>Support:</strong> GitHub Issues preferred</li>
+			<li><strong>Commercial Use:</strong> Contact required for licensing</li>
+		</ul>
+	</div>
+</div>
+
+<h2>Recommendations</h2>
+<div class="grid-2">
+	<div class="card">
+		<h4>For Site Maintenance</h4>
+		<ol>
+			<li><strong>Complete Alert System:</strong> Populate AlertDataDoc and AlertDefDoc with actual specifications</li>
+			<li><strong>Fix URL Duplicate:</strong> Resolve privacy policy URL typo (<code>RegnoStandar</code> vs <code>RegnoStandard</code>)</li>
+			<li><strong>Update Copyright:</strong> Consider updating 2021 copyright date</li>
+			<li><strong>Add Search:</strong> Technical documentation would benefit from search functionality</li>
+		</ol>
+	</div>
+	<div class="card">
+		<h4>For Users/Implementers</h4>
+		<ol>
+			<li><strong>Start with ConfigDoc:</strong> Root document that ties everything together</li>
+			<li><strong>Focus on ParamSamplesDoc:</strong> Core time-series data handling</li>
+			<li><strong>Implement Compression:</strong> Essential for high-frequency telemetry data</li>
+			<li><strong>Use Working Group:</strong> Engage for standards evolution and support</li>
+		</ol>
+	</div>
+</div>
+
+<hr>
+<div class="meta" style="margin-top: 1rem; margin-bottom: 0;">
+	<strong>Analysis completed:</strong> Tuesday, January 27, 2026 &nbsp;|&nbsp;
+	<strong>Total URLs analyzed:</strong> 40 &nbsp;|&nbsp;
+	<strong>Documentation completeness:</strong> 95% (38/40 pages fully populated) &nbsp;|&nbsp;
+	<span class="badge badge-green">Complete</span>
+</div>
+
+<script>
+	mermaid.initialize({
+		startOnLoad: true,
+		theme: 'dark',
+		themeVariables: {
+			primaryColor: '#7c3aed',
+			primaryTextColor: '#e6edf3',
+			primaryBorderColor: '#30363d',
+			lineColor: '#8b949e',
+			secondaryColor: '#161b22',
+			tertiaryColor: '#0d1117'
+		}
+	});
+</script>
+</body>
+</html>

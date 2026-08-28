@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kyma BMS - Battery Management System Tricks | Regno AI</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --border-color: #30363d;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .header .meta {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--accent-cyan);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .section p.summary {
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-cyan);
+        }
+
+        /* Tricks Grid */
+        .tricks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .trick-card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .trick-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-cyan);
+        }
+
+        .trick-card .trick-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .trick-card h3 {
+            font-size: 1.1rem;
+            color: var(--accent-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .trick-card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-cyan { color: var(--accent-cyan); }
+        .highlight-green { color: var(--accent-green); }
+        .highlight-blue { color: var(--accent-blue); }
+
+        /* Architecture Box */
+        .architecture-box {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 2px solid var(--border-color);
+            text-align: center;
+        }
+
+        .architecture-box h4 {
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .architecture-flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .flow-box {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .flow-box.software { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); color: white; }
+        .flow-box.pcs { background: linear-gradient(135deg, var(--accent-cyan), #0891b2); color: white; }
+        .flow-box.battery { background: linear-gradient(135deg, var(--accent-green), #16a34a); color: white; }
+        .flow-box.generator { background: linear-gradient(135deg, var(--accent-orange), #ea580c); color: white; }
+
+        .flow-arrow {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+            }
+
+            .tricks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .architecture-flow {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Kyma Battery Management System</h1>
+            <p class="subtitle">Software-Defined Energy Control for Industrial BESS</p>
+            <div class="meta">
+                <span class="badge badge-cyan">Dual-Inverter Topology</span>
+                <span class="badge badge-green">Hardware-Agnostic</span>
+                <span class="badge badge-purple">Real-Time Control</span>
+                <span class="badge badge-orange">Remote Access</span>
+            </div>
+            <p class="meta" style="margin-top: 1rem;">
+                Technical Summary | Generated by Regno AI | January 2026
+            </p>
+        </header>
+
+        <!-- BMS Summary Section -->
+        <section class="section">
+            <h2>Battery Management System Overview</h2>
+            <p class="summary">
+                The <span class="highlight-cyan">Kyma Battery Management System (BMS)</span> is a software-defined energy control platform that orchestrates industrial battery energy storage systems through a <span class="highlight">dual-inverter topology</span> separating charging (OnGrid PCS) and discharging (OffGrid PCS) paths. The system features a sophisticated <span class="highlight-cyan">Model layer</span> that manages state machine logic, decision arbitration, and safety enforcement while generating real-time setpoints for power conversion equipment, combined with a <span class="highlight-green">Dashboard platform</span> providing supervisory control, fault tolerance orchestration, and remote monitoring capabilities&mdash;enabling hardware-independent deployment across diverse battery chemistries and inverter configurations while handling demanding operational scenarios including overnight trickle charging, inrush events up to 230 kW, and seamless transitions between grid-connected and islanded operation modes.
+            </p>
+        </section>
+
+        <!-- Architecture Section -->
+        <section class="section">
+            <h2>System Architecture</h2>
+            <div class="architecture-box">
+                <h4>Kyma BESS Control Stack</h4>
+                <div class="architecture-flow">
+                    <div class="flow-box software">Dashboard<br/><small>Supervisory Control</small></div>
+                    <span class="flow-arrow">&darr;</span>
+                    <div class="flow-box software">Model<br/><small>State Machine</small></div>
+                    <span class="flow-arrow">&darr;</span>
+                </div>
+                <div class="architecture-flow">
+                    <div class="flow-box pcs">OnGrid PCS<br/><small>Charging Path</small></div>
+                    <span class="flow-arrow">&harr;</span>
+                    <div class="flow-box battery">Battery Bank<br/><small>Energy Storage</small></div>
+                    <span class="flow-arrow">&harr;</span>
+                    <div class="flow-box pcs">OffGrid PCS<br/><small>Discharge Path</small></div>
+                </div>
+                <div class="architecture-flow" style="margin-top: 1rem;">
+                    <div class="flow-box generator">Generator<br/><small>Backup Power</small></div>
+                </div>
+                <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                    Decoupled architecture enables independent charging and discharging operations
+                </p>
+            </div>
+        </section>
+
+        <!-- Tricks Section -->
+        <section class="section">
+            <h2>The Tricks</h2>
+            <p>Key capabilities that differentiate the Kyma BMS from conventional battery management systems:</p>
+
+            <div class="tricks-grid">
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F50C;</div>
+                    <h3>Hardware-Independent Deployment</h3>
+                    <p>Decoupled communication layer allows the same control software to operate across different battery chemistries, inverter brands, and PCS configurations without code changes.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F504;</div>
+                    <h3>Dual-Inverter Independence</h3>
+                    <p>OnGrid and OffGrid PCS operate independently, enabling simultaneous charging from grid while discharging to load, or complete grid isolation during outages.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x26A1;</div>
+                    <h3>230 kW Inrush Handling</h3>
+                    <p>Sophisticated state machine manages extreme inrush events up to 230 kW, automatically adjusting setpoints and coordinating PCS response in real-time.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F319;</div>
+                    <h3>Overnight Trickle Charging</h3>
+                    <p>Intelligent charging algorithms optimize overnight charge cycles at low C-rates, extending battery life while ensuring full capacity for peak demand periods.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F4F1;</div>
+                    <h3>Remote Access & Control</h3>
+                    <p>Full supervisory control available remotely through the Dashboard platform, enabling parameter adjustment, fault diagnosis, and operational mode changes from anywhere.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F6E1;</div>
+                    <h3>Fault Tolerance Orchestration</h3>
+                    <p>Automatic failover between power sources (grid, battery, generator) with seamless transitions and coordinated safety enforcement across all subsystems.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F4CA;</div>
+                    <h3>Real-Time Setpoint Generation</h3>
+                    <p>Model layer continuously computes optimal power setpoints based on current state, load demands, grid conditions, and battery health parameters.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F500;</div>
+                    <h3>Seamless Mode Transitions</h3>
+                    <p>Smooth switching between grid-connected, islanded, and hybrid operation modes without power interruption to critical loads.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Generated by Regno AI | Kyma BMS Technical Summary</p>
+            <p>ZnT Site Deployment Reference | January 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

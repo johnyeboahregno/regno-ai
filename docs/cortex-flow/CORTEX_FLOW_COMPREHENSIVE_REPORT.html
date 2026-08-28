@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cortex Flow - The World's Most Advanced Multi-Framework AI Orchestration Platform</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --accent-yellow: #fbbf24;
+            --accent-pink: #ec4899;
+            --accent-teal: #20B2AA;
+            --border-color: #30363d;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .hero { text-align: center; padding: 4rem 2rem; background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(88, 166, 255, 0.1) 50%, rgba(34, 211, 238, 0.1) 100%); border-radius: 24px; border: 1px solid var(--border-color); margin-bottom: 3rem; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue), var(--accent-cyan), var(--accent-green)); }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: white; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 50%, var(--accent-cyan) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero .subtitle { font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 1rem; }
+        .hero .tagline { font-size: 1.1rem; color: var(--accent-cyan); font-weight: 500; }
+        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; margin: 0.25rem; }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-teal { background: rgba(32, 178, 170, 0.2); color: var(--accent-teal); }
+        .badge-pink { background: rgba(236, 72, 153, 0.2); color: var(--accent-pink); }
+        .executive-summary { background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, var(--bg-secondary) 100%); border-radius: 16px; padding: 2.5rem; margin-bottom: 3rem; border: 2px solid var(--accent-purple); position: relative; }
+        .executive-summary::before { content: 'EXECUTIVE SUMMARY'; position: absolute; top: -12px; left: 24px; background: var(--bg-primary); padding: 0 12px; font-size: 0.75rem; font-weight: 700; color: var(--accent-purple); letter-spacing: 0.1em; }
+        .executive-summary h2 { font-size: 1.75rem; color: var(--text-primary); margin-bottom: 1rem; }
+        .executive-summary p { font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; }
+        .executive-summary .highlight { color: var(--accent-purple); font-weight: 600; }
+        .stats-banner { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin: 2rem 0 3rem; }
+        .stat-item { text-align: center; padding: 1.5rem; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); }
+        .stat-item .number { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .stat-item .label { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem; }
+        .section { background: var(--bg-secondary); border-radius: 16px; padding: 2.5rem; margin-bottom: 2rem; border: 1px solid var(--border-color); }
+        .section h2 { font-size: 1.75rem; color: var(--accent-purple); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border-color); display: flex; align-items: center; gap: 12px; }
+        .section h3 { font-size: 1.25rem; color: var(--text-primary); margin: 1.5rem 0 1rem; }
+        .section p { color: var(--text-secondary); margin-bottom: 1rem; }
+        .infographic { background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%); border-radius: 16px; padding: 3rem; margin: 2rem 0; border: 2px solid var(--border-color); }
+        .visual-diagram { text-align: center; }
+        .diagram-row { display: flex; justify-content: center; align-items: center; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }
+        .diagram-box { padding: 1rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; min-width: 120px; text-align: center; color: white; }
+        .diagram-arrow-down { font-size: 2rem; color: var(--text-muted); margin: 0.5rem 0; }
+        .framework-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+        .framework-card { background: var(--bg-tertiary); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-color); transition: all 0.3s; position: relative; overflow: hidden; }
+        .framework-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+        .framework-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.4); }
+        .framework-card .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+        .framework-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .framework-card h4 { font-size: 1.1rem; color: var(--text-primary); }
+        .framework-card .provider { font-size: 0.8rem; color: var(--text-muted); }
+        .framework-card p { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; }
+        .framework-card .features { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .framework-card .feature-tag { padding: 4px 10px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary); }
+        .diff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+        .diff-card { background: var(--bg-tertiary); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-color); position: relative; }
+        .diff-card .diff-number { position: absolute; top: -12px; left: 20px; width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: white; }
+        .diff-card h4 { color: var(--text-primary); margin-bottom: 0.75rem; padding-top: 0.5rem; }
+        .diff-card p { font-size: 0.9rem; color: var(--text-secondary); }
+        .diff-card .diff-highlight { margin-top: 1rem; padding: 0.75rem; background: rgba(168, 85, 247, 0.1); border-radius: 8px; font-size: 0.85rem; color: var(--accent-purple); font-weight: 500; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.85rem; }
+        .comparison-table th { background: var(--bg-tertiary); padding: 0.75rem; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-purple); border-bottom: 2px solid var(--border-color); }
+        .comparison-table td { padding: 0.75rem; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+        .comparison-table .check { color: var(--accent-green); font-weight: 600; }
+        .comparison-table .cross { color: var(--accent-red); }
+        .comparison-table .partial { color: var(--accent-yellow); }
+        .callout { border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; border-left: 4px solid; }
+        .callout-purple { background: rgba(168, 85, 247, 0.1); border-color: var(--accent-purple); }
+        .callout-blue { background: rgba(88, 166, 255, 0.1); border-color: var(--accent-blue); }
+        .callout-cyan { background: rgba(34, 211, 238, 0.1); border-color: var(--accent-cyan); }
+        .callout-green { background: rgba(63, 185, 80, 0.1); border-color: var(--accent-green); }
+        .callout h4 { margin-bottom: 0.5rem; color: var(--text-primary); }
+        .model-matrix { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin: 1.5rem 0; }
+        .model-col { background: var(--bg-tertiary); border-radius: 12px; padding: 1rem; border: 1px solid var(--border-color); }
+        .model-col h5 { font-size: 0.9rem; color: var(--text-primary); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+        .model-col ul { list-style: none; padding: 0; }
+        .model-col li { font-size: 0.8rem; color: var(--text-secondary); padding: 0.25rem 0; }
+        .footer { text-align: center; padding: 3rem 0; border-top: 1px solid var(--border-color); margin-top: 3rem; }
+        .footer .logo { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 1rem; }
+        .footer p { color: var(--text-muted); font-size: 0.9rem; }
+        .claude-card::before { background: linear-gradient(135deg, #D4A574, #C19660); }
+        .openai-card::before { background: linear-gradient(135deg, #10a37f, #0d8c6d); }
+        .gemini-card::before { background: linear-gradient(135deg, #4285F4, #EA4335); }
+        .llama-card::before { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .perplexity-card::before { background: linear-gradient(135deg, #20B2AA, #008B8B); }
+        .langgraph-card::before { background: linear-gradient(135deg, #FF6B6B, #4ECDC4); }
+        .multiagent-card::before { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .debate-card::before { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .auto-card::before { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .pipeline-card::before { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        @media (max-width: 1024px) { .stats-banner { grid-template-columns: repeat(3, 1fr); } .model-matrix { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .hero h1 { font-size: 2.25rem; } .stats-banner { grid-template-columns: repeat(2, 1fr); } .model-matrix { grid-template-columns: repeat(2, 1fr); } .framework-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="hero">
+            <div class="hero-badge"><span>🚀</span><span>JANUARY 2026 RELEASE</span></div>
+            <h1>Cortex Flow</h1>
+            <p class="subtitle">The World's Most Advanced Multi-Framework AI Orchestration Platform</p>
+            <p class="tagline">10 Frameworks • 50+ Models • Infinite Possibilities</p>
+            <p style="margin-top: 1.5rem;"><span class="badge badge-purple">v2.0</span><span class="badge badge-blue">Enterprise Ready</span><span class="badge badge-green">Production Stable</span><span class="badge badge-cyan">Multi-Provider</span></p>
+        </header>
+        <div class="stats-banner">
+            <div class="stat-item"><div class="number">10</div><div class="label">AI Frameworks</div></div>
+            <div class="stat-item"><div class="number">50+</div><div class="label">AI Models</div></div>
+            <div class="stat-item"><div class="number">8</div><div class="label">Llama Providers</div></div>
+            <div class="stat-item"><div class="number">2M</div><div class="label">Max Context Tokens</div></div>
+            <div class="stat-item"><div class="number">∞</div><div class="label">Orchestration Patterns</div></div>
+        </div>
+        <div class="executive-summary">
+            <h2>Redefining Enterprise AI Orchestration</h2>
+            <p><span class="highlight">Cortex Flow</span> is the industry's first and only platform to unify <span class="highlight">10 distinct AI frameworks</span> under a single, intelligent orchestration layer. Unlike single-vendor solutions that lock you into one provider's ecosystem, Cortex Flow gives you <span class="highlight">unprecedented access to every major AI provider</span>—Anthropic's Claude, OpenAI's GPT-5, Google's Gemini 3, Meta's Llama 4, and Perplexity's search-native AI—all through one unified interface with <span class="highlight">intelligent routing, cost optimization, and enterprise-grade reliability</span>.</p>
+            <p style="margin-top: 1rem;">What sets Cortex Flow apart is not just breadth, but <span class="highlight">depth</span>. Advanced orchestration patterns including <span class="highlight">stateful workflows with checkpoints</span>, <span class="highlight">multi-agent collaboration</span>, and <span class="highlight">adversarial debate frameworks</span> enable enterprise use cases that were previously impossible.</p>
+        </div>
+        <div class="section">
+            <h2><span>🏗️</span> System Architecture Overview</h2>
+            <div class="infographic">
+                <div class="visual-diagram">
+                    <h3 style="color: var(--accent-cyan); margin-bottom: 1.5rem;">Cortex Flow Multi-Framework Architecture</h3>
+                    <div class="diagram-row"><div class="diagram-box" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); min-width: 300px;">📱 Application Layer<br><small>Chat • Pipelines • Stage • APIs</small></div></div>
+                    <div class="diagram-arrow-down">⬇️</div>
+                    <div class="diagram-row"><div class="diagram-box" style="background: linear-gradient(135deg, #a855f7, #ec4899); min-width: 400px;">🧠 Cortex Flow Orchestration Engine<br><small>Intelligent Routing • Cost Tracking • Event Streaming</small></div></div>
+                    <div class="diagram-arrow-down">⬇️</div>
+                    <div class="diagram-row">
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #D4A574, #C19660);">🤖 Claude</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #10a37f, #0d8c6d);">💚 OpenAI</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #4285F4, #EA4335);">💎 Gemini</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">🦙 Llama</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #20B2AA, #008B8B);">🔍 Perplexity</div>
+                    </div>
+                    <div class="diagram-row">
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #FF6B6B, #4ECDC4);">📊 LangGraph</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #667eea, #764ba2);">👥 Multi-Agent</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #f093fb, #f5576c);">⚖️ Debate</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">🎯 Auto</div>
+                        <div class="diagram-box" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">🔗 Pipeline</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <h2><span>🎛️</span> 10 AI Frameworks - Complete Ecosystem</h2>
+            <h3 style="color: var(--accent-cyan);">Direct Model Executors</h3>
+            <div class="framework-grid">
+                <div class="framework-card claude-card"><div class="card-header"><div class="icon" style="background: rgba(212, 165, 116, 0.2);">🤖</div><div><h4>Claude</h4><span class="provider">Anthropic</span></div></div><p>Industry-leading reasoning with extended thinking. Claude Opus 4.5 and Sonnet 4.5 with up to 200K context and 128K thinking tokens.</p><div class="features"><span class="feature-tag">Extended Thinking</span><span class="feature-tag">200K Context</span><span class="feature-tag">Vision</span><span class="feature-tag">Tool Use</span></div></div>
+                <div class="framework-card openai-card"><div class="card-header"><div class="icon" style="background: rgba(16, 163, 127, 0.2);">💚</div><div><h4>OpenAI</h4><span class="provider">OpenAI</span></div></div><p>GPT-5, GPT-4.1, and o3 reasoning models with DALL-E 3 integration, code interpreter, and structured output support.</p><div class="features"><span class="feature-tag">GPT-5</span><span class="feature-tag">o3 Reasoning</span><span class="feature-tag">DALL-E 3</span><span class="feature-tag">JSON Mode</span></div></div>
+                <div class="framework-card gemini-card"><div class="card-header"><div class="icon" style="background: rgba(66, 133, 244, 0.2);">💎</div><div><h4>Gemini</h4><span class="provider">Google</span></div></div><p>Gemini 3 family with 2M token context, native video/audio analysis, image generation, and Google Search grounding.</p><div class="features"><span class="feature-tag">2M Context</span><span class="feature-tag">Video Analysis</span><span class="feature-tag">Audio Processing</span><span class="feature-tag">Google Grounding</span></div></div>
+                <div class="framework-card llama-card"><div class="card-header"><div class="icon" style="background: rgba(139, 92, 246, 0.2);">🦙</div><div><h4>Llama</h4><span class="provider">Meta • 8 Providers</span></div></div><p>Llama 4, 3.3, Code Llama, and Llama Guard via Together, Groq, Fireworks, Ollama, vLLM, Bedrock, and Azure.</p><div class="features"><span class="feature-tag">Llama 4</span><span class="feature-tag">Code Llama</span><span class="feature-tag">Self-Hosted</span><span class="feature-tag">8 Providers</span></div></div>
+                <div class="framework-card perplexity-card"><div class="card-header"><div class="icon" style="background: rgba(32, 178, 170, 0.2);">🔍</div><div><h4>Perplexity</h4><span class="provider">Perplexity AI</span></div></div><p>Search-native AI with real-time web grounding. Sonar models with automatic citations, recency filtering, and domain control.</p><div class="features"><span class="feature-tag">Real-Time Search</span><span class="feature-tag">Auto Citations</span><span class="feature-tag">Recency Filter</span><span class="feature-tag">Domain Filtering</span></div></div>
+            </div>
+            <h3 style="color: var(--accent-purple);">Orchestration Executors</h3>
+            <div class="framework-grid">
+                <div class="framework-card langgraph-card"><div class="card-header"><div class="icon" style="background: rgba(255, 107, 107, 0.2);">📊</div><div><h4>LangGraph</h4><span class="provider">Stateful Workflows</span></div></div><p>Complex workflows with MongoDB checkpoints, human-in-the-loop via interrupt(), and choice of underlying model.</p><div class="features"><span class="feature-tag">Checkpoints</span><span class="feature-tag">Human-in-Loop</span><span class="feature-tag">Pause/Resume</span><span class="feature-tag">State Graphs</span></div></div>
+                <div class="framework-card multiagent-card"><div class="card-header"><div class="icon" style="background: rgba(102, 126, 234, 0.2);">👥</div><div><h4>Multi-Agent</h4><span class="provider">Collaborative AI</span></div></div><p>7 specialized agent roles with parallel/sequential/adaptive execution and inter-agent communication.</p><div class="features"><span class="feature-tag">7 Agent Roles</span><span class="feature-tag">Parallel Execution</span><span class="feature-tag">Task Decomposition</span></div></div>
+                <div class="framework-card debate-card"><div class="card-header"><div class="icon" style="background: rgba(240, 147, 251, 0.2);">⚖️</div><div><h4>Debate</h4><span class="provider">Adversarial Analysis</span></div></div><p>Advocate/Critic/Judge pattern for balanced decision-making with 1-3 rounds.</p><div class="features"><span class="feature-tag">Advocate/Critic/Judge</span><span class="feature-tag">Multi-Round</span><span class="feature-tag">Evidence-Based</span></div></div>
+                <div class="framework-card auto-card"><div class="card-header"><div class="icon" style="background: rgba(79, 172, 254, 0.2);">🎯</div><div><h4>Auto Router</h4><span class="provider">Intelligent Selection</span></div></div><p>Analyzes tasks and routes to optimal framework with cost awareness and capability matching.</p><div class="features"><span class="feature-tag">Task Analysis</span><span class="feature-tag">Cost-Aware</span><span class="feature-tag">Hybrid Pipelines</span></div></div>
+                <div class="framework-card pipeline-card"><div class="card-header"><div class="icon" style="background: rgba(67, 233, 123, 0.2);">🔗</div><div><h4>Pipeline</h4><span class="provider">Multi-Stage Workflows</span></div></div><p>Chain multiple frameworks in stages with 6 presets and quality gates.</p><div class="features"><span class="feature-tag">6 Presets</span><span class="feature-tag">Stage Chaining</span><span class="feature-tag">Quality Gates</span></div></div>
+            </div>
+        </div>
+        <div class="section">
+            <h2><span>🏆</span> Why Cortex Flow is #1 - Key Differentiators</h2>
+            <div class="diff-grid">
+                <div class="diff-card"><div class="diff-number">1</div><h4>True Multi-Framework Orchestration</h4><p>10 distinct frameworks with 50+ models. Switch between Claude, GPT-5, Gemini 3, Llama 4, and Perplexity instantly.</p><div class="diff-highlight">🎯 10 frameworks vs competitors' 1-3</div></div>
+                <div class="diff-card"><div class="diff-number">2</div><h4>Intelligent Auto-Routing</h4><p>AI-powered framework selection with task analysis, capability matching, and cost optimization.</p><div class="diff-highlight">🧠 Automatic optimal framework selection</div></div>
+                <div class="diff-card"><div class="diff-number">3</div><h4>Advanced Orchestration Patterns</h4><p>Stateful workflows, multi-agent collaboration, adversarial debate, and multi-stage pipelines.</p><div class="diff-highlight">📊 LangGraph + Multi-Agent + Debate + Pipelines</div></div>
+                <div class="diff-card"><div class="diff-number">4</div><h4>Real-Time Search with Citations</h4><p>Perplexity integration with live web data and automatic inline citations.</p><div class="diff-highlight">🔍 Built-in real-time web search + citations</div></div>
+                <div class="diff-card"><div class="diff-number">5</div><h4>8-Provider Llama Ecosystem</h4><p>Deploy via Together, Groq, Fireworks, Bedrock, Azure, Ollama, or vLLM.</p><div class="diff-highlight">🦙 8 deployment options from cloud to local</div></div>
+                <div class="diff-card"><div class="diff-number">6</div><h4>Human-in-the-Loop Built In</h4><p>LangGraph's interrupt() pattern enables approval workflows and review checkpoints.</p><div class="diff-highlight">👤 Native pause/resume with user approval</div></div>
+                <div class="diff-card"><div class="diff-number">7</div><h4>Unified Cost Tracking</h4><p>Real-time tracking across all frameworks with budget limits and optimization.</p><div class="diff-highlight">💰 Cross-framework cost analytics</div></div>
+                <div class="diff-card"><div class="diff-number">8</div><h4>2M Token Context Support</h4><p>Gemini 3's 2M context handles entire codebases. Claude provides 200K.</p><div class="diff-highlight">📚 Gemini 2M + Claude 200K context</div></div>
+            </div>
+        </div>
+        <div class="section">
+            <h2><span>📊</span> Capability Matrix</h2>
+            <div style="overflow-x: auto;">
+                <table class="comparison-table">
+                    <thead><tr><th>Capability</th><th>Claude</th><th>OpenAI</th><th>Gemini</th><th>Llama</th><th>Perplexity</th><th>LangGraph</th><th>Multi-Agent</th><th>Debate</th><th>Auto</th><th>Pipeline</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Streaming</strong></td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+                        <tr><td><strong>Tool Use</strong></td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+                        <tr><td><strong>Vision</strong></td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="partial">◐</td><td class="partial">◐</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+                        <tr><td><strong>Extended Thinking</strong></td><td class="check">✓</td><td class="partial">◐</td><td class="cross">✗</td><td class="cross">✗</td><td class="partial">◐</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td></tr>
+                        <tr><td><strong>Real-Time Search</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td></tr>
+                        <tr><td><strong>Auto Citations</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td></tr>
+                        <tr><td><strong>Checkpoints</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+                        <tr><td><strong>Human-in-Loop</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+                        <tr><td><strong>Self-Hosted</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+                        <tr><td><strong>Max Context</strong></td><td>200K</td><td>128K</td><td>2M</td><td>128K</td><td>200K</td><td>Varies</td><td>Varies</td><td>Varies</td><td>Varies</td><td>Varies</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section">
+            <h2><span>🎨</span> Complete Model Catalog (50+ Models)</h2>
+            <div class="model-matrix">
+                <div class="model-col"><h5 style="color: #D4A574;">🤖 Claude</h5><ul><li>claude-opus-4-5</li><li>claude-sonnet-4-5</li><li>claude-haiku-4-5</li><li>claude-3-opus</li><li>claude-3-sonnet</li></ul></div>
+                <div class="model-col"><h5 style="color: #10a37f;">💚 OpenAI</h5><ul><li>gpt-5 / gpt-5-mini</li><li>gpt-4.1 / gpt-4.1-mini</li><li>o3 / o3-mini</li><li>gpt-4o / gpt-4o-mini</li></ul></div>
+                <div class="model-col"><h5 style="color: #4285F4;">💎 Gemini</h5><ul><li>gemini-3-ultra/pro/flash</li><li>gemini-2.5-pro/flash</li><li>gemini-2.0-flash</li></ul></div>
+                <div class="model-col"><h5 style="color: #8b5cf6;">🦙 Llama</h5><ul><li>llama-4-maverick-17b</li><li>llama-3.3-70b</li><li>llama-3.2-90b-vision</li><li>code-llama-70b</li><li>llama-guard-3-8b</li></ul></div>
+                <div class="model-col"><h5 style="color: #20B2AA;">🔍 Perplexity</h5><ul><li>sonar / sonar-pro</li><li>sonar-reasoning</li><li>sonar-reasoning-pro</li><li>sonar-deep-research</li></ul></div>
+            </div>
+        </div>
+        <div class="section">
+            <h2><span>🎯</span> Use Case → Framework Mapping</h2>
+            <div style="overflow-x: auto;">
+                <table class="comparison-table">
+                    <thead><tr><th>Use Case</th><th>Recommended</th><th>Why</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Research with citations</strong></td><td><span class="badge badge-teal">Perplexity</span></td><td>Built-in web search with automatic source attribution</td></tr>
+                        <tr><td><strong>Complex reasoning</strong></td><td><span class="badge badge-orange">Claude</span></td><td>Extended thinking with up to 128K thinking tokens</td></tr>
+                        <tr><td><strong>Code generation</strong></td><td><span class="badge badge-orange">Claude</span> <span class="badge badge-purple">Llama</span></td><td>Strong coding capabilities; Code Llama for open-source</td></tr>
+                        <tr><td><strong>Very long documents</strong></td><td><span class="badge badge-blue">Gemini</span></td><td>2M token context handles entire codebases</td></tr>
+                        <tr><td><strong>Video/audio analysis</strong></td><td><span class="badge badge-blue">Gemini</span></td><td>Native multimodal processing</td></tr>
+                        <tr><td><strong>Resumable workflows</strong></td><td><span class="badge badge-pink">LangGraph</span></td><td>MongoDB checkpoints with pause/resume</td></tr>
+                        <tr><td><strong>Decision making</strong></td><td><span class="badge badge-pink">Debate</span></td><td>Adversarial analysis exposes blind spots</td></tr>
+                        <tr><td><strong>Cost-sensitive</strong></td><td><span class="badge badge-purple">Llama</span></td><td>Self-hosted via Ollama for zero token cost</td></tr>
+                        <tr><td><strong>Unknown task types</strong></td><td><span class="badge badge-cyan">Auto</span></td><td>Intelligent routing selects optimal framework</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(34, 211, 238, 0.1));">
+            <h2><span>🚀</span> The Future of Enterprise AI</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8;">Cortex Flow represents a paradigm shift in enterprise AI deployment. By unifying <strong>10 distinct frameworks</strong>, <strong>50+ models</strong>, and <strong>8 Llama providers</strong> under a single intelligent orchestration layer, we've eliminated the fragmentation that has plagued enterprise AI adoption. No more vendor lock-in. No more building custom integrations. No more choosing between capability and cost.</p>
+            <div style="margin-top: 2rem; text-align: center;"><span class="badge badge-purple" style="font-size: 1rem; padding: 0.5rem 1.5rem;">The #1 AI Orchestration Platform</span></div>
+        </div>
+        <footer class="footer">
+            <div class="logo">Regno.AI</div>
+            <p>Cortex Flow Multi-Framework AI Orchestration Platform</p>
+            <p style="margin-top: 0.5rem;">Document Version 2.0 • January 2026</p>
+            <p style="margin-top: 1rem; font-size: 0.8rem;">© 2026 Regno.AI. All Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

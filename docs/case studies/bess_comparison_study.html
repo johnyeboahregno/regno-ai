@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BESS Application Comparison Study - ITX Z&T Ranch, Texas</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b0;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --border-color: #2a2a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .location-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-blue);
+            border-radius: 50px;
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            color: var(--accent-green);
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.2rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-sandmine {
+            border-left: 4px solid var(--accent-orange);
+        }
+
+        .card-datacenter {
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .card-hospital {
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .card-manufacturing {
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .comparison-table th {
+            background: var(--bg-primary);
+            padding: 1rem;
+            text-align: left;
+            color: var(--text-primary);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .comparison-table th:first-child {
+            color: var(--accent-purple);
+        }
+
+        .comparison-table th:nth-child(2) {
+            color: var(--accent-orange);
+        }
+
+        .comparison-table th:nth-child(3) {
+            color: var(--accent-blue);
+        }
+
+        .comparison-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .comparison-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        .comparison-table td:first-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .highlight {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .highlight-blue {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .highlight-orange {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-red {
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-sandmine .stat-value { color: var(--accent-orange); }
+        .stat-datacenter .stat-value { color: var(--accent-blue); }
+
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .formula {
+            background: var(--bg-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 1rem 0;
+            border-left: 3px solid var(--accent-purple);
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .info-box-title {
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .success-box-title {
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box-title {
+            color: var(--accent-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .rating-bar {
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .rating-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .rating-fill.sandmine { background: var(--accent-orange); }
+        .rating-fill.datacenter { background: var(--accent-blue); }
+
+        .verdict {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .verdict-excellent {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .verdict-good {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .verdict-moderate {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .verdict-poor {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .architecture-diagram {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.3;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .grid-2, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-table {
+                font-size: 0.8rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>BESS Application Comparison Study</h1>
+            <p class="subtitle">Sand Mine vs Data Center - Identical Hardware, Different Use Cases</p>
+            <span class="location-badge">ITX Z&T Ranch, Texas, USA</span>
+        </header>
+
+        <!-- Executive Summary -->
+        <section>
+            <h2>Executive Summary</h2>
+            <p>
+                This document compares the deployment of an identical Battery Energy Storage System (BESS) configuration
+                across two distinct applications at the ITX Z&T Ranch location in Texas. Both installations utilize
+                <span class="highlight">40 Sungrow ST2236UX battery units</span> (89.44 MWh) paired with
+                <span class="highlight">5 Sungrow SC4000UD-MV inverters</span> (20 MW) in a dual-inverter topology.
+            </p>
+
+            <div class="grid-2" style="margin-top: 1.5rem;">
+                <div class="stat-box stat-sandmine">
+                    <div class="stat-value">28x Oversized</div>
+                    <div class="stat-label">Sand Mine - Pure Grid Services Play</div>
+                </div>
+                <div class="stat-box stat-datacenter">
+                    <div class="stat-value">Right-Sized</div>
+                    <div class="stat-label">Data Center - UPS + Grid Services</div>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top: 1.5rem;">
+                <div class="info-box-title">Key Finding</div>
+                <p style="margin: 0;">
+                    The same BESS hardware delivers fundamentally different value propositions based on the host facility's
+                    load profile. The sand mine application creates a merchant storage asset focused on ERCOT market revenue,
+                    while the data center application replaces traditional UPS infrastructure while generating ancillary income.
+                    <strong>Both are financially viable</strong>, but with different risk/reward profiles.
+                </p>
+            </div>
+        </section>
+
+        <!-- Common Configuration -->
+        <section>
+            <h2>Common BESS Configuration</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Battery System</div>
+                    <table class="comparison-table">
+                        <tr>
+                            <td>Model</td>
+                            <td class="highlight">40 x Sungrow ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Total Capacity</td>
+                            <td class="highlight-blue">89.44 MWh</td>
+                        </tr>
+                        <tr>
+                            <td>Chemistry</td>
+                            <td>LFP (Lithium Iron Phosphate)</td>
+                        </tr>
+                        <tr>
+                            <td>Cycle Life</td>
+                            <td>> 6,000 cycles @ 90% DoD</td>
+                        </tr>
+                        <tr>
+                            <td>Round-Trip Efficiency</td>
+                            <td>95.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Warranty</td>
+                            <td>10 years / 70% capacity</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Inverter System</div>
+                    <table class="comparison-table">
+                        <tr>
+                            <td>Model</td>
+                            <td class="highlight">5 x Sungrow SC4000UD-MV</td>
+                        </tr>
+                        <tr>
+                            <td>Total Power</td>
+                            <td class="highlight-blue">20 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Charging Inverters</td>
+                            <td>2 units (8 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>Discharging Inverters</td>
+                            <td>3 units (12 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>E/P Ratio</td>
+                            <td>4.47 hours</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Support</td>
+                            <td>4-quadrant, grid-forming capable</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="architecture-diagram">
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                    DUAL-INVERTER TOPOLOGY (Common to Both Applications)                     │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                             │
+│                                    ERCOT GRID (345kV)                                       │
+│                                          │                                                  │
+│                    ┌─────────────────────┴─────────────────────┐                            │
+│                    │                                           │                            │
+│                    ▼                                           ▼                            │
+│         ┌───────────────────┐                       ┌───────────────────┐                   │
+│         │  CHARGING PATH    │                       │  DISCHARGING PATH │                   │
+│         │  2 x SC4000UD-MV  │                       │  3 x SC4000UD-MV  │                   │
+│         │     (8 MW)        │                       │     (12 MW)       │                   │
+│         └─────────┬─────────┘                       └─────────┬─────────┘                   │
+│                   │                                           │                             │
+│                   └─────────────────┬─────────────────────────┘                             │
+│                                     │                                                       │
+│                                     ▼                                                       │
+│                    ┌─────────────────────────────────────┐                                  │
+│                    │        BATTERY STORAGE              │                                  │
+│                    │      40 x ST2236UX = 89.44 MWh      │                                  │
+│                    └─────────────────────────────────────┘                                  │
+│                                     │                                                       │
+│                                     ▼                                                       │
+│                              ┌─────────────┐                                                │
+│                              │  FACILITY   │                                                │
+│                              │    LOAD     │                                                │
+│                              └─────────────┘                                                │
+│                                                                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
+            </div>
+        </section>
+
+        <!-- Load Profile Comparison -->
+        <section>
+            <h2>Load Profile Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Parameter</th>
+                        <th style="width: 37.5%;">Sand Mine</th>
+                        <th style="width: 37.5%;">Data Center</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Facility Type</td>
+                        <td>Small sand mine (local construction supply)</td>
+                        <td>Hyperscale data center</td>
+                    </tr>
+                    <tr>
+                        <td>Peak Load</td>
+                        <td class="highlight-orange">420 kW</td>
+                        <td class="highlight-blue">14 MW</td>
+                    </tr>
+                    <tr>
+                        <td>Base Load</td>
+                        <td>50-100 kW</td>
+                        <td>12 MW continuous</td>
+                    </tr>
+                    <tr>
+                        <td>Daily Consumption</td>
+                        <td>~5 MWh/day</td>
+                        <td>~300 MWh/day</td>
+                    </tr>
+                    <tr>
+                        <td>Annual Consumption</td>
+                        <td>~1,800 MWh/year</td>
+                        <td>~108,000 MWh/year</td>
+                    </tr>
+                    <tr>
+                        <td>Load Factor</td>
+                        <td>~50% (variable, shift-based)</td>
+                        <td>~90% (continuous)</td>
+                    </tr>
+                    <tr>
+                        <td>Criticality</td>
+                        <td>Non-critical (can shut down)</td>
+                        <td class="highlight-red">Mission-critical (99.999% uptime)</td>
+                    </tr>
+                    <tr>
+                        <td>BESS vs Load Ratio</td>
+                        <td class="highlight-orange">48x peak / 18x daily</td>
+                        <td class="highlight-blue">1.4x peak / 0.3x daily</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="grid-2" style="margin-top: 1.5rem;">
+                <div class="card card-sandmine">
+                    <div class="card-title" style="color: var(--accent-orange);">Sand Mine Load Profile</div>
+                    <p>Highly variable load with distinct operational periods:</p>
+                    <ul>
+                        <li><strong>Day Shift (6 AM - 6 PM):</strong> 300-420 kW (crushers, conveyors, processing)</li>
+                        <li><strong>Night/Weekend:</strong> 50-100 kW (lighting, pumps, security)</li>
+                        <li><strong>Seasonal Variation:</strong> Higher in construction season (Mar-Nov)</li>
+                        <li><strong>Equipment Cycling:</strong> Large motor starts create brief spikes</li>
+                    </ul>
+                    <div class="warning-box">
+                        <div class="warning-box-title">Sizing Implication</div>
+                        <p style="margin: 0;">BESS is 48x larger than peak load. The system could power 48 identical sand mines simultaneously. This is a <strong>pure merchant storage asset</strong> that happens to be co-located with a sand mine.</p>
+                    </div>
+                </div>
+                <div class="card card-datacenter">
+                    <div class="card-title" style="color: var(--accent-blue);">Data Center Load Profile</div>
+                    <p>Highly stable, continuous load with minimal variation:</p>
+                    <ul>
+                        <li><strong>IT Load:</strong> 10 MW constant (servers, storage, network)</li>
+                        <li><strong>Cooling:</strong> 3-4 MW (varies with ambient temperature)</li>
+                        <li><strong>Support Systems:</strong> 0.5-1 MW (lighting, security, offices)</li>
+                        <li><strong>PUE:</strong> 1.40 (total/IT ratio)</li>
+                    </ul>
+                    <div class="success-box">
+                        <div class="success-box-title">Sizing Implication</div>
+                        <p style="margin: 0;">BESS provides 6.4 hours backup at full load - ideal for UPS replacement. The system is <strong>right-sized for both backup power and grid services</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Primary Use Case Comparison -->
+        <section>
+            <h2>Primary Use Case Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Use Case</th>
+                        <th style="width: 37.5%;">Sand Mine</th>
+                        <th style="width: 37.5%;">Data Center</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Primary Function</strong></td>
+                        <td>Grid services revenue (ERCOT markets)</td>
+                        <td>UPS / Backup power</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Secondary Function</strong></td>
+                        <td>Facility backup (minor benefit)</td>
+                        <td>Grid services revenue</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tertiary Function</strong></td>
+                        <td>4CP demand charge avoidance</td>
+                        <td>4CP demand charge avoidance</td>
+                    </tr>
+                    <tr>
+                        <td>ECRS Participation</td>
+                        <td class="highlight">Full 20 MW available</td>
+                        <td>12 MW available (8 MW reserved for UPS)</td>
+                    </tr>
+                    <tr>
+                        <td>Arbitrage Capacity</td>
+                        <td class="highlight">89 MWh (100% available)</td>
+                        <td>54 MWh (60% - maintain UPS reserve)</td>
+                    </tr>
+                    <tr>
+                        <td>4CP Shaving</td>
+                        <td>Minimal value (low peak)</td>
+                        <td class="highlight">$840K/year (14→4 MW reduction)</td>
+                    </tr>
+                    <tr>
+                        <td>Backup Runtime</td>
+                        <td>213 hours @ 420 kW (overkill)</td>
+                        <td class="highlight">6.4 hours @ 14 MW (optimal)</td>
+                    </tr>
+                    <tr>
+                        <td>Transfer Requirement</td>
+                        <td>Not critical (seconds OK)</td>
+                        <td class="highlight-red">&lt; 10 ms required</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Operating Mode Priority</h3>
+            <div class="grid-2">
+                <div class="card card-sandmine">
+                    <div class="card-title" style="color: var(--accent-orange);">Sand Mine Mode Priority</div>
+                    <ol>
+                        <li><strong>ERCOT Ancillary Services</strong> - Primary revenue driver</li>
+                        <li><strong>Energy Arbitrage</strong> - Capture price spikes</li>
+                        <li><strong>4CP Avoidance</strong> - Minor transmission savings</li>
+                        <li><strong>Facility Backup</strong> - Nice-to-have, rarely needed</li>
+                    </ol>
+                    <p style="margin-top: 1rem; font-style: italic;">
+                        The sand mine is essentially "hosting" a grid-scale battery asset. Mine operations
+                        continue regardless of BESS state.
+                    </p>
+                </div>
+                <div class="card card-datacenter">
+                    <div class="card-title" style="color: var(--accent-blue);">Data Center Mode Priority</div>
+                    <ol>
+                        <li><strong>UPS Readiness</strong> - Always maintain 40%+ SOC</li>
+                        <li><strong>4CP Demand Management</strong> - Peak shaving priority</li>
+                        <li><strong>ERCOT Ancillary Services</strong> - With capacity constraints</li>
+                        <li><strong>Energy Arbitrage</strong> - Opportunistic, preserve UPS function</li>
+                    </ol>
+                    <p style="margin-top: 1rem; font-style: italic;">
+                        The BESS is critical infrastructure. Revenue generation is secondary to
+                        maintaining backup capability at all times.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Financial Comparison -->
+        <section>
+            <h2>Financial Comparison</h2>
+
+            <h3>Capital Expenditure (Identical)</h3>
+            <div class="formula">
+Both installations have identical CAPEX:
+Battery System (40 × ST2236UX @ $200/kWh):     $17,900,000
+Inverters (5 × SC4000UD-MV @ $1M each):         $5,000,000
+BOP (Transformers, Switchgear, Controls):       $3,500,000
+Site Work & Grid Interconnection:               $2,000,000
+EPC, Commissioning & Contingency:               $3,100,000
+────────────────────────────────────────────────────────────
+Total CAPEX:                                   <span class="highlight-blue">$31,500,000</span>
+ITC (30% base):                                <span class="highlight">-$9,450,000</span>
+Net Investment:                                <span class="highlight">$22,050,000</span>
+            </div>
+
+            <h3>Annual Revenue & Savings</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Revenue/Savings Stream</th>
+                        <th>Sand Mine</th>
+                        <th>Data Center</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ERCOT ECRS</td>
+                        <td class="highlight-orange">$800K - $1,200K</td>
+                        <td>$600K - $900K</td>
+                    </tr>
+                    <tr>
+                        <td>Non-Spinning Reserve</td>
+                        <td class="highlight-orange">$300K - $500K</td>
+                        <td>$200K - $400K</td>
+                    </tr>
+                    <tr>
+                        <td>Energy Arbitrage</td>
+                        <td class="highlight-orange">$400K - $1,000K</td>
+                        <td>$300K - $800K</td>
+                    </tr>
+                    <tr>
+                        <td>Responsive Reserve</td>
+                        <td>$150K - $300K</td>
+                        <td>$100K - $200K</td>
+                    </tr>
+                    <tr>
+                        <td>4CP Demand Savings</td>
+                        <td>$20K - $50K</td>
+                        <td class="highlight-blue">$800K - $1,200K</td>
+                    </tr>
+                    <tr>
+                        <td>UPS Replacement Value</td>
+                        <td>N/A</td>
+                        <td class="highlight-blue">$3,000K (capital avoided)</td>
+                    </tr>
+                    <tr>
+                        <td>UPS Maintenance Avoided</td>
+                        <td>N/A</td>
+                        <td class="highlight-blue">$150K/year</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700;">Total Annual Value</td>
+                        <td class="highlight-orange" style="font-weight: 700;">$1.7M - $3.1M/year</td>
+                        <td class="highlight-blue" style="font-weight: 700;">$2.2M - $3.7M/year</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Return on Investment</h3>
+            <div class="grid-2">
+                <div class="card card-sandmine">
+                    <div class="card-title" style="color: var(--accent-orange);">Sand Mine ROI</div>
+                    <table class="comparison-table">
+                        <tr>
+                            <td>Net Investment (after ITC)</td>
+                            <td>$22,050,000</td>
+                        </tr>
+                        <tr>
+                            <td>Annual Value (mid)</td>
+                            <td>$2,400,000</td>
+                        </tr>
+                        <tr>
+                            <td>Simple Payback</td>
+                            <td class="highlight-orange">9.2 years</td>
+                        </tr>
+                        <tr>
+                            <td>Project IRR (20-year)</td>
+                            <td>10-14%</td>
+                        </tr>
+                        <tr>
+                            <td>NPV @ 8% discount</td>
+                            <td>$5-12M</td>
+                        </tr>
+                    </table>
+                    <div class="warning-box">
+                        <div class="warning-box-title">Risk Profile</div>
+                        <p style="margin: 0;">Higher revenue potential but more exposure to ERCOT market volatility. No intrinsic value to host facility beyond minimal backup.</p>
+                    </div>
+                </div>
+                <div class="card card-datacenter">
+                    <div class="card-title" style="color: var(--accent-blue);">Data Center ROI</div>
+                    <table class="comparison-table">
+                        <tr>
+                            <td>Net Investment (after ITC)</td>
+                            <td>$22,050,000</td>
+                        </tr>
+                        <tr>
+                            <td>UPS Capital Avoided</td>
+                            <td>-$3,000,000</td>
+                        </tr>
+                        <tr>
+                            <td>Effective Net Investment</td>
+                            <td class="highlight">$19,050,000</td>
+                        </tr>
+                        <tr>
+                            <td>Annual Value (mid)</td>
+                            <td>$3,000,000</td>
+                        </tr>
+                        <tr>
+                            <td>Simple Payback</td>
+                            <td class="highlight-blue">6.4 years</td>
+                        </tr>
+                        <tr>
+                            <td>Project IRR (20-year)</td>
+                            <td>12-18%</td>
+                        </tr>
+                    </table>
+                    <div class="success-box">
+                        <div class="success-box-title">Risk Profile</div>
+                        <p style="margin: 0;">Lower market exposure due to guaranteed savings (4CP, UPS avoided). Revenue from grid services is bonus income on top of infrastructure value.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Comparison -->
+        <section>
+            <h2>Risk Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Risk Factor</th>
+                        <th>Sand Mine</th>
+                        <th>Data Center</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Market Price Risk</td>
+                        <td><span class="verdict verdict-poor">HIGH</span> - Primary revenue depends on ERCOT prices</td>
+                        <td><span class="verdict verdict-good">MODERATE</span> - Revenue is supplementary</td>
+                    </tr>
+                    <tr>
+                        <td>Regulatory Risk</td>
+                        <td><span class="verdict verdict-moderate">MODERATE</span> - 4CP program changes have minimal impact</td>
+                        <td><span class="verdict verdict-moderate">MODERATE</span> - 4CP changes affect $800K+ savings</td>
+                    </tr>
+                    <tr>
+                        <td>Technology Risk</td>
+                        <td><span class="verdict verdict-good">LOW</span> - Proven LFP + Sungrow platform</td>
+                        <td><span class="verdict verdict-good">LOW</span> - Same proven platform</td>
+                    </tr>
+                    <tr>
+                        <td>Operational Risk</td>
+                        <td><span class="verdict verdict-excellent">VERY LOW</span> - Failure doesn't affect mine ops</td>
+                        <td><span class="verdict verdict-poor">HIGH</span> - Failure = data center outage risk</td>
+                    </tr>
+                    <tr>
+                        <td>Counterparty Risk</td>
+                        <td><span class="verdict verdict-moderate">MODERATE</span> - ERCOT settlement exposure</td>
+                        <td><span class="verdict verdict-excellent">LOW</span> - Internal value capture</td>
+                    </tr>
+                    <tr>
+                        <td>Stranded Asset Risk</td>
+                        <td><span class="verdict verdict-moderate">MODERATE</span> - If mine closes, BESS remains viable</td>
+                        <td><span class="verdict verdict-excellent">VERY LOW</span> - Integral to facility</td>
+                    </tr>
+                    <tr>
+                        <td>Insurance/Liability</td>
+                        <td><span class="verdict verdict-excellent">LOW</span> - Standard commercial coverage</td>
+                        <td><span class="verdict verdict-moderate">MODERATE</span> - Business interruption concerns</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Suitability Assessment -->
+        <section>
+            <h2>Suitability Assessment</h2>
+            <h3>When to Choose Each Application Model</h3>
+
+            <div class="grid-2">
+                <div class="card card-sandmine">
+                    <div class="card-title" style="color: var(--accent-orange);">Sand Mine Model (Merchant Storage)</div>
+                    <p><strong>Best suited when:</strong></p>
+                    <ul>
+                        <li>Host facility has low, non-critical load</li>
+                        <li>Primary goal is grid services revenue</li>
+                        <li>Investor has appetite for market risk</li>
+                        <li>Site has excellent grid interconnection</li>
+                        <li>Low land cost / available space</li>
+                        <li>Utility favorable to behind-the-meter storage</li>
+                    </ul>
+                    <p><strong>Key success factors:</strong></p>
+                    <ul>
+                        <li>ERCOT market access and understanding</li>
+                        <li>Sophisticated energy trading capability</li>
+                        <li>Tolerance for revenue volatility</li>
+                    </ul>
+                </div>
+                <div class="card card-datacenter">
+                    <div class="card-title" style="color: var(--accent-blue);">Data Center Model (Infrastructure + Revenue)</div>
+                    <p><strong>Best suited when:</strong></p>
+                    <ul>
+                        <li>Host facility has high, critical load</li>
+                        <li>Existing UPS systems need replacement</li>
+                        <li>High 4CP exposure in ERCOT</li>
+                        <li>99.999% uptime requirement</li>
+                        <li>Capital available for premium solution</li>
+                        <li>Long-term facility ownership planned</li>
+                    </ul>
+                    <p><strong>Key success factors:</strong></p>
+                    <ul>
+                        <li>Integration with facility electrical systems</li>
+                        <li>Operational excellence and monitoring</li>
+                        <li>Grid services as supplementary income</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section>
+            <h2>Conclusion</h2>
+            <div class="grid-2">
+                <div class="card card-sandmine">
+                    <div class="card-title" style="color: var(--accent-orange);">Sand Mine Verdict</div>
+                    <p>
+                        The sand mine application represents a <strong>pure merchant storage investment</strong>.
+                        The host facility is largely irrelevant - any location with grid access would work equally well.
+                        Returns depend almost entirely on ERCOT market performance.
+                    </p>
+                    <table class="comparison-table">
+                        <tr>
+                            <td>Investment Grade</td>
+                            <td><span class="verdict verdict-good">B+ (Speculative)</span></td>
+                        </tr>
+                        <tr>
+                            <td>Risk/Reward</td>
+                            <td>Higher risk, higher potential upside</td>
+                        </tr>
+                        <tr>
+                            <td>Recommendation</td>
+                            <td>Proceed with experienced energy trader</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card card-datacenter">
+                    <div class="card-title" style="color: var(--accent-blue);">Data Center Verdict</div>
+                    <p>
+                        The data center application represents a <strong>strategic infrastructure investment</strong>
+                        with bonus revenue generation. Even with zero grid services revenue, the UPS replacement
+                        and 4CP savings justify the investment.
+                    </p>
+                    <table class="comparison-table">
+                        <tr>
+                            <td>Investment Grade</td>
+                            <td><span class="verdict verdict-excellent">A (Core Infrastructure)</span></td>
+                        </tr>
+                        <tr>
+                            <td>Risk/Reward</td>
+                            <td>Lower risk, stable returns + upside</td>
+                        </tr>
+                        <tr>
+                            <td>Recommendation</td>
+                            <td>Strongly recommended for immediate development</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top: 1.5rem;">
+                <div class="info-box-title">Final Note</div>
+                <p style="margin: 0;">
+                    Both applications are financially viable with the same hardware. The choice depends on the
+                    investor's risk appetite, existing infrastructure, and strategic priorities. For pure financial
+                    returns with market expertise, the merchant model works. For critical infrastructure with
+                    revenue bonus, the data center model is superior. <strong>The hardware is agnostic - the
+                    value creation strategy makes the difference.</strong>
+                </p>
+            </div>
+        </section>
+
+        <footer>
+            <p>Comparison Study Document | Sand Mine vs Data Center BESS | ITX Z&T Ranch, Texas</p>
+            <p>Technical specifications and financial projections based on 2024 market conditions.</p>
+            <p>Generated: January 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital BESS Case Study - ITX Z&T Ranch Medical Center, Texas</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b0;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --border-color: #2a2a3a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 2rem;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle { color: var(--text-secondary); font-size: 1.2rem; }
+
+        .location-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-red);
+            border-radius: 50px;
+            color: var(--accent-red);
+            font-weight: 500;
+        }
+
+        section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--accent-red);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.5rem;
+        }
+
+        h3 { color: var(--accent-green); margin: 1.5rem 0 1rem 0; font-size: 1.2rem; }
+        h4 { color: var(--accent-orange); margin: 1rem 0 0.5rem 0; font-size: 1rem; }
+        p { margin-bottom: 1rem; color: var(--text-secondary); }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+
+        .card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spec-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .spec-table th, .spec-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .spec-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .spec-table td { color: var(--text-primary); }
+        .spec-table tr:hover { background: var(--bg-primary); }
+
+        .highlight { color: var(--accent-green); font-weight: 600; }
+        .highlight-blue { color: var(--accent-blue); font-weight: 600; }
+        .highlight-orange { color: var(--accent-orange); font-weight: 600; }
+        .highlight-red { color: var(--accent-red); font-weight: 600; }
+
+        .stat-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--accent-red); }
+        .stat-label { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; }
+
+        ul, ol { margin: 1rem 0; padding-left: 1.5rem; color: var(--text-secondary); }
+        li { margin-bottom: 0.5rem; }
+
+        .formula {
+            background: var(--bg-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 1rem 0;
+            border-left: 3px solid var(--accent-purple);
+            overflow-x: auto;
+        }
+
+        .critical-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .critical-box-title { color: var(--accent-red); font-weight: 600; margin-bottom: 0.5rem; }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .success-box-title { color: var(--accent-green); font-weight: 600; margin-bottom: 0.5rem; }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .warning-box-title { color: var(--accent-orange); font-weight: 600; margin-bottom: 0.5rem; }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .info-box-title { color: var(--accent-blue); font-weight: 600; margin-bottom: 0.5rem; }
+
+        .architecture-diagram {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .cost-item {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .cost-amount { font-size: 1.5rem; font-weight: 700; color: var(--accent-green); }
+        .cost-label { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid var(--accent-red);
+            margin: 1.5rem 0;
+        }
+        .timeline-item { position: relative; padding-bottom: 1.5rem; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            border: 2px solid var(--bg-secondary);
+        }
+        .timeline-title { color: var(--text-primary); font-weight: 600; margin-bottom: 0.25rem; }
+        .timeline-desc { color: var(--text-secondary); font-size: 0.9rem; }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .architecture-diagram { font-size: 0.7rem; padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Hospital BESS Integration</h1>
+            <p class="subtitle">Critical Healthcare Infrastructure - Life Safety Power System</p>
+            <span class="location-badge">ITX Z&T Ranch Medical Center, Texas, USA</span>
+        </header>
+
+        <!-- Executive Summary -->
+        <section>
+            <h2>Executive Summary</h2>
+            <div class="grid-3">
+                <div class="stat-box">
+                    <div class="stat-value">89.44 MWh</div>
+                    <div class="stat-label">Total Storage Capacity</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">20 MW</div>
+                    <div class="stat-label">Total Power Rating</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">24+ hrs</div>
+                    <div class="stat-label">Critical Load Runtime</div>
+                </div>
+            </div>
+            <p style="margin-top: 1.5rem;">
+                This case study examines the deployment of a utility-scale Battery Energy Storage System (BESS)
+                at a 500-bed regional medical center located at ITX Z&T Ranch in Texas, USA. The system utilizes
+                <span class="highlight">40 Sungrow ST2236UX battery units</span> paired with
+                <span class="highlight">5 Sungrow SC4000UD-MV inverters</span> in a dual-inverter topology
+                designed to provide <span class="highlight-red">life safety power</span>, extended outage protection,
+                and grid services revenue during normal operations.
+            </p>
+            <div class="critical-box">
+                <div class="critical-box-title">Life Safety Critical Application</div>
+                <p style="margin: 0;">Hospitals require uninterrupted power for life support systems, operating rooms,
+                and critical care units. This BESS system exceeds NFPA 110 and Joint Commission requirements,
+                providing 24+ hours of critical load backup - far beyond the 96-hour fuel supply requirement for
+                traditional generators. The system provides <strong>seamless transfer (&lt;10ms)</strong> to protect
+                sensitive medical equipment.</p>
+            </div>
+        </section>
+
+        <!-- Facility Overview -->
+        <section>
+            <h2>Facility Overview</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Hospital Specifications</div>
+                    <table class="spec-table">
+                        <tr><td>Location</td><td class="highlight-red">ITX Z&T Ranch Medical Center, Texas</td></tr>
+                        <tr><td>Facility Type</td><td>Regional Medical Center</td></tr>
+                        <tr><td>Licensed Beds</td><td>500 beds</td></tr>
+                        <tr><td>Operating Rooms</td><td>24 surgical suites</td></tr>
+                        <tr><td>ICU/CCU Beds</td><td>80 critical care beds</td></tr>
+                        <tr><td>Emergency Department</td><td>60 treatment bays</td></tr>
+                        <tr><td>Imaging Centers</td><td>4 MRI, 3 CT, 2 Cath Labs</td></tr>
+                        <tr><td>Total Building Area</td><td>1.2 million sq ft</td></tr>
+                        <tr><td>Grid Connection</td><td>ERCOT (Oncor Electric)</td></tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Electrical Load Analysis</div>
+                    <table class="spec-table">
+                        <tr><td>Total Facility Load</td><td class="highlight-red">8 MW peak</td></tr>
+                        <tr><td>Average Load</td><td>6 MW continuous</td></tr>
+                        <tr><td>Critical/Life Safety Load</td><td class="highlight">3.5 MW</td></tr>
+                        <tr><td>Equipment Branch</td><td>2.5 MW</td></tr>
+                        <tr><td>Normal Branch</td><td>2 MW (sheddable)</td></tr>
+                        <tr><td>Daily Consumption</td><td>~150 MWh/day</td></tr>
+                        <tr><td>Annual Consumption</td><td>~55,000 MWh/year</td></tr>
+                        <tr><td>Existing Generators</td><td>3 × 3 MW diesel (9 MW total)</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Hospital Load Categories (per NFPA 110 / NEC 517)</h3>
+            <div class="grid-3">
+                <div class="card" style="border-left: 4px solid var(--accent-red);">
+                    <div class="card-title" style="color: var(--accent-red);">Life Safety Branch (1.5 MW)</div>
+                    <ul>
+                        <li>Emergency egress lighting</li>
+                        <li>Fire alarm systems</li>
+                        <li>Medical gas alarms</li>
+                        <li>Generator accessories</li>
+                        <li>Elevator for patient evac</li>
+                        <li>Communication systems</li>
+                    </ul>
+                    <p><strong>Transfer Time:</strong> &lt; 10 seconds required</p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--accent-orange);">
+                    <div class="card-title" style="color: var(--accent-orange);">Critical Branch (2.0 MW)</div>
+                    <ul>
+                        <li>Operating room lighting</li>
+                        <li>ICU/CCU power</li>
+                        <li>Nurse call systems</li>
+                        <li>Blood bank refrigeration</li>
+                        <li>Pharmacy refrigeration</li>
+                        <li>Critical care monitoring</li>
+                    </ul>
+                    <p><strong>Transfer Time:</strong> &lt; 10 seconds required</p>
+                </div>
+                <div class="card" style="border-left: 4px solid var(--accent-blue);">
+                    <div class="card-title" style="color: var(--accent-blue);">Equipment Branch (2.5 MW)</div>
+                    <ul>
+                        <li>HVAC for critical areas</li>
+                        <li>Medical air compressors</li>
+                        <li>Vacuum systems</li>
+                        <li>Kitchen refrigeration</li>
+                        <li>Data center / IT</li>
+                        <li>Imaging equipment (MRI, CT)</li>
+                    </ul>
+                    <p><strong>Transfer Time:</strong> &lt; 10 seconds required</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BESS Configuration -->
+        <section>
+            <h2>BESS Configuration</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Battery System (40 × ST2236UX)</div>
+                    <table class="spec-table">
+                        <tr><td>Total Usable Capacity</td><td class="highlight-blue">89.44 MWh</td></tr>
+                        <tr><td>Chemistry</td><td>LFP (Lithium Iron Phosphate)</td></tr>
+                        <tr><td>Cycle Life</td><td>> 6,000 cycles @ 90% DoD</td></tr>
+                        <tr><td>Round-Trip Efficiency</td><td>95.5%</td></tr>
+                        <tr><td>Operating Temperature</td><td>-20°C to +55°C</td></tr>
+                        <tr><td>Fire Rating</td><td>UL 9540A tested</td></tr>
+                        <tr><td>Warranty</td><td>10 years / 70% capacity</td></tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Inverter System (5 × SC4000UD-MV)</div>
+                    <table class="spec-table">
+                        <tr><td>Total Power Rating</td><td class="highlight-blue">20 MW</td></tr>
+                        <tr><td>Charging Inverters</td><td>2 units (8 MW)</td></tr>
+                        <tr><td>Discharging/UPS Inverters</td><td>3 units (12 MW)</td></tr>
+                        <tr><td>Transfer Time</td><td class="highlight-red">&lt; 10 ms</td></tr>
+                        <tr><td>Black Start Capable</td><td>Yes</td></tr>
+                        <tr><td>Grid-Forming Mode</td><td>Yes (V/f control)</td></tr>
+                        <tr><td>Efficiency</td><td>98.8%</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Runtime Calculations</h3>
+            <div class="formula">
+<strong>Full Facility Load (8 MW):</strong>
+Runtime = 89.44 MWh ÷ 8 MW = <span class="highlight">11.2 hours</span>
+
+<strong>Essential Loads Only (6 MW - no normal branch):</strong>
+Runtime = 89.44 MWh ÷ 6 MW = <span class="highlight">14.9 hours</span>
+
+<strong>Critical + Life Safety Only (3.5 MW):</strong>
+Runtime = 89.44 MWh ÷ 3.5 MW = <span class="highlight">25.6 hours</span>
+
+<strong>Life Safety Minimum (1.5 MW):</strong>
+Runtime = 89.44 MWh ÷ 1.5 MW = <span class="highlight">59.6 hours</span>
+            </div>
+
+            <div class="success-box">
+                <div class="success-box-title">Exceeds Regulatory Requirements</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>NFPA 110:</strong> Requires 96-hour fuel supply for generators - BESS provides equivalent with solar charging</li>
+                    <li><strong>Joint Commission:</strong> 96-hour emergency power capability - exceeded for critical loads</li>
+                    <li><strong>CMS Conditions:</strong> Backup power for essential services - far exceeded</li>
+                    <li><strong>Texas DSHS:</strong> Hospital licensing emergency power - compliant with margin</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Dual-Inverter Architecture -->
+        <section>
+            <h2>Dual-Inverter Architecture</h2>
+            <div class="architecture-diagram">
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                    HOSPITAL BESS ARCHITECTURE - LIFE SAFETY SYSTEM                      │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                         │
+│                                   ERCOT GRID (13.8kV)                                   │
+│                                          │                                              │
+│                            ┌─────────────┴─────────────┐                                │
+│                            │    Main Switchgear        │                                │
+│                            │    (Normal Power)         │                                │
+│                            └─────────────┬─────────────┘                                │
+│                                          │                                              │
+│         ┌────────────────────────────────┼────────────────────────────────┐             │
+│         │                                │                                │             │
+│         ▼                                ▼                                ▼             │
+│  ┌─────────────┐                ┌─────────────────┐              ┌─────────────┐        │
+│  │  CHARGING   │                │  AUTOMATIC      │              │  EXISTING   │        │
+│  │  PATH       │                │  TRANSFER       │              │  GENERATORS │        │
+│  │  2×4MW      │                │  SWITCH (ATS)   │              │  3×3MW      │        │
+│  │  INV 1 & 2  │                │  &lt;10ms transfer │              │  (9MW)      │        │
+│  └──────┬──────┘                └────────┬────────┘              └──────┬──────┘        │
+│         │                                │                              │               │
+│         │         ┌──────────────────────┼──────────────────────┐       │               │
+│         │         │                      │                      │       │               │
+│         │         ▼                      ▼                      ▼       │               │
+│         │  ┌─────────────┐       ┌─────────────┐        ┌─────────────┐ │               │
+│         │  │ DISCHARGE   │       │ DISCHARGE   │        │ DISCHARGE   │ │               │
+│         │  │ INV 3 (4MW) │       │ INV 4 (4MW) │        │ INV 5 (4MW) │ │               │
+│         │  │ Life Safety │       │ Critical    │        │ Equipment   │ │               │
+│         │  └──────┬──────┘       └──────┬──────┘        └──────┬──────┘ │               │
+│         │         │                     │                      │        │               │
+│         │         └─────────────────────┼──────────────────────┘        │               │
+│         │                               │                               │               │
+│         └───────────────────────────────┼───────────────────────────────┘               │
+│                                         │                                               │
+│                                         ▼                                               │
+│                  ┌─────────────────────────────────────────────┐                        │
+│                  │           BATTERY STORAGE                   │                        │
+│                  │          40 × ST2236UX                      │                        │
+│                  │         Total: 89.44 MWh                    │                        │
+│                  └─────────────────────────────────────────────┘                        │
+│                                         │                                               │
+│         ┌───────────────────────────────┼───────────────────────────────┐               │
+│         │                               │                               │               │
+│         ▼                               ▼                               ▼               │
+│  ┌─────────────────┐           ┌─────────────────┐           ┌─────────────────┐        │
+│  │  LIFE SAFETY    │           │   CRITICAL      │           │   EQUIPMENT     │        │
+│  │  BRANCH (1.5MW) │           │   BRANCH (2MW)  │           │   BRANCH (2.5MW)│        │
+│  │                 │           │                 │           │                 │        │
+│  │ • Egress lights │           │ • OR lighting   │           │ • HVAC critical │        │
+│  │ • Fire alarms   │           │ • ICU/CCU       │           │ • Medical air   │        │
+│  │ • Med gas alarm │           │ • Nurse call    │           │ • Vacuum system │        │
+│  │ • Elevator      │           │ • Blood bank    │           │ • MRI/CT/Cath   │        │
+│  │ • Communications│           │ • Pharmacy      │           │ • Data center   │        │
+│  └─────────────────┘           └─────────────────┘           └─────────────────┘        │
+│                                                                                         │
+│  PRIORITY: Life Safety (1st) → Critical (2nd) → Equipment (3rd) → Normal (shed)        │
+│                                                                                         │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+            </div>
+
+            <h3>Integration with Existing Generators</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">BESS Role (Primary)</div>
+                    <ul>
+                        <li>Instantaneous transfer (&lt;10ms) - no blink</li>
+                        <li>Covers generator start time (10-15 seconds)</li>
+                        <li>Provides extended runtime (11-25+ hours)</li>
+                        <li>Clean power for sensitive equipment</li>
+                        <li>Grid services revenue during normal ops</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Generator Role (Secondary)</div>
+                    <ul>
+                        <li>Long-duration backup (96+ hours with fuel)</li>
+                        <li>Recharges BESS during extended outage</li>
+                        <li>N+1 redundancy for critical loads</li>
+                        <li>Required for code compliance</li>
+                        <li>Reduced runtime = reduced maintenance</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">Hybrid Operation During Extended Outage</div>
+                <p>During multi-day outages (e.g., hurricane, winter storm), the system operates in hybrid mode:</p>
+                <ol style="margin-bottom: 0;">
+                    <li>BESS provides immediate, seamless transfer</li>
+                    <li>Generators start and synchronize within 15 seconds</li>
+                    <li>Generators power loads while BESS recharges (8 MW available)</li>
+                    <li>BESS provides power quality conditioning</li>
+                    <li>Generators cycle on/off to conserve fuel; BESS bridges transitions</li>
+                    <li>Runtime effectively unlimited with fuel resupply</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Operating Modes -->
+        <section>
+            <h2>Operating Modes</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Mode 1: Normal Grid Operation</div>
+                    <ul>
+                        <li>Grid powers all hospital loads</li>
+                        <li>BESS maintains 80%+ SOC (UPS reserve)</li>
+                        <li>Participates in ERCOT ancillary services</li>
+                        <li>Peak shaving during 4CP periods</li>
+                        <li>Discharge inverters synchronized (hot standby)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 2: Grid Disturbance</div>
+                    <ul>
+                        <li>Voltage/frequency excursion detected</li>
+                        <li>BESS transfers in &lt;10ms (no blink)</li>
+                        <li>Grid-forming inverters supply loads</li>
+                        <li>Generator start signal issued</li>
+                        <li>Seamless operation - no patient impact</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 3: Island Operation (Short)</div>
+                    <ul>
+                        <li>Grid offline, BESS powering loads</li>
+                        <li>Generators online within 15 seconds</li>
+                        <li>BESS bridges until generators stable</li>
+                        <li>Transfer to generator without blink</li>
+                        <li>BESS enters recharge mode</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 4: Extended Outage (Hybrid)</div>
+                    <ul>
+                        <li>Generators primary power source</li>
+                        <li>BESS recharges from generators</li>
+                        <li>BESS bridges generator maintenance</li>
+                        <li>Load shedding to critical if fuel low</li>
+                        <li>25+ hours critical-only if needed</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Financial Analysis -->
+        <section>
+            <h2>Financial Analysis</h2>
+            <h3>Capital Expenditure</h3>
+            <div class="cost-breakdown">
+                <div class="cost-item">
+                    <div class="cost-amount">$17.9M</div>
+                    <div class="cost-label">Battery System</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$5.0M</div>
+                    <div class="cost-label">Inverters</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$4.5M</div>
+                    <div class="cost-label">BOP & Medical Integration</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$4.1M</div>
+                    <div class="cost-label">EPC & Commissioning</div>
+                </div>
+            </div>
+            <div class="stat-box" style="margin-top: 1rem;">
+                <div class="stat-value">$31.5M</div>
+                <div class="stat-label">Total Installed Cost (before ITC)</div>
+            </div>
+
+            <h3>Annual Value Creation</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Revenue Streams</div>
+                    <table class="spec-table">
+                        <tr><td>ERCOT Ancillary Services</td><td class="highlight">$600K - $1,000K</td></tr>
+                        <tr><td>Energy Arbitrage</td><td class="highlight">$200K - $500K</td></tr>
+                        <tr><td>4CP Demand Savings</td><td class="highlight">$400K - $600K</td></tr>
+                        <tr><td style="font-weight: 600;">Total Revenue/Savings</td><td class="highlight-blue" style="font-weight: 600;">$1.2M - $2.1M/year</td></tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Cost Avoidance</div>
+                    <table class="spec-table">
+                        <tr><td>Traditional UPS Avoided</td><td class="highlight">$4,000,000 (capital)</td></tr>
+                        <tr><td>UPS Maintenance Avoided</td><td class="highlight">$200K/year</td></tr>
+                        <tr><td>Reduced Generator Runtime</td><td class="highlight">$100K/year</td></tr>
+                        <tr><td>Power Quality (MRI uptime)</td><td class="highlight">$150K/year</td></tr>
+                        <tr><td style="font-weight: 600;">Total Avoided Costs</td><td class="highlight-blue" style="font-weight: 600;">$450K/year + $4M capital</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Return on Investment</h3>
+            <div class="formula">
+Total CAPEX:                          $31,500,000
+Less: ITC (30%):                      -$9,450,000
+Less: UPS Capital Avoided:            -$4,000,000
+────────────────────────────────────────────────────
+Net Investment:                       <span class="highlight">$18,050,000</span>
+
+Annual Value (Revenue + Savings):     $1,650,000 - $2,550,000 (mid: $2,100,000)
+Simple Payback:                       $18,050,000 ÷ $2,100,000 = <span class="highlight">8.6 years</span>
+
+With 50% ITC (domestic content + energy community):
+Net Investment:                       $12,250,000
+Simple Payback:                       <span class="highlight">5.8 years</span>
+            </div>
+
+            <div class="warning-box">
+                <div class="warning-box-title">Non-Financial Value: Life Safety</div>
+                <p style="margin: 0;">The primary value of hospital BESS cannot be captured in financial metrics alone:</p>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Patient Safety:</strong> No power blink during surgery or critical care</li>
+                    <li><strong>Liability Reduction:</strong> Reduced malpractice exposure from power events</li>
+                    <li><strong>Reputation:</strong> Community trust in emergency preparedness</li>
+                    <li><strong>Regulatory:</strong> Exceeds Joint Commission and CMS requirements</li>
+                    <li><strong>Insurance:</strong> Potential premium reductions for resilience</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Regulatory Compliance -->
+        <section>
+            <h2>Regulatory Compliance</h2>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>Requirement</th>
+                        <th>Standard</th>
+                        <th>BESS Compliance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Transfer Time</td>
+                        <td>NFPA 110: &lt;10 seconds</td>
+                        <td class="highlight">&lt;10 ms (1000x better)</td>
+                    </tr>
+                    <tr>
+                        <td>Runtime</td>
+                        <td>Joint Commission: 96 hours</td>
+                        <td class="highlight">25+ hours BESS + unlimited with generators</td>
+                    </tr>
+                    <tr>
+                        <td>Essential Electrical System</td>
+                        <td>NEC 517.30</td>
+                        <td class="highlight">Full compliance - all branches served</td>
+                    </tr>
+                    <tr>
+                        <td>Generator Requirement</td>
+                        <td>NFPA 110 Type 10</td>
+                        <td class="highlight">Existing generators retained (code)</td>
+                    </tr>
+                    <tr>
+                        <td>Battery Safety</td>
+                        <td>UL 9540A, NFPA 855</td>
+                        <td class="highlight">ST2236UX is UL 9540A listed</td>
+                    </tr>
+                    <tr>
+                        <td>Monthly Testing</td>
+                        <td>Joint Commission EC.02.05.07</td>
+                        <td class="highlight">Automated testing, no fuel consumption</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Implementation -->
+        <section>
+            <h2>Implementation Considerations</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Phased Installation (Recommended)</div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 1: Engineering (Months 1-6)</div>
+                            <div class="timeline-desc">Detailed design, utility coordination, permit applications, equipment orders</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 2: Site Prep (Months 5-9)</div>
+                            <div class="timeline-desc">Foundations, conduit, switchgear modifications during low-census periods</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 3: Installation (Months 9-14)</div>
+                            <div class="timeline-desc">Battery placement, inverter install, integration with existing emergency system</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-title">Phase 4: Commissioning (Months 14-16)</div>
+                            <div class="timeline-desc">Testing, transfer drills, staff training, regulatory inspection</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Hospital-Specific Requirements</div>
+                    <ul>
+                        <li><strong>Infection Control:</strong> Construction barriers, HEPA filtration</li>
+                        <li><strong>Noise:</strong> Equipment sited away from patient areas</li>
+                        <li><strong>Access:</strong> 24/7 maintenance access without patient disruption</li>
+                        <li><strong>Testing:</strong> Schedule around surgical schedule</li>
+                        <li><strong>Staff Training:</strong> Engineering, facilities, clinical staff</li>
+                        <li><strong>Documentation:</strong> Integration with CMMS and BAS</li>
+                        <li><strong>Redundancy:</strong> Maintain existing UPS until BESS proven</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section>
+            <h2>Conclusion</h2>
+            <div class="success-box">
+                <div class="success-box-title">Recommendation: Strongly Favorable</div>
+                <p>The hospital BESS deployment provides exceptional value across multiple dimensions:</p>
+                <ol style="margin-bottom: 0;">
+                    <li><strong>Life Safety:</strong> &lt;10ms transfer protects patients during surgery and critical care</li>
+                    <li><strong>Extended Runtime:</strong> 25+ hours critical-only exceeds any traditional UPS</li>
+                    <li><strong>Code Compliance:</strong> Exceeds NFPA 110, Joint Commission, and CMS requirements</li>
+                    <li><strong>Financial Return:</strong> 5.8-8.6 year payback with revenue generation</li>
+                    <li><strong>Operational:</strong> Reduced generator runtime, maintenance, and fuel costs</li>
+                    <li><strong>Resilience:</strong> Winter Storm Uri demonstrated Texas grid vulnerability</li>
+                </ol>
+            </div>
+
+            <div class="critical-box">
+                <div class="critical-box-title">Critical Success Factor</div>
+                <p style="margin: 0;">Hospital administration, clinical leadership, and facilities management must be aligned
+                on the project. The BESS is not just an infrastructure upgrade - it is a <strong>patient safety investment</strong>
+                that happens to generate revenue. This framing is essential for board approval and clinical buy-in.</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>Case Study Document | Hospital BESS Integration | ITX Z&T Ranch Medical Center, Texas</p>
+            <p>Technical specifications subject to final engineering. Compliance with local codes required.</p>
+            <p>Generated: January 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

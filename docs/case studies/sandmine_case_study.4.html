@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITX Z&T Ranch Sand Mine BESS Case Study - Dual-Inverter Architecture | Regno AI</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --border-color: #30363d;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .header .location {
+            color: var(--accent-cyan);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .header .meta {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+
+        /* Navigation */
+        .toc {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .toc h2 {
+            font-size: 1rem;
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section h4 {
+            font-size: 1rem;
+            color: var(--accent-blue);
+            margin: 1rem 0 0.5rem;
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .stat-card.blue .value { color: var(--accent-blue); }
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.purple .value { color: var(--accent-purple); }
+        .stat-card.cyan .value { color: var(--accent-cyan); }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        /* Code/Formula blocks */
+        .formula-block {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--accent-orange);
+            overflow-x: auto;
+        }
+
+        .formula-block .result {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* Callout boxes */
+        .callout {
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .callout-warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--accent-orange);
+        }
+
+        .callout-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .callout-danger {
+            background: rgba(248, 81, 73, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .callout-cyan {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: var(--accent-cyan);
+        }
+
+        .callout h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-blue { color: var(--accent-blue); }
+        .highlight-green { color: var(--accent-green); }
+        .highlight-cyan { color: var(--accent-cyan); }
+
+        /* Comparison cards */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-card h4 {
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Architecture Diagram */
+        .architecture-diagram {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .diagram-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .diagram-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            min-width: 150px;
+        }
+
+        .diagram-box.grid {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .diagram-box.inverter-charge {
+            background: linear-gradient(135deg, var(--accent-cyan), #0891b2);
+            color: white;
+        }
+
+        .diagram-box.inverter-discharge {
+            background: linear-gradient(135deg, var(--accent-orange), #ea580c);
+            color: white;
+        }
+
+        .diagram-box.battery {
+            background: linear-gradient(135deg, var(--accent-green), #16a34a);
+            color: white;
+        }
+
+        .diagram-box.plant {
+            background: linear-gradient(135deg, var(--accent-purple), #7c3aed);
+            color: white;
+        }
+
+        .diagram-arrow {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .diagram-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .diagram-row {
+                flex-direction: column;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .section {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>ITX Z&T Ranch Sand Mine</h1>
+            <p class="subtitle">Battery Energy Storage System - Dual-Inverter Architecture</p>
+            <p class="location">📍 Texas, USA | ERCOT Grid Territory</p>
+            <div class="meta">
+                <span class="badge badge-orange">SC4000UD-MV</span>
+                <span class="badge badge-cyan">Dual-Inverter Topology</span>
+                <span class="badge badge-green">89.44 MWh Total</span>
+                <span class="badge badge-purple">Grid-Isolated Discharge</span>
+            </div>
+            <p class="meta" style="margin-top: 1rem;">
+                Research Document | Generated by Regno AI | January 2026
+            </p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#topology">1. Dual-Inverter Topology</a></li>
+                <li><a href="#site">2. Site Overview - ITX Z&T Ranch</a></li>
+                <li><a href="#equipment">3. Equipment Specifications</a></li>
+                <li><a href="#configuration">4. Configuration Analysis</a></li>
+                <li><a href="#power-flow">5. Power Flow Analysis</a></li>
+                <li><a href="#load-analysis">6. Sand Mine Load Analysis</a></li>
+                <li><a href="#sizing">7. Sizing Recommendations</a></li>
+                <li><a href="#financial">8. Financial Analysis</a></li>
+                <li><a href="#calculations">9. Technical Calculations</a></li>
+                <li><a href="#appendices">10. Appendices</a></li>
+            </ul>
+        </nav>
+
+        <!-- Executive Summary -->
+        <section class="section">
+            <h2>Executive Summary</h2>
+            <p>This document analyzes a Battery Energy Storage System (BESS) deployment at the <span class="highlight-cyan">ITX Z&T Ranch sand mine in Texas, USA</span>, utilizing a <span class="highlight-cyan">dual-inverter topology</span> where charging and discharging functions are separated across dedicated inverter groups. This architecture provides <strong>grid-isolated plant discharge</strong> and enables simultaneous charge/discharge operations within the ERCOT market.</p>
+
+            <div class="callout callout-cyan">
+                <h4>Your Topology: Dual-Inverter Architecture</h4>
+                <p><strong>Inverter Group 1 (Charging):</strong> Connected to ERCOT Grid → Charges Battery Bank</p>
+                <p><strong>Inverter Group 2 (Discharging):</strong> Connected to Battery → Discharges into Sand Mine Plant</p>
+                <p>This separates grid-side and load-side power conversion, providing operational flexibility and grid independence during discharge.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">89.44</div>
+                    <div class="label">MWh Total Storage</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">2+3</div>
+                    <div class="label">Charge + Discharge Inverters</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">8 MW</div>
+                    <div class="label">Charging Power (2x 4MW)</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">12 MW</div>
+                    <div class="label">Discharge Power (3x 4MW)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Dual-Inverter Topology -->
+        <section class="section" id="topology">
+            <h2>1. Dual-Inverter Topology Explained</h2>
+
+            <h3>1.1 Architecture Overview</h3>
+            <p>Unlike conventional single-path BESS where the same inverters handle both charging and discharging, your dual-inverter architecture separates these functions. This provides several operational advantages for industrial applications in the Texas market.</p>
+
+            <div class="architecture-diagram">
+                <h4 style="text-align: center; color: var(--accent-orange); margin-bottom: 1.5rem;">System Architecture Diagram - ITX Z&T Ranch</h4>
+
+                <div class="diagram-row">
+                    <div class="diagram-box grid">
+                        ERCOT GRID<br/>
+                        <span class="diagram-label">Texas Interconnection</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box inverter-charge">
+                        CHARGING INVERTERS<br/>
+                        <span class="diagram-label">2x SC4000UD-MV = 8 MW</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box battery">
+                        BATTERY BANK<br/>
+                        <span class="diagram-label">40x ST2236UX = 89.44 MWh</span>
+                    </div>
+                </div>
+
+                <div class="diagram-row" style="margin-top: 2rem;">
+                    <div class="diagram-box battery">
+                        BATTERY BANK<br/>
+                        <span class="diagram-label">40x ST2236UX = 89.44 MWh</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box inverter-discharge">
+                        DISCHARGE INVERTERS<br/>
+                        <span class="diagram-label">3x SC4000UD-MV = 12 MW</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box plant">
+                        SAND MINE PLANT<br/>
+                        <span class="diagram-label">ITX Z&T Ranch Operations</span>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                    <strong>Key:</strong> Grid power flows through dedicated charging inverters. Plant receives power from separate discharge inverters.
+                </p>
+            </div>
+
+            <h3>1.2 Inverter Split Options (5 Inverters Total)</h3>
+            <p>With 5x SC4000UD-MV inverters (4 MW each), you can configure the charge/discharge split in several ways:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Configuration</th>
+                            <th>Charging</th>
+                            <th>Discharging</th>
+                            <th>Charge Time</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: var(--bg-tertiary);">
+                            <td><strong>2 + 3 (Recommended)</strong></td>
+                            <td>8 MW (2 units)</td>
+                            <td>12 MW (3 units)</td>
+                            <td>~11.2 hours</td>
+                            <td>Higher discharge for peak demand</td>
+                        </tr>
+                        <tr>
+                            <td>3 + 2</td>
+                            <td>12 MW (3 units)</td>
+                            <td>8 MW (2 units)</td>
+                            <td>~7.5 hours</td>
+                            <td>Faster charging, moderate discharge</td>
+                        </tr>
+                        <tr>
+                            <td>2 + 2 + 1 Swing</td>
+                            <td>8-12 MW</td>
+                            <td>8-12 MW</td>
+                            <td>Variable</td>
+                            <td>Flexible operation with swing unit</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>1.3 Advantages of Dual-Inverter Topology</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-green);">Operational Benefits</h4>
+                    <ul>
+                        <li><strong>Grid Independence:</strong> Plant runs on battery during ERCOT outages or grid events</li>
+                        <li><strong>Simultaneous Charge/Discharge:</strong> Can charge from grid while powering plant</li>
+                        <li><strong>Load Isolation:</strong> Plant power quality unaffected by Texas grid fluctuations</li>
+                        <li><strong>Maintenance Flexibility:</strong> Service one side without full shutdown</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-blue);">Texas Market Benefits</h4>
+                    <ul>
+                        <li><strong>ERCOT Resilience:</strong> Critical during extreme weather events</li>
+                        <li><strong>Peak Avoidance:</strong> Avoid 4CP transmission charges</li>
+                        <li><strong>Energy Arbitrage:</strong> Leverage volatile ERCOT wholesale prices</li>
+                        <li><strong>Demand Response:</strong> Participate in ERCOT programs</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout callout-warning">
+                <h4>Texas Grid Consideration</h4>
+                <p>The ERCOT grid operates independently from the rest of the US. Your dual-inverter setup with grid-isolated discharge provides <strong>critical resilience</strong> during Texas grid stress events (extreme heat/cold) when the ERCOT grid may be unstable or experience rolling blackouts.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: Site Overview -->
+        <section class="section" id="site">
+            <h2>2. Site Overview - ITX Z&T Ranch</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">TX</div>
+                    <div class="label">Location: Texas, USA</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">ERCOT</div>
+                    <div class="label">Grid Operator</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">Sand</div>
+                    <div class="label">Mining Operation</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">Local</div>
+                    <div class="label">Construction Supply</div>
+                </div>
+            </div>
+
+            <h3>2.1 Site Characteristics</h3>
+            <ul>
+                <li><strong>Location:</strong> ITX Z&T Ranch, Texas, USA</li>
+                <li><strong>Grid Territory:</strong> ERCOT (Electric Reliability Council of Texas)</li>
+                <li><strong>Application:</strong> Sand mining for local construction supply</li>
+                <li><strong>Climate:</strong> Hot semi-arid; extreme summer heat, occasional winter freezes</li>
+                <li><strong>Grid Reliability:</strong> ERCOT-specific challenges during peak demand</li>
+            </ul>
+
+            <h3>2.2 Texas Energy Market Context</h3>
+            <div class="callout callout-info">
+                <h4>ERCOT Market Characteristics</h4>
+                <ul>
+                    <li><strong>Wholesale Prices:</strong> Highly volatile; can spike to $5,000/MWh during scarcity</li>
+                    <li><strong>4CP Charges:</strong> Transmission costs based on peak demand during 4 summer peaks</li>
+                    <li><strong>No Capacity Market:</strong> Energy-only market with scarcity pricing</li>
+                    <li><strong>Ancillary Services:</strong> ECRS, Non-Spin, Regulation available</li>
+                    <li><strong>Average Retail Rate:</strong> $0.08-0.12/kWh (commercial/industrial)</li>
+                </ul>
+            </div>
+
+            <h3>2.3 Assumptions</h3>
+            <ul>
+                <li><strong>Grid Connection:</strong> ERCOT interconnection for charging; islanded discharge</li>
+                <li><strong>Inverter Split:</strong> 2 charging + 3 discharging (8 MW / 12 MW)</li>
+                <li><strong>Operation:</strong> Single shift (8-10 hours/day), 5-6 days/week</li>
+                <li><strong>Charging Window:</strong> Off-peak hours (night) when ERCOT prices are lowest</li>
+                <li><strong>Primary Value:</strong> Grid independence + energy cost savings + 4CP avoidance</li>
+            </ul>
+        </section>
+
+        <!-- Section 3: Equipment Specifications -->
+        <section class="section" id="equipment">
+            <h2>3. Equipment Specifications</h2>
+
+            <h3>3.1 Sungrow ST2236UX Battery System</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Specification</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rated Energy Capacity</td>
+                            <td><span class="highlight">2,236 kWh</span> per unit</td>
+                            <td>40 units = 89.44 MWh total</td>
+                        </tr>
+                        <tr>
+                            <td>Battery Chemistry</td>
+                            <td>LFP (Lithium Iron Phosphate)</td>
+                            <td>Enhanced safety, Texas heat tolerant</td>
+                        </tr>
+                        <tr>
+                            <td>Cycle Life</td>
+                            <td>>6,000 cycles at 90% DoD</td>
+                            <td>16+ year operational life</td>
+                        </tr>
+                        <tr>
+                            <td>Round-Trip Efficiency</td>
+                            <td>~95%</td>
+                            <td>DC-to-DC</td>
+                        </tr>
+                        <tr>
+                            <td>Operating Temperature</td>
+                            <td>-30°C to +55°C</td>
+                            <td>Suitable for Texas climate extremes</td>
+                        </tr>
+                        <tr>
+                            <td>Cooling System</td>
+                            <td>Integrated liquid cooling</td>
+                            <td>Critical for Texas summer heat</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>3.2 Sungrow SC4000UD-MV Power Conversion System</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Specification</th>
+                            <th>Role in Your System</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rated Power</td>
+                            <td><span class="highlight">4,000 kW (4 MW)</span></td>
+                            <td>Per unit capacity</td>
+                        </tr>
+                        <tr>
+                            <td>Quantity - Charging</td>
+                            <td>2 units</td>
+                            <td>8 MW total charging from ERCOT</td>
+                        </tr>
+                        <tr>
+                            <td>Quantity - Discharging</td>
+                            <td>3 units</td>
+                            <td>12 MW total discharge to plant</td>
+                        </tr>
+                        <tr>
+                            <td>AC Voltage</td>
+                            <td>10-35 kV (Medium Voltage)</td>
+                            <td>Direct MV connection</td>
+                        </tr>
+                        <tr>
+                            <td>Max Efficiency</td>
+                            <td>>99%</td>
+                            <td>Minimal conversion losses</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Code Compliance</td>
+                            <td>IEEE 1547, UL 1741</td>
+                            <td>US grid standards</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 4: Configuration Analysis -->
+        <section class="section" id="configuration">
+            <h2>4. Configuration Analysis</h2>
+
+            <h3>4.1 System Summary - Dual Inverter Split</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">40</div>
+                    <div class="label">Battery Units (ST2236UX)</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">2</div>
+                    <div class="label">Charging Inverters (8 MW)</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">3</div>
+                    <div class="label">Discharge Inverters (12 MW)</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">89.44</div>
+                    <div class="label">MWh Total Storage</div>
+                </div>
+            </div>
+
+            <h3>4.2 Charging Path Analysis</h3>
+            <div class="formula-block">
+<strong>Charging Configuration:</strong>
+Inverters: 2x SC4000UD-MV = 8 MW charging power
+Battery Bank: 40x ST2236UX = 89.44 MWh
+
+<strong>Full Charge Time (0% to 100%):</strong>
+Time = Energy / Power
+Time = 89.44 MWh / 8 MW
+<span class="result">Time = 11.18 hours</span>
+
+<strong>Charge Time at 90% DoD (10% to 100%):</strong>
+Energy needed = 89.44 MWh x 0.90 = 80.5 MWh
+Time = 80.5 MWh / 8 MW
+<span class="result">Time = 10.06 hours</span>
+            </div>
+
+            <h3>4.3 Discharge Path Analysis</h3>
+            <div class="formula-block">
+<strong>Discharge Configuration:</strong>
+Inverters: 3x SC4000UD-MV = 12 MW discharge power
+Battery Bank: 40x ST2236UX = 89.44 MWh
+
+<strong>Full Discharge Time (at max power):</strong>
+Time = Energy / Power
+Time = 89.44 MWh / 12 MW
+<span class="result">Time = 7.45 hours at 12 MW</span>
+
+<strong>Discharge at 90% DoD:</strong>
+Usable Energy = 89.44 MWh x 0.90 = 80.5 MWh
+Time = 80.5 MWh / 12 MW
+<span class="result">Time = 6.71 hours usable</span>
+            </div>
+
+            <h3>4.4 Asymmetric Power Comparison</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Path</th>
+                            <th>Power</th>
+                            <th>Full Cycle Time</th>
+                            <th>C-Rate</th>
+                            <th>Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Charging (ERCOT → Battery)</td>
+                            <td>8 MW</td>
+                            <td>11.18 hours</td>
+                            <td>0.089C</td>
+                            <td>1.0x</td>
+                        </tr>
+                        <tr>
+                            <td>Discharging (Battery → Plant)</td>
+                            <td>12 MW</td>
+                            <td>7.45 hours</td>
+                            <td>0.134C</td>
+                            <td>1.5x faster</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>Texas Operating Strategy</h4>
+                <p>With the 2+3 split, charge overnight when ERCOT prices are typically <strong>$0.02-0.05/kWh</strong>, then discharge during plant operations. This captures the <strong>$0.05-0.10/kWh spread</strong> between off-peak and on-peak rates.</p>
+            </div>
+        </section>
+
+        <!-- Section 5: Power Flow Analysis -->
+        <section class="section" id="power-flow">
+            <h2>5. Power Flow Analysis</h2>
+
+            <h3>5.1 Operating Modes</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-cyan);">Mode 1: Grid Charging Only</h4>
+                    <p><strong>When:</strong> Overnight (10pm-6am), ERCOT prices low</p>
+                    <ul>
+                        <li>ERCOT Grid → 8 MW → Battery</li>
+                        <li>Plant not operating</li>
+                        <li>Charging time: 10-11 hours</li>
+                        <li>Cost: ~$0.02-0.04/kWh</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-orange);">Mode 2: Battery Discharge Only</h4>
+                    <p><strong>When:</strong> Daytime operations, grid outage, or high ERCOT prices</p>
+                    <ul>
+                        <li>Battery → 12 MW → Plant</li>
+                        <li>Grid disconnected</li>
+                        <li>Runtime: 7+ hours at full power</li>
+                        <li>Complete ERCOT independence</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-green);">Mode 3: Simultaneous Operation</h4>
+                    <p><strong>When:</strong> Grid available, plant operating</p>
+                    <ul>
+                        <li>ERCOT → 8 MW → Battery</li>
+                        <li>Battery → 12 MW → Plant</li>
+                        <li>Net battery: -4 MW (discharging)</li>
+                        <li>Extends runtime during price spikes</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-purple);">Mode 4: Emergency Island</h4>
+                    <p><strong>When:</strong> ERCOT grid failure (winter storm, heat wave)</p>
+                    <ul>
+                        <li>Full grid isolation</li>
+                        <li>Battery → 12 MW → Plant</li>
+                        <li>Critical operations continue</li>
+                        <li>8+ days at sand mine load</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>5.2 ERCOT Price Arbitrage Strategy</h3>
+            <div class="formula-block">
+<strong>Daily Arbitrage Calculation:</strong>
+Charge cost (overnight): 89.44 MWh x $0.03/kWh = $2,683
+Avoided daytime cost: 89.44 MWh x $0.10/kWh = $8,944
+Efficiency loss (5%): 89.44 x 0.05 x $0.10 = $447
+
+<span class="result">Daily savings = $8,944 - $2,683 - $447 = $5,814</span>
+
+<strong>During ERCOT price spikes ($1-5/kWh):</strong>
+If discharged at $1.00/kWh instead of charging from grid:
+<span class="result">Single day value = 89.44 MWh x $1.00 = $89,440</span>
+            </div>
+
+            <h3>5.3 4CP Demand Charge Avoidance (Texas Specific)</h3>
+            <div class="callout callout-success">
+                <h4>4CP Transmission Cost Savings</h4>
+                <p>In ERCOT, transmission charges are based on your demand during the 4 Coincident Peaks (4CP) - the highest 15-minute demand periods in June-September. By discharging from battery during these peaks:</p>
+                <ul>
+                    <li>Average 4CP charge: $4-8/kW/month (varies by utility)</li>
+                    <li>Your peak reduction potential: 420 kW</li>
+                    <li>Annual 4CP savings: 420 kW x $6/kW x 12 months = <strong>$30,240/year</strong></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 6: Sand Mine Load Analysis -->
+        <section class="section" id="load-analysis">
+            <h2>6. Sand Mine Load Analysis</h2>
+
+            <h3>6.1 ITX Z&T Ranch Load Profile</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">~420</div>
+                    <div class="label">kW Peak Demand</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">~250</div>
+                    <div class="label">kW Average Load</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">~5</div>
+                    <div class="label">MWh Daily Consumption</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">8-10</div>
+                    <div class="label">Hours Daily Operation</div>
+                </div>
+            </div>
+
+            <h3>6.2 Typical Equipment Loads</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Equipment</th>
+                            <th>Typical Power (kW)</th>
+                            <th>Operating Hours</th>
+                            <th>Daily kWh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Primary Jaw Crusher</td>
+                            <td>75-150</td>
+                            <td>6-8</td>
+                            <td>600-1,200</td>
+                        </tr>
+                        <tr>
+                            <td>Vibrating Screens (2-3 units)</td>
+                            <td>30-60</td>
+                            <td>8</td>
+                            <td>240-480</td>
+                        </tr>
+                        <tr>
+                            <td>Conveyor Systems</td>
+                            <td>50-100</td>
+                            <td>8</td>
+                            <td>400-800</td>
+                        </tr>
+                        <tr>
+                            <td>Sand Washing Plant</td>
+                            <td>40-80</td>
+                            <td>6-8</td>
+                            <td>320-640</td>
+                        </tr>
+                        <tr>
+                            <td>Water Pumps</td>
+                            <td>20-40</td>
+                            <td>8</td>
+                            <td>160-320</td>
+                        </tr>
+                        <tr>
+                            <td>Office/Facilities + HVAC</td>
+                            <td>15-30</td>
+                            <td>10</td>
+                            <td>150-300</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL ESTIMATED</td>
+                            <td>340-680 kW</td>
+                            <td>-</td>
+                            <td>2,370-5,140 kWh</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>6.3 Runtime at Sand Mine Load</h3>
+            <div class="formula-block">
+<strong>At Peak Load (420 kW):</strong>
+Runtime = 89.44 MWh / 0.42 MW
+<span class="result">Runtime = 212.95 hours = 8.87 days continuous</span>
+
+<strong>At Average Load (250 kW):</strong>
+Runtime = 89.44 MWh / 0.25 MW
+<span class="result">Runtime = 357.76 hours = 14.9 days</span>
+
+<strong>For 10-hour shift at 420 kW peak:</strong>
+Energy needed = 0.42 MW x 10 hours = 4.2 MWh per shift
+Shifts per charge = 89.44 MWh / 4.2 MWh
+<span class="result">~21 full shifts per charge</span>
+            </div>
+
+            <h3>6.4 Discharge Inverter Utilization</h3>
+            <div class="callout callout-warning">
+                <h4>Significant Overcapacity</h4>
+                <p>Your 3 discharge inverters provide <strong>12 MW</strong> of power, but ITX Z&T Ranch only needs <strong>420 kW peak</strong>. This is <strong>28.5x more capacity than required</strong>.</p>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Your Discharge Capacity</th>
+                            <th>Sand Mine Needs</th>
+                            <th>Utilization</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Power</td>
+                            <td>12,000 kW</td>
+                            <td>420 kW</td>
+                            <td>3.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Daily Energy</td>
+                            <td>80+ MWh available</td>
+                            <td>5 MWh needed</td>
+                            <td>6.25%</td>
+                        </tr>
+                        <tr>
+                            <td>Runtime needed</td>
+                            <td>7.45 hours max</td>
+                            <td>8-10 hours</td>
+                            <td>Exceeds need</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 7: Sizing Recommendations -->
+        <section class="section" id="sizing">
+            <h2>7. Sizing Recommendations</h2>
+
+            <h3>7.1 Right-Sized Configuration for ITX Z&T Ranch Only</h3>
+            <div class="callout callout-success">
+                <h4>If Sole Purpose is Sand Mine Backup</h4>
+                <p>Recommended minimum configuration:</p>
+                <ul>
+                    <li><strong>Batteries:</strong> 2-3x ST2236UX (4.5-6.7 MWh)</li>
+                    <li><strong>Charging Inverter:</strong> 1x 500 kW - 1 MW unit</li>
+                    <li><strong>Discharge Inverter:</strong> 1x 500 kW - 1 MW unit</li>
+                    <li><strong>Estimated Cost:</strong> $800,000 - $1,500,000</li>
+                    <li><strong>Backup Runtime:</strong> 10-16 hours at peak load</li>
+                </ul>
+            </div>
+
+            <h3>7.2 Dual-Inverter Configurations by Site Size (US Dollars)</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Site Type</th>
+                            <th>Peak Load</th>
+                            <th>Batteries</th>
+                            <th>Charge Inv.</th>
+                            <th>Discharge Inv.</th>
+                            <th>Est. Cost (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Small Sand Mine</td>
+                            <td>400-500 kW</td>
+                            <td>2-3</td>
+                            <td>1x 1MW</td>
+                            <td>1x 1MW</td>
+                            <td>$1-2M</td>
+                        </tr>
+                        <tr>
+                            <td>Medium Quarry</td>
+                            <td>1-2 MW</td>
+                            <td>5-8</td>
+                            <td>1x 2.4MW</td>
+                            <td>1x 2.4MW</td>
+                            <td>$4-6M</td>
+                        </tr>
+                        <tr>
+                            <td>Large Aggregate Plant</td>
+                            <td>3-5 MW</td>
+                            <td>15-20</td>
+                            <td>2x 2.4MW</td>
+                            <td>2x 2.4MW</td>
+                            <td>$10-16M</td>
+                        </tr>
+                        <tr>
+                            <td>Industrial Complex</td>
+                            <td>5-10 MW</td>
+                            <td>25-40</td>
+                            <td>2x 4MW</td>
+                            <td>3x 4MW</td>
+                            <td>$20-32M</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary);">
+                            <td><strong>YOUR CONFIG</strong></td>
+                            <td><strong>12 MW max</strong></td>
+                            <td><strong>40</strong></td>
+                            <td><strong>2x 4MW</strong></td>
+                            <td><strong>3x 4MW</strong></td>
+                            <td><strong>$24-38M</strong></td>
+                        </tr>
+                        <tr>
+                            <td>ERCOT Grid Asset</td>
+                            <td>20-100 MW</td>
+                            <td>50-200+</td>
+                            <td>5-25x 4MW</td>
+                            <td>5-25x 4MW</td>
+                            <td>$50-200M</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>7.3 Optimal Use Cases for Your Configuration in Texas</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-green);">Ideal Applications</h4>
+                    <ul>
+                        <li><strong>Multi-facility Texas operation</strong> - Power several sites</li>
+                        <li><strong>ERCOT arbitrage + backup</strong> - Revenue + resilience</li>
+                        <li><strong>Critical operations requiring 100% uptime</strong> - Grid independence</li>
+                        <li><strong>Solar + storage hybrid</strong> - Texas has excellent solar resource</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-red);">Not Optimal For</h4>
+                    <ul>
+                        <li><strong>Single small sand mine only</strong> - 28x oversized</li>
+                        <li><strong>Limited capital budget</strong> - $24M+ is significant</li>
+                        <li><strong>Small site footprint</strong> - 40 containers = ~65,000 sq ft</li>
+                        <li><strong>Areas with stable, cheap grid power</strong> - (not Texas!)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout callout-success">
+                <h4>Texas-Specific Opportunity</h4>
+                <p>Given ERCOT's unique characteristics (price volatility, no capacity market, extreme weather events), your oversized system has <strong>significant value beyond the sand mine</strong>:</p>
+                <ol>
+                    <li>Participate in ERCOT ancillary services market (ECRS, Non-Spin)</li>
+                    <li>Capture extreme price spikes (Winter Storm Uri saw $9,000/MWh)</li>
+                    <li>Provide backup to neighboring facilities (revenue opportunity)</li>
+                    <li>Future-proof against growing Texas grid instability</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Section 8: Financial Analysis -->
+        <section class="section" id="financial">
+            <h2>8. Financial Analysis (US Dollars)</h2>
+
+            <h3>8.1 Capital Cost - Dual Inverter Configuration</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Quantity</th>
+                            <th>Unit Cost (USD)</th>
+                            <th>Total (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ST2236UX Batteries</td>
+                            <td>40</td>
+                            <td>$350,000 - $500,000</td>
+                            <td>$14,000,000 - $20,000,000</td>
+                        </tr>
+                        <tr>
+                            <td>SC4000UD-MV (Charging)</td>
+                            <td>2</td>
+                            <td>$500,000 - $700,000</td>
+                            <td>$1,000,000 - $1,400,000</td>
+                        </tr>
+                        <tr>
+                            <td>SC4000UD-MV (Discharging)</td>
+                            <td>3</td>
+                            <td>$500,000 - $700,000</td>
+                            <td>$1,500,000 - $2,100,000</td>
+                        </tr>
+                        <tr>
+                            <td>Dual-Path Switchgear</td>
+                            <td>1</td>
+                            <td>$1,800,000 - $3,000,000</td>
+                            <td>$1,800,000 - $3,000,000</td>
+                        </tr>
+                        <tr>
+                            <td>ERCOT Interconnection</td>
+                            <td>1</td>
+                            <td>$1,200,000 - $2,500,000</td>
+                            <td>$1,200,000 - $2,500,000</td>
+                        </tr>
+                        <tr>
+                            <td>Civil Works & Installation</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>$2,500,000 - $4,500,000</td>
+                        </tr>
+                        <tr>
+                            <td>EPC & Commissioning</td>
+                            <td>-</td>
+                            <td>15-20%</td>
+                            <td>$3,000,000 - $5,000,000</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL CAPEX</td>
+                            <td colspan="2">-</td>
+                            <td><span class="highlight">$25,000,000 - $38,500,000</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>8.2 Revenue & Savings Potential (Texas/ERCOT)</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Revenue/Savings Stream</th>
+                            <th>Description</th>
+                            <th>Annual Value (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Energy Arbitrage</td>
+                            <td>Off-peak charging, peak discharge</td>
+                            <td>$400,000 - $800,000</td>
+                        </tr>
+                        <tr>
+                            <td>ERCOT Ancillary Services</td>
+                            <td>ECRS, Non-Spin, Regulation (8 MW)</td>
+                            <td>$300,000 - $600,000</td>
+                        </tr>
+                        <tr>
+                            <td>4CP Demand Charge Avoidance</td>
+                            <td>Transmission cost reduction</td>
+                            <td>$25,000 - $40,000</td>
+                        </tr>
+                        <tr>
+                            <td>Avoided Electricity Cost</td>
+                            <td>Sand mine energy (5 MWh/day)</td>
+                            <td>$100,000 - $150,000</td>
+                        </tr>
+                        <tr>
+                            <td>Price Spike Capture</td>
+                            <td>Opportunistic (5-10 events/year)</td>
+                            <td>$200,000 - $1,000,000</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL ANNUAL VALUE</td>
+                            <td>-</td>
+                            <td><span class="highlight-green">$1,025,000 - $2,590,000</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>ERCOT Price Spike Opportunity</h4>
+                <p>During extreme weather events (like Winter Storm Uri in 2021), ERCOT prices can reach <strong>$5,000-$9,000/MWh</strong>. A single 4-hour discharge during such an event could generate:</p>
+                <p style="font-size: 1.2rem; color: var(--accent-green); font-weight: 600;">80 MWh x $5,000/MWh = $400,000 in one event</p>
+            </div>
+
+            <h3>8.3 Return Summary</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">$31.5M</div>
+                    <div class="label">Average CAPEX</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">$1.8M</div>
+                    <div class="label">Average Annual Value</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">17</div>
+                    <div class="label">Years Simple Payback</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">5-8%</div>
+                    <div class="label">Project IRR (Est.)</div>
+                </div>
+            </div>
+
+            <div class="callout callout-warning">
+                <h4>Investment Consideration</h4>
+                <p>For a <strong>sand mine backup only</strong>, this investment has a <strong>weak financial return</strong>. The value proposition improves significantly when:</p>
+                <ul>
+                    <li>Actively participating in ERCOT markets (requires trading expertise)</li>
+                    <li>Combined with on-site solar generation (ITC tax credit)</li>
+                    <li>Providing backup to multiple facilities beyond ITX Z&T Ranch</li>
+                    <li>Valued as insurance against ERCOT grid failures (business continuity)</li>
+                </ul>
+            </div>
+
+            <h3>8.4 Federal Tax Incentives (US)</h3>
+            <div class="callout callout-success">
+                <h4>Investment Tax Credit (ITC)</h4>
+                <p>Under the Inflation Reduction Act (IRA), standalone battery storage qualifies for:</p>
+                <ul>
+                    <li><strong>Base ITC:</strong> 30% of eligible costs</li>
+                    <li><strong>Domestic Content Bonus:</strong> +10% (if applicable)</li>
+                    <li><strong>Energy Community Bonus:</strong> +10% (if in qualifying area)</li>
+                    <li><strong>Potential Total:</strong> Up to 50% ITC</li>
+                </ul>
+                <p>At 30% ITC on $31.5M: <strong>$9.45M tax credit</strong></p>
+                <p>Effective cost after ITC: <strong>$22.05M</strong></p>
+            </div>
+        </section>
+
+        <!-- Section 9: Technical Calculations -->
+        <section class="section" id="calculations">
+            <h2>9. Technical Calculations</h2>
+
+            <h3>9.1 Charging Path Calculations</h3>
+            <div class="formula-block">
+<strong>Charging Power:</strong>
+P_charge = 2 x 4,000 kW = <span class="result">8,000 kW = 8 MW</span>
+
+<strong>Charging Time (0-100%):</strong>
+t_charge = E_total / P_charge
+t_charge = 89.44 MWh / 8 MW
+<span class="result">t_charge = 11.18 hours</span>
+
+<strong>Charging C-Rate:</strong>
+C_charge = P_charge / E_total
+C_charge = 8 MW / 89.44 MWh
+<span class="result">C_charge = 0.089C (very gentle on batteries)</span>
+            </div>
+
+            <h3>9.2 Discharge Path Calculations</h3>
+            <div class="formula-block">
+<strong>Discharge Power:</strong>
+P_discharge = 3 x 4,000 kW = <span class="result">12,000 kW = 12 MW</span>
+
+<strong>Full Discharge Time (at max power):</strong>
+t_discharge = E_total / P_discharge
+t_discharge = 89.44 MWh / 12 MW
+<span class="result">t_discharge = 7.45 hours</span>
+
+<strong>Discharge C-Rate:</strong>
+C_discharge = P_discharge / E_total
+C_discharge = 12 MW / 89.44 MWh
+<span class="result">C_discharge = 0.134C (moderate, battery-friendly)</span>
+            </div>
+
+            <h3>9.3 Texas Climate Considerations</h3>
+            <div class="formula-block">
+<strong>Summer Derating (105°F+ days):</strong>
+Typical derating: 5-10% capacity reduction
+Available capacity in extreme heat: 89.44 MWh x 0.92 = 82.3 MWh
+<span class="result">Still provides 8+ days backup for sand mine</span>
+
+<strong>HVAC Auxiliary Load:</strong>
+Estimated cooling load: 50-100 kW for battery HVAC
+Net discharge capacity: 12,000 kW - 100 kW = 11,900 kW
+<span class="result">Minimal impact on operations</span>
+            </div>
+
+            <h3>9.4 ERCOT Interconnection Sizing</h3>
+            <div class="formula-block">
+<strong>Charging Path (Grid Import):</strong>
+Maximum import: 8 MW
+Interconnection capacity needed: 8 MW + 10% margin = 8.8 MW
+<span class="result">Recommend 10 MW interconnection agreement</span>
+
+<strong>Note: Discharge path is islanded (not exporting to ERCOT)</strong>
+If future grid export desired, would need separate export agreement.
+            </div>
+        </section>
+
+        <!-- Section 10: Appendices -->
+        <section class="section" id="appendices">
+            <h2>10. Appendices</h2>
+
+            <h3>A. ERCOT-Specific Terminology</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ERCOT</td>
+                            <td>Electric Reliability Council of Texas - grid operator for 90% of Texas</td>
+                        </tr>
+                        <tr>
+                            <td>4CP</td>
+                            <td>4 Coincident Peaks - transmission charges based on summer peak demand</td>
+                        </tr>
+                        <tr>
+                            <td>ECRS</td>
+                            <td>ERCOT Contingency Reserve Service - fast-response ancillary service</td>
+                        </tr>
+                        <tr>
+                            <td>Non-Spin</td>
+                            <td>Non-Spinning Reserve - 30-minute response ancillary service</td>
+                        </tr>
+                        <tr>
+                            <td>ORDC</td>
+                            <td>Operating Reserve Demand Curve - scarcity pricing mechanism</td>
+                        </tr>
+                        <tr>
+                            <td>PUCT</td>
+                            <td>Public Utility Commission of Texas - regulatory authority</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>B. Document Information</h3>
+            <div class="callout callout-info">
+                <ul>
+                    <li><strong>Site:</strong> ITX Z&T Ranch, Texas, USA</li>
+                    <li><strong>Grid Territory:</strong> ERCOT</li>
+                    <li><strong>Currency:</strong> US Dollars (USD)</li>
+                    <li><strong>Document Type:</strong> Technical Case Study - Dual-Inverter Architecture</li>
+                    <li><strong>Version:</strong> 4.0</li>
+                    <li><strong>Configuration:</strong> 40x ST2236UX + 2x SC4000UD-MV (charge) + 3x SC4000UD-MV (discharge)</li>
+                    <li><strong>Generated:</strong> January 2026</li>
+                    <li><strong>Platform:</strong> Regno AI</li>
+                </ul>
+            </div>
+
+            <h3>C. Data Sources</h3>
+            <ul>
+                <li><strong>Sungrow:</strong> Official product datasheets for ST2236UX and SC4000UD-MV</li>
+                <li><strong>ERCOT:</strong> Market pricing data, ancillary services rates</li>
+                <li><strong>EIA:</strong> Texas electricity price benchmarks</li>
+                <li><strong>NREL:</strong> Battery storage cost projections</li>
+                <li><strong>IRS:</strong> Investment Tax Credit guidance (IRA 2022)</li>
+            </ul>
+        </section>
+
+        <!-- Final Recommendation -->
+        <section class="section">
+            <h2>Final Recommendation</h2>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-cyan);">Your Dual-Inverter Architecture</h4>
+                    <p><strong>Location:</strong> ITX Z&T Ranch, Texas</p>
+                    <ul>
+                        <li>8 MW charging from ERCOT grid</li>
+                        <li>12 MW discharge to plant</li>
+                        <li>11.2 hours to full charge</li>
+                        <li>7.45 hours at full discharge</li>
+                        <li>Grid-isolated plant operations</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-orange);">Sand Mine Application Reality</h4>
+                    <p><strong>Mismatch Analysis:</strong></p>
+                    <ul>
+                        <li>420 kW peak vs 12 MW capacity</li>
+                        <li>3.5% inverter utilization</li>
+                        <li>8.87 days runtime per charge</li>
+                        <li>System is 28x oversized for mine alone</li>
+                    </ul>
+                    <p><strong>Best strategy:</strong> ERCOT market participation + mine backup</p>
+                </div>
+            </div>
+
+            <div class="callout callout-success" style="margin-top: 2rem;">
+                <h4>Bottom Line for ITX Z&T Ranch</h4>
+                <p>Your dual-inverter architecture (ERCOT Grid → Charge Inverters → Battery → Discharge Inverters → Plant) provides excellent operational flexibility and critical ERCOT grid independence for Texas operations. For the sand mine alone, this system is massively oversized. The recommended approach:</p>
+                <ol>
+                    <li><strong>Primary:</strong> Capture ERCOT price volatility and ancillary services (~$1-2.5M/year)</li>
+                    <li><strong>Secondary:</strong> Unlimited backup for ITX Z&T Ranch sand mine operations</li>
+                    <li><strong>Strategic:</strong> Insurance against ERCOT grid failures (Texas-critical)</li>
+                    <li><strong>Tax Benefit:</strong> Claim 30%+ ITC under Inflation Reduction Act (~$9M+ credit)</li>
+                </ol>
+                <p style="margin-top: 1rem;"><strong>Effective CAPEX after ITC:</strong> ~$22M | <strong>Payback with ERCOT revenue:</strong> 10-15 years</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Generated by Regno AI | Comprehensive BESS Analysis Platform</p>
+            <p>ITX Z&T Ranch, Texas, USA | Dual-Inverter Architecture | January 2026</p>
+            <p style="margin-top: 1rem; font-size: 0.75rem;">
+                This document is provided for informational purposes. All specifications should be verified with manufacturer documentation. Financial projections are estimates and actual results may vary. Consult with ERCOT and local utilities for interconnection requirements.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

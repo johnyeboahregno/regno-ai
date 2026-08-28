@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regno.ai — Governance, In Plain English</title>
+<style>
+  :root {
+    --bg: #0a0d12;
+    --panel: #121821;
+    --shelf: #1a2330;
+    --edge: #2a3447;
+    --ink: #e8edf5;
+    --ink-2: #a8b3c6;
+    --ink-3: #6b7689;
+    --accent: #6366f1;
+    --accent-2: #a855f7;
+    --accent-soft: rgba(99, 102, 241, 0.18);
+    --green: #10b981;
+    --gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif;
+    line-height: 1.6; font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  a:hover { color: rgb(165 180 252); text-decoration: underline; }
+
+  /* ── Header ───────────────────────────────────────────────── */
+  .regno-header {
+    background: rgba(18, 24, 33, 0.85);
+    border-bottom: 1px solid var(--edge);
+    padding: 14px 32px;
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(10px);
+  }
+  .regno-header-inner {
+    max-width: 980px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .regno-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .regno-logo {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--gradient); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 14px; letter-spacing: 0.02em;
+  }
+  .regno-brand-block { display: flex; flex-direction: column; min-width: 0; }
+  .regno-brand-name {
+    font-size: 14px; font-weight: 700; line-height: 1.1;
+    background: var(--gradient); -webkit-background-clip: text;
+    background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .regno-brand-sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .regno-doc-pill {
+    background: var(--accent-soft); color: var(--accent);
+    font-weight: 800; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+
+  /* ── Container ────────────────────────────────────────────── */
+  .container { max-width: 980px; margin: 0 auto; padding: 48px 32px; }
+
+  /* ── Hero ─────────────────────────────────────────────────── */
+  .hero {
+    padding: 56px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.15), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(168, 85, 247, 0.10), transparent 60%),
+      var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 16px;
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.2em; color: var(--ink-3); margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 38px; font-weight: 700; line-height: 1.2; margin: 0 0 16px 0;
+    background: var(--gradient); -webkit-background-clip: text;
+    background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .lede { font-size: 18px; color: var(--ink-2); margin: 0 0 24px 0; max-width: 760px; }
+  .hero-meta {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    padding-top: 24px; border-top: 1px solid var(--edge);
+    font-size: 13px; color: var(--ink-3);
+  }
+  .hero-meta strong {
+    color: var(--ink-2); display: block; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;
+  }
+
+  /* ── Sections ─────────────────────────────────────────────── */
+  h2 {
+    font-size: 24px; font-weight: 700; margin: 56px 0 16px 0;
+    color: var(--ink); border-bottom: 1px solid var(--edge); padding-bottom: 12px;
+  }
+  h3 { font-size: 17px; font-weight: 700; color: var(--ink); margin: 28px 0 8px 0; }
+  p { color: var(--ink-2); margin: 12px 0; }
+  strong { color: var(--ink); font-weight: 600; }
+  ul { color: var(--ink-2); padding-left: 22px; }
+  ul li { margin: 8px 0; }
+  ul li strong { color: var(--ink); }
+
+  .lead-quote {
+    border-left: 3px solid var(--accent);
+    padding: 12px 0 12px 22px; margin: 28px 0;
+    font-size: 16px; color: var(--ink-2); font-style: italic;
+  }
+
+  .pitch {
+    background:
+      linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(168, 85, 247, 0.06)),
+      var(--panel);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    border-radius: 12px; padding: 28px 32px;
+    margin: 32px 0; text-align: center;
+  }
+  .pitch-label {
+    font-size: 10px; font-weight: 800; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px;
+  }
+  .pitch p {
+    font-size: 19px; line-height: 1.5; color: var(--ink);
+    margin: 0; font-weight: 500;
+  }
+  .pitch strong { color: white; font-weight: 700; }
+
+  /* ── What we built — table ───────────────────────────────── */
+  .built-grid {
+    display: grid; grid-template-columns: 220px 1fr; gap: 0;
+    margin: 24px 0 8px 0;
+    border: 1px solid var(--edge); border-radius: 12px; overflow: hidden;
+  }
+  .built-grid > div {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--edge);
+    background: var(--shelf);
+  }
+  .built-grid > div:nth-child(4n+3),
+  .built-grid > div:nth-child(4n+4) {
+    background: var(--panel);
+  }
+  .built-grid > div:nth-last-child(-n+2) { border-bottom: none; }
+  .built-piece {
+    font-weight: 700; color: var(--ink); font-size: 14px;
+  }
+  .built-piece-tag {
+    display: inline-block; font-size: 9px; font-weight: 800;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 2px 8px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .built-desc { font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  .built-desc strong { color: var(--ink); }
+
+  /* ── Why-it-matters cards ────────────────────────────────── */
+  .why-list { display: grid; gap: 14px; margin: 24px 0; }
+  .why-card {
+    background: var(--shelf);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 22px;
+  }
+  .why-buyer {
+    font-size: 13px; font-weight: 700; color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .why-buyer .pill {
+    font-size: 9px; font-weight: 800;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 2px 8px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-right: 10px;
+  }
+  .why-body {
+    margin: 0; font-size: 14px; color: var(--ink-2); line-height: 1.55;
+  }
+
+  /* ── Footer ───────────────────────────────────────────────── */
+  .regno-footer {
+    background: var(--panel);
+    border-top: 1px solid var(--edge);
+    padding: 24px 32px; margin-top: 60px;
+  }
+  .regno-footer-inner {
+    max-width: 980px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    flex-wrap: wrap;
+  }
+  .regno-footer-left { display: flex; align-items: center; gap: 10px; }
+  .regno-footer-mark {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: var(--gradient);
+  }
+  .regno-footer-text { font-size: 12px; color: var(--ink-3); }
+  .regno-footer-text strong { color: var(--ink-2); }
+  .regno-footer-right { font-size: 11px; color: var(--ink-3); }
+
+  /* ── Regno + smarter wordmark ───────────────────────────── */
+  .regno-smarter {
+    position: relative; display: inline-block;
+    font-weight: 600; line-height: 1;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    padding-top: 0.5em;
+  }
+  .regno-smarter .r-suffix { position: relative; }
+  .regno-smarter .r-tld {
+    font-size: 0.72em; font-weight: 500;
+    color: var(--ink-2); letter-spacing: 0.01em;
+    margin-left: 0.03em; vertical-align: baseline;
+  }
+  .regno-smarter .r-suffix::after {
+    content: "smarter";
+    position: absolute;
+    bottom: calc(100% - 0.18em);
+    left: 0;
+    font-family: inherit; font-size: 0.55em; font-weight: 500;
+    font-style: italic; letter-spacing: 0.015em;
+    color: var(--accent);
+    line-height: 1; white-space: nowrap;
+  }
+ /* Fill reset (rule 12 §1): keep the wordmark visible inside gradient-clipped text. */
+ .regno-smarter, .regno-smarter * { -webkit-text-fill-color: currentColor !important; }
+ .regno-smarter .r-suffix::after { -webkit-text-fill-color: currentColor !important; }
+
+
+  .regno-footer-attrib {
+    max-width: 980px; margin: 14px auto 0 auto;
+    padding-top: 14px; border-top: 1px solid var(--edge);
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .regno-footer-attrib-confid {
+    font-size: 10px; color: var(--ink-3);
+    letter-spacing: 0.05em; text-align: left;
+  }
+  .regno-footer-attrib-by { display: flex; align-items: baseline; gap: 10px; }
+  .regno-footer-attrib-label {
+    font-size: 9.5px; font-weight: 600; color: var(--ink-3);
+    letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .regno-footer-attrib .regno-smarter { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header class="regno-header">
+  <div class="regno-header-inner">
+    <div class="regno-header-left">
+      <div class="regno-logo">R</div>
+      <div class="regno-brand-block">
+        <div class="regno-brand-name">Regno.ai</div>
+        <div class="regno-brand-sub">Trust. Audit. Compliance — by design.</div>
+      </div>
+    </div>
+    <div class="regno-doc-pill">Executive Summary</div>
+  </div>
+</header>
+
+<div class="container">
+
+<section class="hero">
+  <div class="eyebrow">Governance, in plain English</div>
+  <h1>The platform regulators and CFOs both buy.</h1>
+  <p class="lede">
+    Most AI platforms ask you to trust the model. Regno.ai gives you
+    <strong>mathematics that proves it</strong> — a cryptographically
+    chained record of every decision, replayable end-to-end, published
+    live for customers and auditors.
+  </p>
+  <div class="hero-meta">
+    <div><strong>Audience</strong>Executives · Procurement · Regulators</div>
+    <div><strong>Full roadmap</strong><a href="../strategy/regno-roadmap.html">regno-roadmap.html</a></div>
+    <div><strong>Engineering</strong><a href="./governance-platform.md">governance-platform.md</a></div>
+    <div><strong>Status</strong>Phase 1 operational · Phase 2/3 designed</div>
+  </div>
+</section>
+
+<h2>The problem every AI platform has</h2>
+<p>
+  When an AI does something — answers a question, approves a transaction,
+  sends a report — three things happen that nobody can see:
+</p>
+<ul>
+  <li><strong>What information did it look at?</strong> Could include private customer data, stale records, a poisoned document.</li>
+  <li><strong>What did it decide, and why?</strong> Probabilistic. Same input ≠ same output.</li>
+  <li><strong>Who is responsible if it goes wrong?</strong> The user? The model? The platform?</li>
+</ul>
+<p>
+  Most AI products today answer all three with a shrug. <em>"The model
+  decided." "Sorry, we don't keep that." "Check the chat history."</em>
+  That's fine for a chatbot — it's a deal-breaker the moment a regulator,
+  an auditor, or a customer's lawyer walks in.
+</p>
+
+<h2>What we built</h2>
+<p>
+  A "black box flight recorder" for every AI decision, plus the wiring
+  around it so the recorder is impossible to silently tamper with.
+</p>
+
+<div class="built-grid">
+  <div class="built-piece"><span class="built-piece-tag">WS1</span><br>Audit chain</div>
+  <div class="built-desc">Every meaningful event is written to a log that is cryptographically chained — each row signs the previous one. <strong>Change any past row and the math breaks.</strong></div>
+
+  <div class="built-piece"><span class="built-piece-tag">WS1</span><br>Daily Merkle root</div>
+  <div class="built-desc">The whole day's log compresses to a single fingerprint we can publish. <strong>Hand it out today; prove next year nothing was edited in between.</strong></div>
+
+  <div class="built-piece"><span class="built-piece-tag">WS2 / WS5</span><br>Execution traces</div>
+  <div class="built-desc">A full recording of every AI run — inputs, tools used, intermediate steps, outputs. Replayable byte-for-byte for deterministic runs; structurally comparable for the fuzzy LLM bits.</div>
+
+  <div class="built-piece"><span class="built-piece-tag">WS3</span><br>Assurance API</div>
+  <div class="built-desc">A standard way for any module (CMS, knowledge base, Cortex Flow…) to plug into the same audit + replay machinery. <strong>Build once, every module gets governance for free.</strong></div>
+
+  <div class="built-piece"><span class="built-piece-tag">WS19</span><br>Trust manifest</div>
+  <div class="built-desc">A public URL — <code>/.well-known/trust.json</code> — that publishes what controls we have, what certifications, and what the substrate is doing right now (audited events, latest verified root). Customers can poll it.</div>
+
+  <div class="built-piece"><span class="built-piece-tag">UX</span><br>Admin dashboard</div>
+  <div class="built-desc">An ops view to watch the substrate live: verify the chain, replay any trace, list every TODO across the platform, see role/privilege assignments at a glance.</div>
+
+  <div class="built-piece"><span class="built-piece-tag">SEC2</span><br>Role &amp; privilege catalogue</div>
+  <div class="built-desc">A single source of truth for who can do what inside the admin surface. One file. Bootstrap script for the first admin. <strong>No spreadsheet, no tribal knowledge.</strong></div>
+
+  <div class="built-piece"><span class="built-piece-tag">Tracking</span><br>TODO registry</div>
+  <div class="built-desc">Every committed piece of governance work is on a public-internal list, tracked from inception to completion. <strong>The roadmap is just as auditable as the runtime.</strong></div>
+
+  <div class="built-piece"><span class="built-piece-tag">Docs</span><br>Documentation provenance</div>
+  <div class="built-desc">The documentation is held to the same standard as the runtime: docs are never edited in place — a revision writes a new version and keeps the old one, recording who changed it, when, and why. The platform flags its own stale docs and can answer "what do we say about X, and where" with cited sources. <strong>Even the paperwork has an audit trail.</strong></div>
+</div>
+
+<h2>Why this matters — the differentiator</h2>
+<p>
+  Every other AI platform sells you the model. We sell you the
+  <strong>proof that the model behaved</strong>. That changes who can
+  buy from us:
+</p>
+
+<div class="why-list">
+  <div class="why-card">
+    <div class="why-buyer"><span class="pill">Regulated</span>Financial services, healthcare, utilities, defence</div>
+    <p class="why-body">Cannot legally adopt AI without a control trail. <strong>We have one out of the box. Competitors are years away.</strong></p>
+  </div>
+  <div class="why-card">
+    <div class="why-buyer"><span class="pill">Procurement</span>Risk &amp; vendor onboarding teams</div>
+    <p class="why-body">They ask "where's your SOC 2, your ISO 27001 evidence pack, your audit log retention policy?" — <strong>we answer with a URL. They answer with hand-wringing.</strong></p>
+  </div>
+  <div class="why-card">
+    <div class="why-buyer"><span class="pill">Disputes</span>Customer complaints, legal, regulator inquiries</div>
+    <p class="why-body">We can replay the exact run, show the inputs, prove the log wasn't doctored. <strong>Nobody else can.</strong></p>
+  </div>
+  <div class="why-card">
+    <div class="why-buyer"><span class="pill">Enterprise</span>CIOs and CISOs</div>
+    <p class="why-body">They care about <em>kill switches, residency, erasure, model cards</em> — we've already designed the architecture for all of it (Phase 2/3 of the plan). <strong>Everyone else is reactive.</strong></p>
+  </div>
+</div>
+
+<div class="pitch">
+  <div class="pitch-label">The one-sentence pitch</div>
+  <p>
+    Most AI platforms ask you to trust the model.<br>
+    <strong>Regno.ai gives you mathematics that proves it.</strong>
+  </p>
+</div>
+
+<h2>Why now</h2>
+<p>
+  The EU AI Act, NIST AI RMF, SEC AI disclosure rules, ISO 42001 — the
+  regulatory floor for "production AI" is rising fast in 2026. Platforms
+  without an audit substrate will fail vendor due-diligence.
+</p>
+<p>
+  We've put ours in <em>before</em> anyone is forced to. By the time the
+  rules bite, our story isn't <em>"we'll build that"</em> — it's
+  <strong>"we've been operating it for a year."</strong>
+</p>
+<p class="lead-quote">That's the moat.</p>
+
+<h2>Where to go next</h2>
+<ul>
+  <li><strong>Engineers</strong> — <a href="./governance-platform.md">governance-platform.md</a> for the technical breakdown, code locations, phase plan, and operational runbook.</li>
+  <li><strong>Live state</strong> — <code>/.well-known/trust.json</code> (public) and <code>/admin/governance</code> (admin-only dashboard).</li>
+  <li><strong>Roadmap</strong> — <a href="../platform-todo-registry.md">platform-todo-registry.md</a>, surfaced at <code>/admin/todos</code>.</li>
+</ul>
+
+</div>
+
+<footer class="regno-footer">
+  <div class="regno-footer-inner">
+    <div class="regno-footer-left">
+      <div class="regno-footer-mark"></div>
+      <div class="regno-footer-text"><strong>Regno.ai</strong> — Trust, Audit &amp; Compliance, by design.</div>
+    </div>
+    <div class="regno-footer-right">
+      Phase 1 operational · Phase 2/3 designed · Status as of 2026-05-30
+    </div>
+  </div>
+  <div class="regno-footer-attrib">
+    <div class="regno-footer-attrib-confid">
+      Confidential &middot; &copy; Regno.ai 2026 &middot; Distribution under engagement
+    </div>
+    <div class="regno-footer-attrib-by">
+      <span class="regno-footer-attrib-label">Generated by</span>
+      <span class="regno-smarter">Regn<span class="r-suffix">o<span class="r-tld">.ai</span></span></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

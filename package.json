@@ -1,0 +1,32 @@
+{
+  "name": "regno-architect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Regno Architect Me — a fresh, self-hosted Regno-style platform rebuilt from the regno.ai docs",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w @regno/web",
+    "dev:execution": "npm run dev -w @regno/execution",
+    "dev:realtime": "npm run dev -w @regno/realtime",
+    "build": "npm run build -w @regno/shared && npm run build -w @regno/crypto && npm run build -w @regno/db && npm run build -w @regno/ai && npm run build -w @regno/cortex && npm run build -w @regno/mail && npm run build -w @regno/flow && npm run build -w @regno/cli && npm run build -w @regno/web && npm run build -w @regno/execution && npm run build -w @regno/realtime",
+    "db:up": "docker compose up -d mongo qdrant neo4j redis",
+    "db:down": "docker compose down",
+    "db:init": "node scripts/init-db.mjs",
+    "db:seed": "node scripts/seed-agents.mjs",
+    "db:seed-standards": "node scripts/seed-standards.mjs",
+    "db:seed-brain": "node scripts/seed-brain.mjs",
+    "db:seed-history": "node scripts/seed-history.mjs",
+    "db:seed-github": "node scripts/seed-github.mjs",
+    "db:seed-profile": "node scripts/seed-profile.mjs",
+    "cli": "npx tsx packages/cli/src/cli.ts",
+    "stack:up": "docker compose up -d --build",
+    "stack:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

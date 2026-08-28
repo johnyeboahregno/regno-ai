@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KymaGrid BMS - Comprehensive Technical Report | Powered by Regno</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --border-color: #30363d;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .header .tagline {
+            color: var(--accent-cyan);
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .header .meta {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+
+        /* Navigation */
+        .toc {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .toc h2 {
+            font-size: 1rem;
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section h4 {
+            font-size: 1rem;
+            color: var(--accent-blue);
+            margin: 1rem 0 0.5rem;
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .section p.summary {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-cyan);
+            line-height: 1.8;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .stat-card.blue .value { color: var(--accent-blue); }
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.purple .value { color: var(--accent-purple); }
+        .stat-card.cyan .value { color: var(--accent-cyan); }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        /* Code/Formula blocks */
+        .formula-block {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--accent-orange);
+            overflow-x: auto;
+        }
+
+        .formula-block .result {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* Callout boxes */
+        .callout {
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .callout-warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--accent-orange);
+        }
+
+        .callout-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .callout-danger {
+            background: rgba(248, 81, 73, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .callout-cyan {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: var(--accent-cyan);
+        }
+
+        .callout h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-blue { color: var(--accent-blue); }
+        .highlight-green { color: var(--accent-green); }
+        .highlight-cyan { color: var(--accent-cyan); }
+        .highlight-purple { color: var(--accent-purple); }
+
+        /* Comparison cards */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-card h4 {
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Architecture Diagram */
+        .architecture-diagram {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .diagram-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .diagram-box {
+            padding: 0.875rem 1.25rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-width: 130px;
+        }
+
+        .diagram-box.regno { background: linear-gradient(135deg, var(--accent-orange), #ea580c); color: white; }
+        .diagram-box.dashboard { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); color: white; }
+        .diagram-box.model { background: linear-gradient(135deg, var(--accent-blue), #1d4ed8); color: white; }
+        .diagram-box.pcs-on { background: linear-gradient(135deg, var(--accent-cyan), #0891b2); color: white; }
+        .diagram-box.pcs-off { background: linear-gradient(135deg, var(--accent-green), #16a34a); color: white; }
+        .diagram-box.battery { background: linear-gradient(135deg, #eab308, #ca8a04); color: white; }
+        .diagram-box.load { background: linear-gradient(135deg, #64748b, #475569); color: white; }
+        .diagram-box.generator { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+
+        .diagram-arrow {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+        }
+
+        .diagram-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Phase Timeline */
+        .phase-timeline {
+            position: relative;
+            padding-left: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .phase-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .phase-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .phase-item::before {
+            content: '';
+            position: absolute;
+            left: -1.75rem;
+            top: 1.25rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-orange);
+            border: 2px solid var(--bg-primary);
+        }
+
+        .phase-item.completed::before {
+            background: var(--accent-green);
+        }
+
+        .phase-item.in-progress::before {
+            background: var(--accent-cyan);
+        }
+
+        .phase-item h4 {
+            color: var(--accent-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .phase-item.completed h4 {
+            color: var(--accent-green);
+        }
+
+        .phase-item.in-progress h4 {
+            color: var(--accent-cyan);
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-cyan);
+        }
+
+        .feature-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h4 {
+            color: var(--accent-orange);
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .diagram-row {
+                flex-direction: column;
+            }
+
+            .phase-timeline {
+                padding-left: 1.5rem;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .section {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>KymaGrid Battery Management System</h1>
+            <p class="subtitle">Comprehensive Technical Report</p>
+            <p class="tagline">Powered by Regno Platform - "Your Data Empowered"</p>
+            <div class="meta">
+                <span class="badge badge-orange">Regno Cloud Integration</span>
+                <span class="badge badge-cyan">Dual-Inverter Topology</span>
+                <span class="badge badge-green">Field-Proven at ZnT</span>
+                <span class="badge badge-purple">Real-Time Telemetry</span>
+                <span class="badge badge-blue">AI-Ready Infrastructure</span>
+            </div>
+            <p class="meta" style="margin-top: 1rem;">
+                Detailed Technical Documentation | ZnT Deployment Reference | January 2026
+            </p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#executive-summary">1. Executive Summary</a></li>
+                <li><a href="#system-components">2. System Components</a></li>
+                <li><a href="#software-architecture">3. Software Architecture</a></li>
+                <li><a href="#regno-integration">4. Regno Platform Integration</a></li>
+                <li><a href="#deployment-phases">5. Deployment Phases at ZnT</a></li>
+                <li><a href="#operational-data">6. Operational Performance Data</a></li>
+                <li><a href="#integration-topologies">7. Integration Topologies</a></li>
+                <li><a href="#tricks-capabilities">8. The Tricks - Complete Capabilities</a></li>
+                <li><a href="#issues-resolutions">9. Issues & Resolutions</a></li>
+                <li><a href="#future-scalability">10. Future Scalability</a></li>
+            </ul>
+        </nav>
+
+        <!-- Executive Summary -->
+        <section class="section" id="executive-summary">
+            <h2>1. Executive Summary</h2>
+            <p class="summary">
+                The <span class="highlight-cyan">KymaGrid Battery Management System (BMS)</span> is a sophisticated, software-defined energy control platform built on the <span class="highlight">Regno universal telemetry infrastructure</span>. It orchestrates industrial battery energy storage systems through a <span class="highlight-cyan">dual-inverter topology</span> that physically separates charging (OnGrid PCS connected to utility grid) and discharging (OffGrid PCS connected to load) power paths. The system's architecture features a two-layer software stack: a <span class="highlight-blue">Model layer</span> responsible for stateflow management, decision logic, safety enforcement, and real-time setpoint generation; and a <span class="highlight-purple">Dashboard platform</span> serving as the supervisory "brain" that orchestrates subsystem interactions, handles fault tolerance, streams data to Regno databases, and provides remote monitoring capabilities. Originally proven at the Chippewa deployment, the system was enhanced at ZnT with a re-architected communication layer enabling hardware-independent deployment, eliminating laptop dependencies, and adding independent OnGrid/OffGrid operation modes. Field testing has validated the system's ability to handle steady loads of 35-45 kW, absorb inrush events up to 230 kW, perform overnight trickle charging at 10 kW continuous, and sustain real plant operations for extended periods in fully islanded (off-grid) mode.
+            </p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">2</div>
+                    <div class="label">PCS Units (OnGrid + OffGrid)</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">230 kW</div>
+                    <div class="label">Peak Inrush Handling</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">10 kW</div>
+                    <div class="label">Overnight Trickle Charge</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">330 kWh</div>
+                    <div class="label">Daily Energy Cycled</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">250+ kW</div>
+                    <div class="label">Generator Requirement</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">6</div>
+                    <div class="label">Deployment Phases</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Components -->
+        <section class="section" id="system-components">
+            <h2>2. System Components</h2>
+            <p>The KymaGrid BMS at ZnT consists of the following hardware and software components working in concert:</p>
+
+            <h3>2.1 Hardware Components</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Specification</th>
+                            <th>Function</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="highlight-cyan">OnGrid PCS</span></td>
+                            <td>Power Conversion System #1</td>
+                            <td>Connected to utility grid; enables battery charging by controlling power flow from grid to battery</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-green">OffGrid PCS</span></td>
+                            <td>Power Conversion System #2</td>
+                            <td>Connected to battery and external load; manages power flow from battery to plant/load bank</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight">Battery Bank</span></td>
+                            <td>Energy Storage System</td>
+                            <td>Stores electrical energy; interfaces with both PCS units via common DC rail</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-purple">Generator</span></td>
+                            <td>250 kW - 1 MW recommended</td>
+                            <td>Backup power source for charging; provides grid-forming capability when grid unavailable</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-blue">Blackbox "Brain"</span></td>
+                            <td>OnLogic hardware + UPS</td>
+                            <td>Hosts database, software stack, and control model; self-contained control unit</td>
+                        </tr>
+                        <tr>
+                            <td>Load Bank / Plant</td>
+                            <td>Variable load (testing) / Sand dispenser (production)</td>
+                            <td>Power consumer receiving discharge from OffGrid PCS</td>
+                        </tr>
+                        <tr>
+                            <td>Starlink Connectivity</td>
+                            <td>Satellite internet (residential/business)</td>
+                            <td>Provides remote access and control capabilities for the site</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>2.2 System Architecture Diagram</h3>
+            <div class="architecture-diagram">
+                <h4 style="text-align: center; color: var(--accent-orange); margin-bottom: 1.5rem;">KymaGrid Complete System Architecture</h4>
+
+                <div class="diagram-row">
+                    <div class="diagram-box regno">
+                        Regno Cloud<br/>
+                        <span class="diagram-label">Telemetry & Analytics</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box dashboard">
+                        Dashboard<br/>
+                        <span class="diagram-label">Supervisory Brain</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box model">
+                        Model<br/>
+                        <span class="diagram-label">State Machine</span>
+                    </div>
+                </div>
+
+                <div class="diagram-row" style="margin-top: 2rem;">
+                    <div class="diagram-box generator">
+                        Generator<br/>
+                        <span class="diagram-label">250kW+ Backup</span>
+                    </div>
+                    <span class="diagram-arrow">&rarr;</span>
+                    <div class="diagram-box pcs-on">
+                        OnGrid PCS<br/>
+                        <span class="diagram-label">Charging Path</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box battery">
+                        Battery Bank<br/>
+                        <span class="diagram-label">Common DC Rail</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box pcs-off">
+                        OffGrid PCS<br/>
+                        <span class="diagram-label">Discharge Path</span>
+                    </div>
+                    <span class="diagram-arrow">&rarr;</span>
+                    <div class="diagram-box load">
+                        Plant Load<br/>
+                        <span class="diagram-label">Sand Dispenser</span>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                    <strong>Key:</strong> Dashboard = "Brain" (coordination) | Model = "Organ" (operational decisions) | Dual AC Rails enable independent OnGrid/OffGrid operation
+                </p>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>Dual-Inverter Topology Advantage</h4>
+                <p>Unlike conventional single-path BESS where the same inverters handle both charging and discharging, KymaGrid's dual-inverter architecture physically separates these functions. This enables:</p>
+                <ul>
+                    <li><strong>Simultaneous charge/discharge:</strong> Charge from grid while powering plant</li>
+                    <li><strong>Complete grid isolation:</strong> Plant runs on battery during grid outages</li>
+                    <li><strong>Independent operation:</strong> OnGrid can enter standby while OffGrid continues supplying load</li>
+                    <li><strong>Maintenance flexibility:</strong> Service one path without full shutdown</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Software Architecture -->
+        <section class="section" id="software-architecture">
+            <h2>3. Software Architecture</h2>
+            <p>The KymaGrid software stack consists of two primary layers working in concert to manage the battery energy storage system:</p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-purple);">Dashboard Monitoring & Control Platform</h4>
+                    <p><strong>Role:</strong> The supervisory "brain" that oversees and coordinates all subsystems</p>
+                    <h4 style="color: var(--accent-blue); font-size: 0.9rem; margin-top: 1rem;">Core Functions:</h4>
+                    <ul>
+                        <li>Communicates with battery and PCS in real time</li>
+                        <li>Collects and streams system data to Regno databases</li>
+                        <li>Provides detailed diagnostics, historical analysis, and fault tracing</li>
+                        <li>Handles fault tolerance by monitoring subsystem health</li>
+                        <li>Automatically manages recovery procedures where possible</li>
+                        <li>Orchestrates interactions between core, battery, PCS, and Model</li>
+                        <li>Ensures safe and optimized operation across all conditions</li>
+                    </ul>
+                    <h4 style="color: var(--accent-blue); font-size: 0.9rem; margin-top: 1rem;">User Interface:</h4>
+                    <ul>
+                        <li>Visualization of system status in real time</li>
+                        <li>Error diagnostics and alert management</li>
+                        <li>Direct control inputs for manual intervention</li>
+                        <li>Engineering monitoring and troubleshooting tools</li>
+                    </ul>
+                </div>
+
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-blue);">Model (Software Control Layer)</h4>
+                    <p><strong>Role:</strong> The specialized "organ" responsible for operational decisions and flow control</p>
+                    <h4 style="color: var(--accent-cyan); font-size: 0.9rem; margin-top: 1rem;">Responsibilities:</h4>
+                    <ul>
+                        <li><strong>Stateflow Management:</strong> Manages state machine transitions between operational modes</li>
+                        <li><strong>Decision Logic:</strong> Determines optimal charge/discharge strategies</li>
+                        <li><strong>Safety Enforcement:</strong> Validates all operations against safety constraints</li>
+                        <li><strong>Setpoint Generation:</strong> Produces real-time setpoints for PCS control</li>
+                        <li><strong>Command Propagation:</strong> Sends charge/discharge commands to PCS units</li>
+                    </ul>
+                    <h4 style="color: var(--accent-cyan); font-size: 0.9rem; margin-top: 1rem;">Evolution:</h4>
+                    <ul>
+                        <li><strong>Original (Chippewa):</strong> Ran on laptop, limited portability</li>
+                        <li><strong>Enhanced (ZnT):</strong> Decoupled communication layer, hardware-independent</li>
+                        <li><strong>Current:</strong> Integrated into Brain as standalone service</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>3.1 Blackbox "Brain" Configuration</h3>
+            <div class="callout callout-success">
+                <h4>OnLogic Hardware Platform</h4>
+                <p>The Brain is a self-contained control unit consisting of:</p>
+                <ul>
+                    <li><strong>Operations Machine:</strong> OnLogic industrial hardware</li>
+                    <li><strong>Database:</strong> 1x database instance for data storage and retrieval</li>
+                    <li><strong>Software Stack:</strong> 1x complete software stack including Dashboard and Model</li>
+                    <li><strong>UPS:</strong> Uninterruptible power supply for continuous operation during power transitions</li>
+                    <li><strong>Network Stack:</strong> Configured for local and remote connectivity</li>
+                    <li><strong>Starlink Module:</strong> Satellite connectivity for remote access</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Regno Platform Integration -->
+        <section class="section" id="regno-integration">
+            <h2>4. Regno Platform Integration</h2>
+            <p>KymaGrid leverages the <span class="highlight">Regno universal telemetry platform</span> for comprehensive data management, visualization, and analytics capabilities.</p>
+
+            <h3>4.1 Regno Cloud Platform</h3>
+            <p>Regno Cloud is a web-based data telemetry platform designed for real-time data acquisition, processing, and visualization. It serves as the digital foundation for KymaGrid's monitoring and analytics.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">&#x1F4CA;</div>
+                    <h4>Real-Time Data Streaming</h4>
+                    <p>All KymaGrid system data is streamed to Regno databases in real time, enabling immediate visibility into battery state, PCS operation, and system health.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x1F4C8;</div>
+                    <h4>INSIGHT Visualization</h4>
+                    <p>Advanced visualization platform for multi-source data overlay, waveform views, and timeline analysis of historical and live telemetry data.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x1F916;</div>
+                    <h4>AI/ML Ready Infrastructure</h4>
+                    <p>Vector data storage capabilities enable advanced pattern recognition, predictive maintenance, and machine learning applications on battery data.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x2601;</div>
+                    <h4>Cloud-Agnostic Deployment</h4>
+                    <p>Supports AWS, Azure, or on-premises infrastructure with distributed data storage and replication across geographic locations.</p>
+                </div>
+            </div>
+
+            <h3>4.2 Regno Standard Specification</h3>
+            <p>The Regno Standard is an open-source universal telemetry data format built on JSON, providing:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Document Type</th>
+                            <th>Purpose in KymaGrid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="highlight-cyan">ConfigDoc</span></td>
+                            <td>System configuration settings for PCS, battery, and control parameters</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-blue">ParamDefinitionDoc</span></td>
+                            <td>Parameter definitions including units and scaling for telemetry data</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-green">ChannelSamplesDoc</span></td>
+                            <td>Time-series data samples for voltage, current, power, SOC, temperature</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-purple">EventDataDoc</span></td>
+                            <td>Event occurrence data with timestamps for faults, state transitions, alarms</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight">ParamStatDoc</span></td>
+                            <td>Statistical aggregations for min, max, average values over time windows</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-cyan">
+                <h4>Benefits of Regno Integration</h4>
+                <ul>
+                    <li><strong>Unified Data Pool:</strong> All data in single pool regardless of source, eliminating silos</li>
+                    <li><strong>Historical Analysis:</strong> Full capture for detailed diagnostics and fault tracing</li>
+                    <li><strong>Remote Monitoring:</strong> Cloud-based access from anywhere with web connectivity</li>
+                    <li><strong>Scalable Foundation:</strong> Ready for multi-site deployment management</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Deployment Phases -->
+        <section class="section" id="deployment-phases">
+            <h2>5. Deployment Phases at ZnT</h2>
+            <p>The ZnT deployment followed a structured phased approach, building on the proven system from Chippewa with significant enhancements:</p>
+
+            <div class="phase-timeline">
+                <div class="phase-item completed">
+                    <h4>Phase 1: Build and Initial Configuration of Blackbox ("Brain")</h4>
+                    <p><strong>Status:</strong> Completed</p>
+                    <p>The Blackbox was assembled and configured with network stack, operations machine (OnLogic hardware), database, software stack, and UPS.</p>
+                    <ul>
+                        <li>Phase completed smoothly with no major technical blockers</li>
+                        <li>Minor adjustments: additional cables for connectivity</li>
+                        <li>Extra component added to enable Starlink connectivity</li>
+                    </ul>
+                </div>
+
+                <div class="phase-item completed">
+                    <h4>Phase 2: Deployment of Software Stack to Brain</h4>
+                    <p><strong>Status:</strong> Completed (with issues resolved)</p>
+                    <p>Software stack deployed successfully after resolving several configuration issues.</p>
+                    <ul>
+                        <li><strong>Issue 1:</strong> PCS installation order reversed from Chippewa (PCS1=OnGrid at ZnT vs PCS1=OffGrid at Chippewa)</li>
+                        <li><strong>Issue 2:</strong> Generator undersized (125 kW vs required 250 kW+)</li>
+                        <li><strong>Issue 3:</strong> PCS synchronization timing too strict for generator frequency overshoot</li>
+                    </ul>
+                </div>
+
+                <div class="phase-item completed">
+                    <h4>Phase 3: PCS Firmware Upgrade and Generator Configuration</h4>
+                    <p><strong>Status:</strong> Completed</p>
+                    <p>PCS firmware upgraded to allow fine-grained control over synchronization parameters.</p>
+                    <ul>
+                        <li>Generator upgraded to 250 kW specification</li>
+                        <li>Synchronization timing tuned for generator frequency behavior</li>
+                        <li>Battery successfully charged from generator</li>
+                        <li>Stable operation achieved</li>
+                    </ul>
+                </div>
+
+                <div class="phase-item completed">
+                    <h4>Phase 4: Transition to Plant Load</h4>
+                    <p><strong>Status:</strong> Completed</p>
+                    <p>Test load bank replaced with actual plant/silo as power consumer.</p>
+                    <ul>
+                        <li>Batteries charged to 50% capacity</li>
+                        <li>Plant operated for <strong>2 continuous hours</strong> on battery power alone</li>
+                        <li>First demonstration of fully off-grid operation at ZnT</li>
+                        <li>Validated system's ability to sustain real plant loads</li>
+                    </ul>
+                </div>
+
+                <div class="phase-item completed">
+                    <h4>Phase 5: Model Integration into Software Stack</h4>
+                    <p><strong>Status:</strong> Completed</p>
+                    <p>Control Model fully integrated into Brain, eliminating external laptop dependency.</p>
+                    <ul>
+                        <li>Integrated system tested for <strong>2+ full days without failure</strong></li>
+                        <li>New capability: Independent OnGrid/OffGrid operation validated</li>
+                        <li>Stepwise validation of all state transitions completed</li>
+                        <li>OnGrid enters standby while OffGrid continues plant supply without interruption</li>
+                    </ul>
+                </div>
+
+                <div class="phase-item completed">
+                    <h4>Phase 6: Remote Access and Control</h4>
+                    <p><strong>Status:</strong> Completed</p>
+                    <p>Remote access established and validated for Brain, battery, and PCS.</p>
+                    <ul>
+                        <li>Secure remote monitoring of all subsystems operational</li>
+                        <li>Remote deployment of tested software updates enabled</li>
+                        <li>Remote command issuance capability validated</li>
+                        <li>Milestone for scalability: centralized monitoring/management possible</li>
+                    </ul>
+                </div>
+
+                <div class="phase-item in-progress">
+                    <h4>Load Testing and Final Reporting</h4>
+                    <p><strong>Status:</strong> In Progress</p>
+                    <p>Extended load testing with realistic operational scenarios.</p>
+                    <ul>
+                        <li>System running steady loads: 35-45 kW typical</li>
+                        <li>Inrush events up to 230 kW handled successfully</li>
+                        <li>Overnight trickle charging validated</li>
+                        <li>24-hour operational cycles documented</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Operational Performance Data -->
+        <section class="section" id="operational-data">
+            <h2>6. Operational Performance Data</h2>
+            <p>Detailed performance metrics captured during field testing at ZnT demonstrate the system's capabilities under real-world conditions.</p>
+
+            <h3>6.1 Observed 24-Hour Cycle Data</h3>
+            <div class="formula-block">
+<strong>Overnight Trickle Charge:</strong>
+Power: 10 kW continuous
+Period: ~18:00 (prior day) until 09:30
+<span class="result">SOC maintained at 68% by 09:30 (end of trickle charge window)</span>
+
+<strong>Daytime Discharge:</strong>
+Period: 09:30 → 18:00 (8.5 hours)
+SOC: 68% → 56% (−12% delta)
+Energy discharged: ≈330 kWh (DC), ≈318 kWh (AC)
+Average discharge power: <span class="result">≈39 kW</span>
+Peak spikes: Up to <span class="result">230 kW</span> (short bursts ≈0.06 kWh each)
+
+<strong>Evening/Night (after 18:00):</strong>
+SOC held steady at 56% (no charge/discharge)
+System ready for next overnight trickle recharge cycle
+            </div>
+
+            <h3>6.2 Key Performance Metrics</h3>
+            <div class="stats-grid">
+                <div class="stat-card cyan">
+                    <div class="value">68%</div>
+                    <div class="label">Morning SOC Target</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">56%</div>
+                    <div class="label">Evening SOC After Discharge</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">12%</div>
+                    <div class="label">Daily SOC Swing</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">~39 kW</div>
+                    <div class="label">Avg Discharge Power</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">230 kW</div>
+                    <div class="label">Peak Inrush Handled</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">8.5 hrs</div>
+                    <div class="label">Daily Discharge Window</div>
+                </div>
+            </div>
+
+            <h3>6.3 Battery Depletion Analysis</h3>
+            <p>Based on observed data, the system demonstrates predictable depletion patterns under various load scenarios:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Load Profile</th>
+                            <th>Steady Power</th>
+                            <th>Peak Events</th>
+                            <th>Daily SOC Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Light Load</td>
+                            <td>30-35 kW</td>
+                            <td>Minimal</td>
+                            <td>~10% SOC swing</td>
+                        </tr>
+                        <tr>
+                            <td>Typical Load (ZnT)</td>
+                            <td>35-45 kW</td>
+                            <td>Occasional 230 kW</td>
+                            <td>~12% SOC swing</td>
+                        </tr>
+                        <tr>
+                            <td>Heavy Load</td>
+                            <td>45-60 kW</td>
+                            <td>Frequent spikes</td>
+                            <td>~15-18% SOC swing</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-success">
+                <h4>Stable Operation Confirmed</h4>
+                <p>The system has demonstrated stable operation under both steady loads and transient inrush events. Short bursts up to 230 kW (~0.06 kWh each) are absorbed without failure, confirming the system's robustness for industrial applications with variable demand profiles.</p>
+            </div>
+        </section>
+
+        <!-- Integration Topologies -->
+        <section class="section" id="integration-topologies">
+            <h2>7. Integration Topologies</h2>
+            <p>KymaGrid supports multiple integration architectures to accommodate diverse site requirements and scaling needs.</p>
+
+            <h3>7.1 Parallel Integration</h3>
+            <div class="callout callout-info">
+                <h4>Common DC Rail, Common AC Rail</h4>
+                <p>Standard configuration where all DC blocks connect to a shared DC bus, and all inverter skids (4 MW peak each) connect to a common 4.16 kVAC AC rail. Suitable for:</p>
+                <ul>
+                    <li>Grid-tied applications with bidirectional power flow</li>
+                    <li>Sites requiring maximum flexibility in charge/discharge paths</li>
+                    <li>Integration with solar, BESS, and gas gensets on common AC bus</li>
+                </ul>
+            </div>
+
+            <h3>7.2 Split Integration (ZnT Configuration)</h3>
+            <div class="callout callout-success">
+                <h4>Common DC Rail, Separate Charging/Discharge AC Rails</h4>
+                <p>The configuration deployed at ZnT, featuring two separate AC rails for charging and discharging operations:</p>
+                <ul>
+                    <li><strong>Charging AC Rail:</strong> Connected to grid/generator for battery charging</li>
+                    <li><strong>Discharge AC Rail:</strong> Connected to plant load for power delivery</li>
+                    <li><strong>Advantage:</strong> Enables independent OnGrid/OffGrid operation</li>
+                    <li><strong>Use Case:</strong> Industrial loads requiring grid isolation capability</li>
+                </ul>
+            </div>
+
+            <h3>7.3 HV Group Integration</h3>
+            <div class="callout callout-cyan">
+                <h4>DC Groups to Single PCS, All PCS in Parallel</h4>
+                <p>Large-scale configuration for multi-MW deployments:</p>
+                <ul>
+                    <li>Multiple KYMA SG (Storage Groups) with dedicated SKID and CORA units</li>
+                    <li>DC blocks grouped and connected to individual PCS units</li>
+                    <li>All PCS units operate in parallel on AC side</li>
+                    <li>Scalable from single group to 3+ groups (shown: KYMA SG 1, 2, 3)</li>
+                </ul>
+            </div>
+
+            <h3>7.4 Z&T Deployment Specifics</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Configuration</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>DC Rail</td>
+                            <td>Common for all BESS and PCS</td>
+                            <td>Shared DC bus architecture</td>
+                        </tr>
+                        <tr>
+                            <td>AC Rails</td>
+                            <td>2 separate rails</td>
+                            <td>Charging rail + Discharge rail</td>
+                        </tr>
+                        <tr>
+                            <td>Jump Start</td>
+                            <td>BESS 101-104 + PCS-1</td>
+                            <td>External source initializes first units</td>
+                        </tr>
+                        <tr>
+                            <td>AUX Power</td>
+                            <td>PCS-1 generates for all</td>
+                            <td>Self-sustaining after jump start</td>
+                        </tr>
+                        <tr>
+                            <td>Alternative Start</td>
+                            <td>Via CORAs</td>
+                            <td>Jump start also achievable through CORAs</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- The Tricks - Complete Capabilities -->
+        <section class="section" id="tricks-capabilities">
+            <h2>8. The Tricks - Complete Capabilities</h2>
+            <p>A comprehensive catalog of KymaGrid BMS capabilities that differentiate it from conventional battery management systems:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">&#x1F50C;</div>
+                    <h4>Hardware-Independent Deployment</h4>
+                    <p>Communication layer re-architected to decouple from physical hardware requirements. Model runs as standalone service integrated into any site's software stack, enabling faster, more repeatable, hardware-agnostic deployments across different battery chemistries and PCS configurations.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F504;</div>
+                    <h4>Independent OnGrid/OffGrid Operation</h4>
+                    <p>OnGrid and OffGrid PCS operate completely independently. When generator is turned off, OnGrid PCS enters standby while OffGrid PCS continues discharging to plant without interruption. Enables simultaneous charging and discharging, or complete grid isolation during outages.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x26A1;</div>
+                    <h4>230 kW Inrush Event Handling</h4>
+                    <p>System handles occasional inrush events up to 230 kW while maintaining stability. Short power bursts (~0.06 kWh each) absorbed without failure, demonstrating robustness for industrial applications with variable demand profiles and motor starting transients.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F319;</div>
+                    <h4>Overnight Trickle Charging</h4>
+                    <p>Intelligent overnight charging at 10 kW continuous from ~18:00 to 09:30, maintaining battery SOC at optimal levels (68% by morning). Gentle charging approach extends battery cycle life while ensuring full capacity for peak demand periods during daytime operations.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F4F1;</div>
+                    <h4>Remote Access & Control</h4>
+                    <p>Full supervisory control via Starlink connectivity for Brain, battery, and PCS. Enables secure remote monitoring, deployment of tested software updates, and remote command issuance—reducing on-site intervention needs and enabling centralized multi-site management.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F6E1;</div>
+                    <h4>Fault Tolerance Orchestration</h4>
+                    <p>Dashboard monitors subsystem health and automatically manages recovery procedures. Coordinates interactions between core systems, battery, PCS, and Model to ensure safe and optimized operation even during unexpected conditions and component failures.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F4CA;</div>
+                    <h4>Real-Time Setpoint Generation</h4>
+                    <p>Model layer continuously generates real-time setpoints (charge/discharge commands) and propagates them to PCS. Stateflow management ensures optimal power flow decisions based on current system state, load demands, SOC levels, and safety constraints.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F5C4;</div>
+                    <h4>Regno Data Streaming</h4>
+                    <p>All system data collected and streamed to Regno databases for detailed diagnostics, historical analysis, and fault tracing. INSIGHT platform provides visualization of system status, error diagnostics, and engineering intervention capabilities.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F3ED;</div>
+                    <h4>Proven Off-Grid Plant Operation</h4>
+                    <p>Demonstrated fully off-grid operation at ZnT—plant ran for 2+ continuous hours powered solely by battery with no grid connection. System sustained real plant loads (35-45 kW steady, 230 kW peaks) validating industrial-scale islanded operation capability.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F527;</div>
+                    <h4>PCS Frequency Stabilization Tuning</h4>
+                    <p>PCS firmware upgraded for fine-grained control over synchronization parameters. Tuned startup timing accommodates generator frequency overshoot during initial sync, achieving stable operation and successful battery charging from generator sources.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F4E6;</div>
+                    <h4>Blackbox "Brain" Architecture</h4>
+                    <p>Self-contained control unit on OnLogic industrial hardware with database, software stack, and UPS backup. Eliminates external laptop dependencies and provides scalable foundation for managing deployments across multiple sites with consistent configuration.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F500;</div>
+                    <h4>Flexible Integration Topologies</h4>
+                    <p>Supports multiple architectures: Parallel Integration (common DC/AC rails), Split Integration (separate charging/discharge AC rails), and HV Group Integration (DC groups to single PCS). Architectural flexibility adapts to diverse site requirements and scaling needs.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F9E0;</div>
+                    <h4>Two-Layer Software Architecture</h4>
+                    <p>Dashboard serves as supervisory "brain" for coordination and monitoring, while Model acts as specialized "organ" for operational decisions. Clear separation of concerns enables independent development, testing, and troubleshooting of each layer.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F680;</div>
+                    <h4>Jump Start Capability</h4>
+                    <p>System can be initialized from external source (BESS 101-104 + PCS-1), after which PCS-1 generates AUX power for all remaining units. Jump start source can be removed after initialization. Alternative path through CORAs also available.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F4BB;</div>
+                    <h4>Visual State Verification</h4>
+                    <p>During deployment, Model can run on laptop for visual verification of state transitions and logical flows in real-time. Provides troubleshooting flexibility and confirmation of model operation during integration before migration to Brain hardware.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F310;</div>
+                    <h4>Scalable Multi-Site Foundation</h4>
+                    <p>Dashboard platform establishes scalable foundation for managing future deployments across multiple sites. Remote access capability combined with Regno cloud integration enables centralized monitoring and management of distributed BESS installations.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Issues & Resolutions -->
+        <section class="section" id="issues-resolutions">
+            <h2>9. Issues & Resolutions</h2>
+            <p>Documentation of technical challenges encountered during ZnT deployment and their solutions:</p>
+
+            <h3>9.1 Phase 2 Issues</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-red);">Issue: PCS Installation Order</h4>
+                    <p><strong>Problem:</strong> At Chippewa, PCS1=OffGrid and PCS2=OnGrid. At ZnT, installation was reversed: PCS1=OnGrid and PCS2=OffGrid.</p>
+                    <p><strong>Impact:</strong> Inconsistent terminology (OnGrid/GridTie/Inverter1 vs OffGrid/GridForm/Inverter2) caused confusion, leading to unnecessary model rollbacks and misdiagnosis.</p>
+                    <p><strong>Resolution:</strong> Architecture is actually agnostic to ordering; standardized terminology documentation resolved confusion.</p>
+                </div>
+
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-red);">Issue: Generator Specification</h4>
+                    <p><strong>Problem:</strong> ZnT was outfitted with 125 kW generator vs Chippewa's 250 kW.</p>
+                    <p><strong>Impact:</strong> Undersized generator could not handle PCS demand, repeatedly tripping offline.</p>
+                    <p><strong>Resolution:</strong> Field expert confirmed 250 kW - 1 MW required. Generator upgraded to correct specification.</p>
+                </div>
+
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-red);">Issue: PCS Synchronization Timing</h4>
+                    <p><strong>Problem:</strong> PCS startup failed due to overly strict synchronization timing.</p>
+                    <p><strong>Impact:</strong> Normal generator frequency overshoot exceeded PCS timeout, incorrectly concluding no power available.</p>
+                    <p><strong>Resolution:</strong> PCS firmware upgraded to allow fine-grained control over synchronization parameters. Settings tuned for generator behavior.</p>
+                </div>
+            </div>
+
+            <h3>9.2 Phase 4 Issues</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-orange);">Issue: Plant Switch Power Loss</h4>
+                    <p><strong>Problem:</strong> When plant switch thrown to draw battery power, all power lost including Brain and hardware.</p>
+                    <p><strong>Impact:</strong> System control lost during critical transition.</p>
+                    <p><strong>Resolution (5-10 min):</strong> UPS found incorrectly connected. Brain temporarily powered via external generator. UPS reconnected correctly for future validation.</p>
+                </div>
+
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-orange);">Issue: Model Connectivity Loss</h4>
+                    <p><strong>Problem:</strong> Model running on laptop lost power/connectivity to battery.</p>
+                    <p><strong>Impact:</strong> Battery entered communication fault state, shutting down plant power.</p>
+                    <p><strong>Resolution (10-15 min):</strong> Laptop connected to reliable power source. Issue fully eliminated in Phase 5 when Model migrated to Brain hardware.</p>
+                </div>
+            </div>
+
+            <h3>9.3 Phase 6 Issues</h3>
+            <div class="callout callout-warning">
+                <h4>Issue: Starlink Performance</h4>
+                <p><strong>Problem:</strong> Residential Starlink lacks fixed IP address. Reverse VPN strategy introduces performance hit through multiple translation layers.</p>
+                <p><strong>Impact:</strong> Cannot guarantee 100% remote access uptime (local operation unaffected).</p>
+                <p><strong>Proposed Solution:</strong> Purchase business Starlink account with static IP for required flexibility.</p>
+            </div>
+        </section>
+
+        <!-- Future Scalability -->
+        <section class="section" id="future-scalability">
+            <h2>10. Future Scalability</h2>
+            <p>The KymaGrid BMS architecture is designed for scalability across multiple dimensions:</p>
+
+            <h3>10.1 Key Outcomes at ZnT</h3>
+            <div class="callout callout-success">
+                <h4>Validated Capabilities</h4>
+                <ul>
+                    <li>System retains proven operational logic from Chippewa with enhanced portability and maintainability</li>
+                    <li>Model re-architecture enables hardware-independent deployment as integrated service</li>
+                    <li>Dashboard platform centralizes monitoring/control and establishes scalable multi-site foundation</li>
+                    <li>Remote access provides centralized management capability for distributed deployments</li>
+                    <li>Independent OnGrid/OffGrid operation validated for flexible power management</li>
+                </ul>
+            </div>
+
+            <h3>10.2 Scalability Vectors</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">&#x1F4C8;</div>
+                    <h4>Capacity Scaling</h4>
+                    <p>HV Group Integration topology supports scaling from single KYMA SG to multiple storage groups. Common DC rail architecture accommodates additional battery blocks without architectural changes.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F310;</div>
+                    <h4>Geographic Scaling</h4>
+                    <p>Regno Cloud integration and remote access capabilities enable centralized management of multiple sites. Each site operates independently with local Brain while reporting to cloud infrastructure.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F916;</div>
+                    <h4>Intelligence Scaling</h4>
+                    <p>Regno's AI/ML ready infrastructure with vector storage enables progressive addition of predictive analytics, pattern recognition, and automated optimization capabilities on accumulated operational data.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">&#x1F527;</div>
+                    <h4>Functional Scaling</h4>
+                    <p>Software-defined architecture allows addition of new operational modes, control strategies, and integration capabilities through software updates deployed remotely to field hardware.</p>
+                </div>
+            </div>
+
+            <h3>10.3 Completed Work Summary</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Milestone</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Blackbox ("Brain") built and configured</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Software stack deployed and operational</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Generator specification issue resolved</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>PCS firmware upgraded for stable sync</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Battery charged from generator</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Plant run off-grid (2+ hours at 50% SOC)</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Model integrated into Brain (2+ days stable)</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Independent OnGrid/OffGrid modes validated</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Remote access and control established</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Overnight trickle charge validated</td>
+                            <td><span class="highlight-green">Complete</span></td>
+                        </tr>
+                        <tr>
+                            <td>Extended load testing (35-45 kW + 230 kW peaks)</td>
+                            <td><span class="highlight-cyan">In Progress</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>KymaGrid Battery Management System | Comprehensive Technical Report</p>
+            <p>Powered by <a href="https://regno.uk/">Regno Platform</a> - Universal Telemetry & AI-Driven Analytics</p>
+            <p style="margin-top: 1rem;">
+                <a href="https://regno.uk/">regno.uk</a> |
+                <a href="https://www.regnostandard.com/">regnostandard.com</a> |
+                <a href="https://regnocloud.com/">regnocloud.com</a>
+            </p>
+            <p style="margin-top: 1rem; font-size: 0.75rem;">
+                Regno and Regno Standard are trademarks of Regno Software.<br>
+                This document provides comprehensive technical documentation of the KymaGrid BMS deployed at ZnT.<br>
+                Document Version: 1.0 | January 2026
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

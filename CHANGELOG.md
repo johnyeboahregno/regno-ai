@@ -1,0 +1,77 @@
+# Changelog
+
+> Documentation is the point of this system. Every change below is recorded so the build is
+> reproducible and reviewable. (See `VISION.md` for the north star.)
+
+## 2026-08-28 — Personalisation & persona foundation
+
+- **Docs-in-base**: `seed-brain.mjs` now ingests `.md` **and** `.html` raw into Mongo `cortex_index`
+  (always) + Qdrant `doc_search` (embeddings best-effort). `docs/`, `scripts/`, `profile/`,
+  `standards/` baked into the web image (`apps/web/Dockerfile`). Verified: 332 docs → DB.
+- **Base standards**: new `standards/` dir (`coding`, `testing`, `documentation`, `ci-cd`,
+  `complexity`) + `scripts/seed-standards.mjs` → Mongo `standards` collection + `base-standards`
+  memory. `ContextBuilder` always injects them first, marked "non-negotiable".
+- **Flavour tagging**: `developers` collection; `seed-history`/`seed-github` tag docs with
+  `DEVELOPER`; `ExecutionSettings.developer`; `buildContext(needs, developer)` injects developer
+  flavour *after* base standards; wisdom memories carry `developer`.
+- **Personas**: `personas` collection + `POST /api/personas`; chat persona selector; CLI
+  `persona create`.
+- **Memory/pattern tools**: `POST /api/cortex/memories` + `/api/cortex/patterns`, CORTEX UI
+  forms, CLI `remember` + `pattern add`. Vector/graph writes made best-effort (Mongo = source of truth).
+
+## 2026-08-28 — Chat ("talk to the architect")
+
+- New `/app/chat`: send a prompt → `regno-architect` agent → poll result → show output.
+- Execution ID flows through the pipeline (job id = execution id); failures persist an error record.
+- `GET /api/executions/[id]`.
+
+## 2026-08-28 — k3s migration
+
+- Installed **k3s** (Docker runtime) on SYS-GAME-1; wrote `k8s/app.yaml`
+  (7 Deployments + Services + PVCs) + `migrate-k3s.sh`.
+- Cut over from Docker Compose; app unchanged at `:3000` (via `hostPort`, `Recreate` strategy).
+- Fixed Neo4j k8s issue (`enableServiceLinks: false`) and hostPort rolling-update (`Recreate`).
+- Remote access: kubeconfig → `~/.kube/config`, port 6443 opened, k9s instructions.
+
+## 2026-08-28 — Hardening
+
+- ufw: only 22/80/443/3000/6443 open; DB ports blocked.
+- DB ports bound to 127.0.0.1 in Compose (later removed under k3s).
+- Mongo root auth + Neo4j password rotated; SMTP_FROM_NAME quoting fixed.
+
+## 2026-08-27 — Deploy to SYS-GAME-1
+
+- Server: OVHcloud **SYS-GAME-1** (Ryzen 5 3600X · 64GB · 2×512GB) @ `213.32.7.227`.
+- Installed Docker + Node 22; copied repo; `.env.prod`; full stack up; DBs seeded.
+- Fixed Dockerfile `tsconfig.base.json` missing, Qdrant image too old, and the
+  SvelteKit `Secure` cookie bug (login loop over HTTP → `secure:false`).
+- Registered owner account `jlyeboah@gmail.com`.
+
+## 2026-08-27 — UI rebuild + auth
+
+- New design system from the SMA proposal (`app.css`, Space Grotesk / IBM Plex fonts).
+- Auth: `register/login/logout/me` (scrypt + `jose` JWT, httpOnly cookie), `/app` guard.
+- Pages: landing, login/register, dashboard, CORTEX, executions, docs, credentials, health,
+  App Chooser (`/apps`), NEXUS, STAGE, Canvas, GENESIS/SENTINEL/Launchpad (scaffolds).
+- Real Regno logo assets used (`/logov2.png`, `/logov2_BLK.png`, `/logoPurple.png`).
+
+## 2026-08-27 — Credentials vault + email + CLI
+
+- `@regno/crypto` (AES-256-GCM) + `credentials` vault service + API + UI.
+- `@regno/mail` (nodemailer SMTP) + `notifications` BullMQ queue + worker + `email-send` tool
+  + Health-page test-email (SMTP: mail.postale.io).
+- `@regno/cli` — `login`, `run`, `credentials`, `db`, `brain`, `history`, `profile`, `github`.
+
+## 2026-08-27 — Engine build (Phases 0–5)
+
+- **Phase 0**: monorepo scaffold, `docker-compose.yml`, `docs/DB_SCHEMA.md`.
+- **Phase 1**: `@regno/db` clients + three-store sync + indexes + bootstrap/seed scripts.
+- **Phase 2**: `@regno/ai` (multi-provider LLM) + `@regno/cortex` (ingestion, patterns, memories).
+- **Phase 3**: `@regno/flow` (routing, plan, tools, context, quality loop, orchestrator) + worker + API.
+- **Phase 4**: personalisation (`profile/`, `seed-history`, `seed-profile`).
+- **Phase 5**: `deploy.sh` + `DEPLOY.md`.
+- Pulled 331 docs from regno.ai into `docs/` (CMS excluded).
+
+---
+
+*Every subsequent change will be appended here and committed to git.*

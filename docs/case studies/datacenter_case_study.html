@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Center BESS Case Study - ITX Z&T Ranch, Texas</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b0;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --border-color: #2a2a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .location-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-blue);
+            border-radius: 50px;
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            color: var(--accent-green);
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.2rem;
+        }
+
+        h4 {
+            color: var(--accent-orange);
+            margin: 1rem 0 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .spec-table td {
+            color: var(--text-primary);
+        }
+
+        .spec-table tr:hover {
+            background: var(--bg-primary);
+        }
+
+        .highlight {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .highlight-blue {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .highlight-orange {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-red {
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .formula {
+            background: var(--bg-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 1rem 0;
+            border-left: 3px solid var(--accent-purple);
+            overflow-x: auto;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box-title {
+            color: var(--accent-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .success-box-title {
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .critical-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .critical-box-title {
+            color: var(--accent-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .info-box-title {
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .architecture-diagram {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .cost-item {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .cost-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .cost-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid var(--accent-blue);
+            margin: 1.5rem 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            border: 2px solid var(--bg-secondary);
+        }
+
+        .timeline-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin: 1rem 0;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: var(--bg-primary);
+            padding: 1rem;
+            text-align: left;
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .architecture-diagram {
+                font-size: 0.7rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Data Center BESS Integration</h1>
+            <p class="subtitle">Utility-Scale Battery Energy Storage System - Technical Case Study</p>
+            <span class="location-badge">ITX Z&T Ranch, Texas, USA</span>
+        </header>
+
+        <!-- Executive Summary -->
+        <section>
+            <h2>Executive Summary</h2>
+            <div class="grid-3">
+                <div class="stat-box">
+                    <div class="stat-value">89.44 MWh</div>
+                    <div class="stat-label">Total Storage Capacity</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">20 MW</div>
+                    <div class="stat-label">Total Power Rating</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">4.47 hrs</div>
+                    <div class="stat-label">Duration at Full Power</div>
+                </div>
+            </div>
+            <p style="margin-top: 1.5rem;">
+                This case study examines the deployment of a utility-scale Battery Energy Storage System (BESS)
+                at a hyperscale data center facility located at ITX Z&T Ranch in Texas, USA. The system utilizes
+                <span class="highlight">40 Sungrow ST2236UX battery units</span> paired with
+                <span class="highlight">5 Sungrow SC4000UD-MV inverters</span> in a specialized dual-inverter
+                topology designed to provide uninterruptible power supply (UPS) functionality, peak shaving,
+                and grid services revenue generation.
+            </p>
+            <div class="critical-box">
+                <div class="critical-box-title">Critical Infrastructure Application</div>
+                <p style="margin: 0;">Data centers require 99.999% ("five nines") uptime. This BESS system provides
+                Tier IV-equivalent backup power capability with seamless transfer, eliminating single points of failure
+                while generating revenue through ERCOT ancillary services during normal operations.</p>
+            </div>
+        </section>
+
+        <!-- Site Overview -->
+        <section>
+            <h2>Site Overview</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Data Center Specifications</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Location</td>
+                            <td class="highlight">ITX Z&T Ranch, Texas, USA</td>
+                        </tr>
+                        <tr>
+                            <td>Facility Type</td>
+                            <td>Hyperscale Data Center</td>
+                        </tr>
+                        <tr>
+                            <td>IT Load Capacity</td>
+                            <td class="highlight-blue">10 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Total Facility Load</td>
+                            <td class="highlight-blue">14 MW (with cooling/support)</td>
+                        </tr>
+                        <tr>
+                            <td>PUE (Power Usage Effectiveness)</td>
+                            <td>1.40</td>
+                        </tr>
+                        <tr>
+                            <td>Design Tier</td>
+                            <td>Tier III+ (Concurrently Maintainable)</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Connection</td>
+                            <td>ERCOT (Texas Interconnection)</td>
+                        </tr>
+                        <tr>
+                            <td>Utility</td>
+                            <td>Oncor Electric Delivery</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Load Profile Analysis</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Base Load (IT + Cooling)</td>
+                            <td class="highlight">12 MW continuous</td>
+                        </tr>
+                        <tr>
+                            <td>Peak Load (Summer)</td>
+                            <td class="highlight-red">14 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Average Daily Consumption</td>
+                            <td>288 - 336 MWh/day</td>
+                        </tr>
+                        <tr>
+                            <td>Monthly Consumption</td>
+                            <td>~9,000 MWh/month</td>
+                        </tr>
+                        <tr>
+                            <td>Annual Consumption</td>
+                            <td>~108,000 MWh/year</td>
+                        </tr>
+                        <tr>
+                            <td>Critical Load (Servers Only)</td>
+                            <td class="highlight-orange">10 MW</td>
+                        </tr>
+                        <tr>
+                            <td>UPS Runtime Requirement</td>
+                            <td>15 minutes minimum</td>
+                        </tr>
+                        <tr>
+                            <td>Load Variability</td>
+                            <td>Low (85-100% base)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">Texas ERCOT Market Advantage</div>
+                <p style="margin: 0;">Located in the ERCOT market, this facility benefits from:</p>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Wholesale Market Access:</strong> Direct participation in real-time and day-ahead energy markets</li>
+                    <li><strong>Ancillary Services Revenue:</strong> ECRS, Non-Spinning Reserve, and Responsive Reserve markets</li>
+                    <li><strong>4CP Demand Charge Avoidance:</strong> Texas 4CP program allows significant transmission cost reduction</li>
+                    <li><strong>Price Volatility:</strong> ERCOT's energy-only market creates arbitrage opportunities ($0-$5,000+/MWh range)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Battery System Configuration -->
+        <section>
+            <h2>Battery System Configuration</h2>
+            <h3>Sungrow ST2236UX Battery Specifications</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Single Unit Specifications</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Model</td>
+                            <td class="highlight">ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Usable Energy Capacity</td>
+                            <td class="highlight-blue">2,236 kWh</td>
+                        </tr>
+                        <tr>
+                            <td>Nominal Voltage</td>
+                            <td>1,280 V DC</td>
+                        </tr>
+                        <tr>
+                            <td>Chemistry</td>
+                            <td>LFP (Lithium Iron Phosphate)</td>
+                        </tr>
+                        <tr>
+                            <td>Cycle Life</td>
+                            <td>> 6,000 cycles @ 90% DoD</td>
+                        </tr>
+                        <tr>
+                            <td>Round-Trip Efficiency</td>
+                            <td>95.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Operating Temperature</td>
+                            <td>-20°C to +55°C</td>
+                        </tr>
+                        <tr>
+                            <td>Dimensions (L×W×H)</td>
+                            <td>6,058 × 2,438 × 2,896 mm</td>
+                        </tr>
+                        <tr>
+                            <td>Weight</td>
+                            <td>~35,000 kg</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Fleet Configuration (40 Units)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Total Units</td>
+                            <td class="highlight">40 × ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Total Usable Capacity</td>
+                            <td class="highlight-blue">89,440 kWh (89.44 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Battery Footprint</td>
+                            <td>~3,000 m² (including access)</td>
+                        </tr>
+                        <tr>
+                            <td>Total Battery Weight</td>
+                            <td>~1,400 tonnes</td>
+                        </tr>
+                        <tr>
+                            <td>Configuration</td>
+                            <td>8 batteries per inverter</td>
+                        </tr>
+                        <tr>
+                            <td>DC Architecture</td>
+                            <td>Parallel strings at 1,280V</td>
+                        </tr>
+                        <tr>
+                            <td>Expected Lifespan</td>
+                            <td>15-20 years</td>
+                        </tr>
+                        <tr>
+                            <td>Warranty</td>
+                            <td>10 years / 70% capacity</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="formula">
+Total Capacity = 40 units × 2,236 kWh/unit = <span class="highlight">89,440 kWh = 89.44 MWh</span>
+            </div>
+
+            <div class="success-box">
+                <div class="success-box-title">LFP Chemistry Benefits for Data Center Applications</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Thermal Stability:</strong> Inherently safer chemistry with no thermal runaway risk - critical for indoor/adjacent installations</li>
+                    <li><strong>Long Cycle Life:</strong> 6,000+ cycles enables daily cycling for 15+ years without significant degradation</li>
+                    <li><strong>Wide Temperature Range:</strong> Performs well in Texas heat without extensive cooling requirements</li>
+                    <li><strong>No Cobalt:</strong> Ethical supply chain and reduced fire risk vs NMC chemistries</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Inverter System Configuration -->
+        <section>
+            <h2>Inverter System Configuration</h2>
+            <h3>Sungrow SC4000UD-MV Specifications</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Single Inverter Specifications</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Model</td>
+                            <td class="highlight">SC4000UD-MV</td>
+                        </tr>
+                        <tr>
+                            <td>AC Power Rating</td>
+                            <td class="highlight-blue">4,000 kVA / 4,000 kW</td>
+                        </tr>
+                        <tr>
+                            <td>Max DC Input Voltage</td>
+                            <td>1,500 V</td>
+                        </tr>
+                        <tr>
+                            <td>MPPT Voltage Range</td>
+                            <td>875 - 1,300 V</td>
+                        </tr>
+                        <tr>
+                            <td>AC Output Voltage</td>
+                            <td>35 kV (Medium Voltage)</td>
+                        </tr>
+                        <tr>
+                            <td>Max Efficiency</td>
+                            <td>98.8%</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Support</td>
+                            <td>Full 4-quadrant operation</td>
+                        </tr>
+                        <tr>
+                            <td>Response Time</td>
+                            <td>&lt; 30 ms (grid-forming capable)</td>
+                        </tr>
+                        <tr>
+                            <td>Black Start</td>
+                            <td>Yes (grid-forming mode)</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Fleet Configuration (5 Units)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Total Inverters</td>
+                            <td class="highlight">5 × SC4000UD-MV</td>
+                        </tr>
+                        <tr>
+                            <td>Total Power Capacity</td>
+                            <td class="highlight-blue">20,000 kW (20 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>Batteries per Inverter</td>
+                            <td>8 × ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Energy per Inverter Group</td>
+                            <td>17,888 kWh (17.89 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Charging Inverters</td>
+                            <td class="highlight-orange">2 units (8 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>Discharging Inverters</td>
+                            <td class="highlight-green">3 units (12 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>UPS Transfer Time</td>
+                            <td>&lt; 10 ms</td>
+                        </tr>
+                        <tr>
+                            <td>Redundancy</td>
+                            <td>N+1 (data center mode)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="formula">
+Total Power = 5 inverters × 4 MW/inverter = <span class="highlight">20 MW</span>
+Energy-to-Power Ratio (E/P) = 89.44 MWh ÷ 20 MW = <span class="highlight">4.47 hours</span>
+            </div>
+        </section>
+
+        <!-- Dual-Inverter Architecture -->
+        <section>
+            <h2>Dual-Inverter Architecture</h2>
+            <p>
+                This installation employs a <span class="highlight">non-conventional dual-inverter topology</span>
+                that separates charging and discharging functions across dedicated inverter groups. This architecture
+                is specifically designed for data center applications requiring:
+            </p>
+            <ul>
+                <li>Uninterruptible power supply (UPS) functionality</li>
+                <li>Seamless grid-to-battery transfer</li>
+                <li>Continuous charging while serving load</li>
+                <li>Grid services participation during normal operations</li>
+            </ul>
+
+            <h3>Architecture Overview</h3>
+            <div class="architecture-diagram">
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                        DUAL-INVERTER BESS ARCHITECTURE                                  │
+│                          Data Center Critical Power                                     │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                         │
+│    ┌─────────────────────────────────────────────────────────────────────────────┐     │
+│    │                           ERCOT GRID (345kV)                                │     │
+│    │                     Transmission: Oncor Electric                            │     │
+│    └───────────────────────────────────┬─────────────────────────────────────────┘     │
+│                                        │                                               │
+│                                        ▼                                               │
+│                        ┌───────────────────────────────┐                               │
+│                        │    Main Substation (35kV)     │                               │
+│                        │    Utility Metering Point     │                               │
+│                        └───────────────┬───────────────┘                               │
+│                                        │                                               │
+│              ┌─────────────────────────┼─────────────────────────┐                     │
+│              │                         │                         │                     │
+│              ▼                         │                         ▼                     │
+│   ┌─────────────────────┐              │              ┌─────────────────────┐          │
+│   │  CHARGING PATH      │              │              │  DISCHARGING PATH   │          │
+│   │  (Grid → Battery)   │              │              │  (Battery → DC)     │          │
+│   └─────────────────────┘              │              └─────────────────────┘          │
+│              │                         │                         │                     │
+│              ▼                         │                         ▼                     │
+│   ┌─────────────────────┐              │              ┌─────────────────────┐          │
+│   │   INVERTER 1 (4MW)  │              │              │   INVERTER 3 (4MW)  │          │
+│   │   SC4000UD-MV       │              │              │   SC4000UD-MV       │          │
+│   │   [Charging Mode]   │              │              │   [UPS/Discharge]   │          │
+│   └─────────┬───────────┘              │              └─────────┬───────────┘          │
+│             │                          │                        │                      │
+│   ┌─────────────────────┐              │              ┌─────────────────────┐          │
+│   │   INVERTER 2 (4MW)  │              │              │   INVERTER 4 (4MW)  │          │
+│   │   SC4000UD-MV       │              │              │   SC4000UD-MV       │          │
+│   │   [Charging Mode]   │              │              │   [UPS/Discharge]   │          │
+│   └─────────┬───────────┘              │              └─────────┬───────────┘          │
+│             │                          │                        │                      │
+│             │                          │              ┌─────────────────────┐          │
+│             │                          │              │   INVERTER 5 (4MW)  │          │
+│             │                          │              │   SC4000UD-MV       │          │
+│             │                          │              │   [UPS/Discharge]   │          │
+│             │                          │              └─────────┬───────────┘          │
+│             │                          │                        │                      │
+│             └──────────────────────────┼────────────────────────┘                      │
+│                                        │                                               │
+│                                        ▼                                               │
+│              ┌─────────────────────────────────────────────────────────┐               │
+│              │               BATTERY ENERGY STORAGE                    │               │
+│              │                  40 × ST2236UX                          │               │
+│              │              Total: 89.44 MWh                           │               │
+│              │                                                         │               │
+│              │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐       │               │
+│              │  │ Bank 1  │ │ Bank 2  │ │ Bank 3  │ │ Bank 4  │       │               │
+│              │  │ 8 units │ │ 8 units │ │ 8 units │ │ 8 units │ ...   │               │
+│              │  │17.89MWh │ │17.89MWh │ │17.89MWh │ │17.89MWh │       │               │
+│              │  └─────────┘ └─────────┘ └─────────┘ └─────────┘       │               │
+│              └─────────────────────────────────────────────────────────┘               │
+│                                        │                                               │
+│                                        ▼                                               │
+│              ┌─────────────────────────────────────────────────────────┐               │
+│              │              DATA CENTER CRITICAL LOAD                  │               │
+│              │                                                         │               │
+│              │    ┌──────────────┐  ┌──────────────┐  ┌─────────────┐ │               │
+│              │    │  Server Hall │  │  Server Hall │  │   Network   │ │               │
+│              │    │   A (4 MW)   │  │   B (4 MW)   │  │   (2 MW)    │ │               │
+│              │    └──────────────┘  └──────────────┘  └─────────────┘ │               │
+│              │                                                         │               │
+│              │    ┌──────────────┐  ┌──────────────┐                  │               │
+│              │    │   Cooling    │  │   Support    │  Total: 14 MW   │               │
+│              │    │   (3 MW)     │  │   (1 MW)     │                  │               │
+│              │    └──────────────┘  └──────────────┘                  │               │
+│              └─────────────────────────────────────────────────────────┘               │
+│                                                                                         │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+            </div>
+
+            <h3>Inverter Allocation</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title" style="color: var(--accent-orange);">Charging Inverters (2 Units)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Function</td>
+                            <td>Grid → Battery charging</td>
+                        </tr>
+                        <tr>
+                            <td>Total Charge Power</td>
+                            <td class="highlight-orange">8 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Connected Batteries</td>
+                            <td>16 × ST2236UX (35.78 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Full Charge Time</td>
+                            <td>~4.5 hours (0-100%)</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Services</td>
+                            <td>Frequency regulation (up)</td>
+                        </tr>
+                        <tr>
+                            <td>Operating Mode</td>
+                            <td>Grid-following (PQ mode)</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title" style="color: var(--accent-green);">Discharging Inverters (3 Units)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Function</td>
+                            <td>Battery → Data Center (UPS)</td>
+                        </tr>
+                        <tr>
+                            <td>Total Discharge Power</td>
+                            <td class="highlight">12 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Connected Batteries</td>
+                            <td>24 × ST2236UX (53.66 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Backup Duration @ 12MW</td>
+                            <td>~4.5 hours</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Services</td>
+                            <td>Frequency regulation (down)</td>
+                        </tr>
+                        <tr>
+                            <td>Operating Mode</td>
+                            <td>Grid-forming (V/f mode)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="critical-box">
+                <div class="critical-box-title">UPS Functionality - Seamless Transfer</div>
+                <p style="margin: 0;">The 3 discharging inverters operate in <strong>grid-forming mode</strong>, continuously
+                supplying the data center load. During grid outage:</p>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Transfer Time:</strong> &lt; 10 ms (vs. 10+ ms for traditional UPS)</li>
+                    <li><strong>Supported Load:</strong> Full 14 MW facility or 10 MW critical-only</li>
+                    <li><strong>Runtime at Full Load:</strong> 89.44 MWh ÷ 14 MW = 6.4 hours</li>
+                    <li><strong>Runtime Critical Only:</strong> 89.44 MWh ÷ 10 MW = 8.9 hours</li>
+                    <li><strong>Black Start Capable:</strong> Can restart facility from complete outage</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Operating Modes -->
+        <section>
+            <h2>Operating Modes</h2>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Mode 1: Normal Operation (Grid-Tied)</div>
+                    <p>Primary operating mode during grid availability:</p>
+                    <ul>
+                        <li>Grid provides power to data center via bypass</li>
+                        <li>Charging inverters maintain battery SOC</li>
+                        <li>Discharge inverters on hot standby (synchronized)</li>
+                        <li>Participate in ERCOT ancillary services</li>
+                        <li>4CP demand management active</li>
+                    </ul>
+                    <div class="formula">
+Revenue Mode: Ancillary Services + 4CP Avoidance
+Grid: Active | Charging: Active | Discharge: Standby
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 2: Peak Shaving</div>
+                    <p>Activated during high-demand periods (summer peaks):</p>
+                    <ul>
+                        <li>Discharge inverters supplement grid power</li>
+                        <li>Reduces facility demand below 4CP threshold</li>
+                        <li>Captures ERCOT price spikes ($100+/MWh)</li>
+                        <li>Maintains minimum 50% SOC for UPS reserve</li>
+                        <li>Charging suspended until prices normalize</li>
+                    </ul>
+                    <div class="formula">
+Peak Reduction: Up to 12 MW available
+4CP Target: Reduce peaks during 15-min intervals
+Grid: Active | Charging: Suspended | Discharge: Active
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 3: UPS Mode (Island)</div>
+                    <p>Activated during grid outage or power quality event:</p>
+                    <ul>
+                        <li>Discharge inverters form microgrid (&lt;10ms transfer)</li>
+                        <li>Full facility load or critical-only based on SOC</li>
+                        <li>Charging inverters disconnected from grid</li>
+                        <li>Generator start signal issued (if available)</li>
+                        <li>Load shedding automation if SOC critical</li>
+                    </ul>
+                    <div class="formula">
+Transfer Time: &lt; 10 milliseconds
+Full Load Runtime: 6.4 hours @ 14 MW
+Critical Runtime: 8.9 hours @ 10 MW
+Grid: Offline | Charging: Offline | Discharge: Grid-Forming
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 4: Arbitrage Mode</div>
+                    <p>Opportunistic energy trading in ERCOT market:</p>
+                    <ul>
+                        <li>Charge during negative/low pricing periods</li>
+                        <li>Discharge during price spikes ($500+/MWh)</li>
+                        <li>Real-time price signal automation</li>
+                        <li>Maintains 40% minimum for UPS function</li>
+                        <li>Maximum 2 full cycles per day</li>
+                    </ul>
+                    <div class="formula">
+Arbitrage Capacity: 89.44 MWh × 60% available = 53.66 MWh
+Typical Spread: $20-$200/MWh (extreme: $5,000+)
+Cycles: Max 2/day to preserve battery life
+Grid: Active | Charging: Price-based | Discharge: Price-based
+                    </div>
+                </div>
+            </div>
+
+            <h3>Automatic Mode Transitions</h3>
+            <div class="architecture-diagram">
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                         MODE TRANSITION STATE MACHINE                            │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│                           ┌─────────────────┐                                    │
+│              ┌───────────▶│  NORMAL MODE    │◀───────────┐                       │
+│              │            │  (Grid-Tied)    │            │                       │
+│              │            └────────┬────────┘            │                       │
+│              │                     │                     │                       │
+│              │    Price Spike      │      Grid Fault     │                       │
+│              │    or 4CP Event     │      Detected       │                       │
+│              │                     │                     │                       │
+│     Grid     │           ┌─────────┴─────────┐           │    Grid              │
+│     Restored │           │                   │           │    Restored          │
+│              │           ▼                   ▼           │                       │
+│              │  ┌─────────────────┐ ┌─────────────────┐  │                       │
+│              │  │  PEAK SHAVE /   │ │    UPS MODE     │  │                       │
+│              └──│   ARBITRAGE     │ │   (Island)      │──┘                       │
+│                 │                 │ │                 │                          │
+│                 └────────┬────────┘ └────────┬────────┘                          │
+│                          │                   │                                   │
+│                          │   SOC < 20%       │                                   │
+│                          │                   ▼                                   │
+│                          │          ┌─────────────────┐                          │
+│                          └─────────▶│  LOAD SHEDDING  │                          │
+│                                     │  (Critical Only)│                          │
+│                                     └─────────────────┘                          │
+│                                                                                  │
+│  Triggers:                                                                       │
+│  • Grid Fault: Voltage <90% or >110%, Frequency <59.5Hz or >60.5Hz             │
+│  • 4CP Event: ERCOT signal or schedule-based (Jun-Sep, 2-6 PM)                  │
+│  • Price Spike: Real-time price > $100/MWh threshold                            │
+│  • SOC Critical: Battery below 20% in island mode                               │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+            </div>
+        </section>
+
+        <!-- Data Center Specific Benefits -->
+        <section>
+            <h2>Data Center Specific Benefits</h2>
+
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-title">Tier IV Equivalent Uptime</div>
+                    <ul>
+                        <li>99.995% availability target</li>
+                        <li>&lt;10ms transfer eliminates disruption</li>
+                        <li>6+ hours runtime exceeds generator start</li>
+                        <li>No single point of failure</li>
+                        <li>Concurrent maintainability</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Traditional UPS Replacement</div>
+                    <ul>
+                        <li>Eliminates rotary UPS systems</li>
+                        <li>No lead-acid battery rooms</li>
+                        <li>Reduced cooling requirements</li>
+                        <li>Lower maintenance costs</li>
+                        <li>Longer backup duration</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Power Quality</div>
+                    <ul>
+                        <li>Clean sinusoidal output</li>
+                        <li>Voltage regulation ±1%</li>
+                        <li>Frequency stability ±0.1Hz</li>
+                        <li>Harmonic filtering</li>
+                        <li>Power factor correction</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Comparison: BESS vs Traditional UPS</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Traditional UPS + Generator</th>
+                        <th>BESS (This Installation)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Transfer Time</td>
+                        <td>10-20 ms (static) / 100+ ms (rotary)</td>
+                        <td class="highlight">&lt; 10 ms</td>
+                    </tr>
+                    <tr>
+                        <td>Runtime on Battery</td>
+                        <td>10-30 minutes typical</td>
+                        <td class="highlight">6-9 hours</td>
+                    </tr>
+                    <tr>
+                        <td>Efficiency</td>
+                        <td>92-95% (double conversion)</td>
+                        <td class="highlight">98%+ (line-interactive)</td>
+                    </tr>
+                    <tr>
+                        <td>Revenue Generation</td>
+                        <td>None (cost center only)</td>
+                        <td class="highlight">$1-3M/year from grid services</td>
+                    </tr>
+                    <tr>
+                        <td>Footprint (14 MW load)</td>
+                        <td>~500 m² (UPS room + batteries)</td>
+                        <td>~3,000 m² (but outdoor capable)</td>
+                    </tr>
+                    <tr>
+                        <td>Battery Replacement</td>
+                        <td>Every 5-7 years</td>
+                        <td class="highlight">15-20 years (LFP)</td>
+                    </tr>
+                    <tr>
+                        <td>Cooling Requirement</td>
+                        <td>High (battery rooms @ 25°C)</td>
+                        <td class="highlight">Low (integrated HVAC)</td>
+                    </tr>
+                    <tr>
+                        <td>Scalability</td>
+                        <td>Limited (modular but expensive)</td>
+                        <td class="highlight">Excellent (add battery units)</td>
+                    </tr>
+                    <tr>
+                        <td>Generator Dependency</td>
+                        <td>Critical (required within 15 min)</td>
+                        <td class="highlight">Optional (6+ hr runtime)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Financial Analysis -->
+        <section>
+            <h2>Financial Analysis</h2>
+
+            <h3>Capital Expenditure (CAPEX)</h3>
+            <div class="cost-breakdown">
+                <div class="cost-item">
+                    <div class="cost-amount">$17.9M</div>
+                    <div class="cost-label">Battery System (40 × ST2236UX @ $200/kWh)</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$5.0M</div>
+                    <div class="cost-label">Inverters (5 × SC4000UD-MV @ $1M each)</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$3.5M</div>
+                    <div class="cost-label">BOP (Transformers, Switchgear, Controls)</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$2.0M</div>
+                    <div class="cost-label">Site Work & Grid Interconnection</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$3.1M</div>
+                    <div class="cost-label">EPC, Commissioning & Contingency</div>
+                </div>
+            </div>
+
+            <div class="stat-box" style="margin-top: 1rem;">
+                <div class="stat-value">$31.5M</div>
+                <div class="stat-label">Total Installed Cost ($352/kWh all-in)</div>
+            </div>
+
+            <h3>Annual Revenue & Savings</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Revenue Streams</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>ERCOT ECRS (Emergency)</td>
+                            <td class="highlight">$600,000 - $900,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Non-Spinning Reserve</td>
+                            <td class="highlight">$200,000 - $400,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Energy Arbitrage</td>
+                            <td class="highlight">$300,000 - $800,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Responsive Reserve</td>
+                            <td class="highlight">$100,000 - $200,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Revenue</td>
+                            <td class="highlight-blue" style="font-weight: 600;">$1.2M - $2.3M/yr</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Cost Savings</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>4CP Demand Charge Reduction</td>
+                            <td class="highlight">$800,000 - $1,200,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Traditional UPS Avoided</td>
+                            <td class="highlight">$3,000,000 (capital)</td>
+                        </tr>
+                        <tr>
+                            <td>UPS Maintenance Avoided</td>
+                            <td class="highlight">$150,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Reduced Generator Runtime</td>
+                            <td class="highlight">$50,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Annual Savings</td>
+                            <td class="highlight-blue" style="font-weight: 600;">$1.0M - $1.4M/yr</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Investment Tax Credit (ITC)</h3>
+            <div class="success-box">
+                <div class="success-box-title">Inflation Reduction Act Benefits</div>
+                <table class="spec-table">
+                    <tr>
+                        <td>Base ITC Rate</td>
+                        <td class="highlight">30%</td>
+                    </tr>
+                    <tr>
+                        <td>Domestic Content Bonus</td>
+                        <td>+10% (if applicable)</td>
+                    </tr>
+                    <tr>
+                        <td>Energy Community Bonus</td>
+                        <td>+10% (if applicable)</td>
+                    </tr>
+                    <tr>
+                        <td>Base ITC Value (30%)</td>
+                        <td class="highlight-blue">$9.45M</td>
+                    </tr>
+                    <tr>
+                        <td>Maximum ITC Value (50%)</td>
+                        <td class="highlight-blue">$15.75M</td>
+                    </tr>
+                    <tr>
+                        <td>Effective Cost After ITC</td>
+                        <td class="highlight">$15.75M - $22.05M</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Return on Investment</h3>
+            <div class="formula">
+Total Annual Value = Revenue + Savings = $2.2M - $3.7M/year (mid-range: $3.0M/year)
+Net Investment After ITC = $31.5M - $9.45M = $22.05M (30% ITC)
+Simple Payback = $22.05M ÷ $3.0M/year = <span class="highlight">7.4 years</span>
+
+With 50% ITC:
+Net Investment = $31.5M - $15.75M = $15.75M
+Simple Payback = $15.75M ÷ $3.0M/year = <span class="highlight">5.3 years</span>
+            </div>
+
+            <div class="grid-2" style="margin-top: 1rem;">
+                <div class="stat-box">
+                    <div class="stat-value">5-7 years</div>
+                    <div class="stat-label">Simple Payback Period</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">12-18%</div>
+                    <div class="stat-label">Projected IRR (20-year)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Mitigation -->
+        <section>
+            <h2>Risk Mitigation</h2>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Technical Risks</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Battery Degradation</td>
+                            <td>LFP chemistry, 6,000+ cycles, 10-year warranty</td>
+                        </tr>
+                        <tr>
+                            <td>Inverter Failure</td>
+                            <td>N+1 redundancy, hot-swap capable</td>
+                        </tr>
+                        <tr>
+                            <td>Control System</td>
+                            <td>Redundant PLC, automatic failover</td>
+                        </tr>
+                        <tr>
+                            <td>Thermal Management</td>
+                            <td>Integrated HVAC, Texas heat tested</td>
+                        </tr>
+                        <tr>
+                            <td>Cybersecurity</td>
+                            <td>Air-gapped critical controls, NERC CIP</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Market Risks</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>ERCOT Price Volatility</td>
+                            <td>Benefits arbitrage, but unpredictable</td>
+                        </tr>
+                        <tr>
+                            <td>Ancillary Service Prices</td>
+                            <td>Diversified revenue streams</td>
+                        </tr>
+                        <tr>
+                            <td>4CP Program Changes</td>
+                            <td>Grandfathering provisions expected</td>
+                        </tr>
+                        <tr>
+                            <td>ITC Expiration</td>
+                            <td>Project timeline before 2032 phaseout</td>
+                        </tr>
+                        <tr>
+                            <td>Battery Price Decline</td>
+                            <td>Locked in at current pricing</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="warning-box-title">Texas Weather Considerations</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Extreme Heat:</strong> System rated to +55°C; active cooling maintains optimal performance</li>
+                    <li><strong>Winter Storm Risk:</strong> 6+ hour runtime exceeds February 2021 outage durations at most facilities</li>
+                    <li><strong>Hurricane/Tornado:</strong> Equipment designed to withstand 150+ mph winds when properly anchored</li>
+                    <li><strong>Flooding:</strong> Site elevation and drainage engineering required for container placement</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Implementation Timeline -->
+        <section>
+            <h2>Implementation Timeline</h2>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 1: Engineering & Permitting (Months 1-4)</div>
+                    <div class="timeline-desc">Detailed engineering, utility interconnection application, building permits, ERCOT registration</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 2: Equipment Procurement (Months 3-8)</div>
+                    <div class="timeline-desc">Battery and inverter orders, transformer procurement, BOP equipment</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 3: Site Preparation (Months 6-9)</div>
+                    <div class="timeline-desc">Civil works, foundations, cable trenching, MV switchgear installation</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 4: Equipment Installation (Months 9-12)</div>
+                    <div class="timeline-desc">Battery container placement, inverter installation, cabling, controls</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 5: Commissioning (Months 12-14)</div>
+                    <div class="timeline-desc">System testing, protection coordination, ERCOT witness testing</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 6: Commercial Operation (Month 14+)</div>
+                    <div class="timeline-desc">Full operation, ancillary services market participation, UPS function active</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">Data Center Integration Considerations</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Parallel Operation:</strong> BESS brought online alongside existing UPS/generator during transition</li>
+                    <li><strong>Maintenance Windows:</strong> Commissioning scheduled during low-load periods</li>
+                    <li><strong>Staged Cutover:</strong> Load transferred in phases to verify protection coordination</li>
+                    <li><strong>Rollback Plan:</strong> Existing backup systems maintained until BESS fully proven</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Conclusion & Recommendations -->
+        <section>
+            <h2>Conclusion & Recommendations</h2>
+
+            <div class="success-box">
+                <div class="success-box-title">Key Value Propositions</div>
+                <ol style="margin-bottom: 0;">
+                    <li><strong>Superior Reliability:</strong> &lt;10ms transfer time and 6+ hour runtime exceed traditional UPS by 10-100x</li>
+                    <li><strong>Revenue Generation:</strong> $1.2-2.3M annual revenue transforms backup power from cost center to profit center</li>
+                    <li><strong>Cost Avoidance:</strong> Eliminates $3M+ traditional UPS investment plus $150K/year maintenance</li>
+                    <li><strong>4CP Optimization:</strong> $800K-1.2M annual transmission cost reduction in ERCOT</li>
+                    <li><strong>Tax Benefits:</strong> 30-50% ITC reduces effective cost by $9.5-15.8M</li>
+                    <li><strong>Sustainability:</strong> Enables renewable integration and reduces diesel generator reliance</li>
+                </ol>
+            </div>
+
+            <h3>Recommended Next Steps</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Immediate Actions</div>
+                    <ul>
+                        <li>Engage ERCOT for interconnection pre-application</li>
+                        <li>Conduct detailed site survey and geotechnical study</li>
+                        <li>Request formal quotations from Sungrow</li>
+                        <li>Engage experienced BESS EPC contractor</li>
+                        <li>Consult tax advisor on ITC optimization</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Due Diligence Items</div>
+                    <ul>
+                        <li>Third-party battery/inverter technical review</li>
+                        <li>Independent energy yield assessment</li>
+                        <li>Legal review of ERCOT market participation</li>
+                        <li>Insurance consultation (property, business interruption)</li>
+                        <li>Financing structure optimization</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="critical-box" style="margin-top: 1.5rem;">
+                <div class="critical-box-title">Final Assessment</div>
+                <p style="margin: 0;">
+                    The 89.44 MWh / 20 MW BESS system represents a <strong>compelling investment</strong> for the
+                    ITX Z&T Ranch data center facility. The dual-inverter architecture provides enterprise-grade
+                    reliability while generating significant revenue through ERCOT market participation. With
+                    ITC benefits, the effective payback period of <strong>5-7 years</strong> and IRR of
+                    <strong>12-18%</strong> compare favorably to alternative backup power investments that
+                    generate zero revenue. This project is <strong>recommended for immediate development</strong>.
+                </p>
+            </div>
+        </section>
+
+        <!-- Technical Appendix -->
+        <section>
+            <h2>Technical Appendix</h2>
+
+            <h3>A. System Sizing Calculations</h3>
+            <div class="formula">
+<strong>Battery Capacity Requirement:</strong>
+Critical Load = 10 MW (servers, network, essential cooling)
+Full Load = 14 MW (including all cooling and support)
+Target Runtime = 6 hours (exceeds generator start margin)
+
+Minimum Capacity = 14 MW × 6 hours = 84 MWh
+With 95% DoD: 84 MWh ÷ 0.95 = 88.4 MWh
+Selected: 89.44 MWh (40 × 2.236 MWh) ✓
+
+<strong>Inverter Sizing:</strong>
+Peak Load = 14 MW
+Surge Requirement = 14 MW × 1.25 = 17.5 MW (motor starting)
+Selected: 20 MW (5 × 4 MW) with N+1 redundancy ✓
+
+<strong>Energy-to-Power Ratio:</strong>
+E/P = 89.44 MWh ÷ 20 MW = 4.47 hours
+Optimal for data center (UPS + arbitrage applications)
+            </div>
+
+            <h3>B. ERCOT Market Parameters</h3>
+            <table class="spec-table">
+                <tr>
+                    <th>Service</th>
+                    <th>Capacity Offered</th>
+                    <th>Price Range (2023-2024)</th>
+                    <th>Annual Revenue Est.</th>
+                </tr>
+                <tr>
+                    <td>ECRS (Emergency Capacity)</td>
+                    <td>20 MW</td>
+                    <td>$5-15/MW-hr</td>
+                    <td>$600,000-$900,000</td>
+                </tr>
+                <tr>
+                    <td>Non-Spinning Reserve</td>
+                    <td>20 MW</td>
+                    <td>$2-8/MW-hr</td>
+                    <td>$200,000-$400,000</td>
+                </tr>
+                <tr>
+                    <td>Responsive Reserve</td>
+                    <td>12 MW</td>
+                    <td>$5-20/MW-hr</td>
+                    <td>$100,000-$200,000</td>
+                </tr>
+                <tr>
+                    <td>Energy Arbitrage</td>
+                    <td>53.66 MWh (60% capacity)</td>
+                    <td>$20-$5,000/MWh spread</td>
+                    <td>$300,000-$800,000</td>
+                </tr>
+            </table>
+
+            <h3>C. 4CP Demand Charge Calculation</h3>
+            <div class="formula">
+<strong>Texas 4CP (Four Coincident Peak) Program:</strong>
+Transmission costs based on facility demand during 4 highest ERCOT peaks (June-September)
+
+Current Facility Peak: 14 MW
+4CP Transmission Rate: ~$6-8/kW-month (varies by utility)
+Annual 4CP Cost Without BESS: 14,000 kW × $7/kW × 12 months = $1,176,000/year
+
+<strong>With BESS Peak Shaving:</strong>
+Target Peak: 4 MW (BESS provides 10 MW during 4CP events)
+Annual 4CP Cost With BESS: 4,000 kW × $7/kW × 12 months = $336,000/year
+Annual Savings: $1,176,000 - $336,000 = <span class="highlight">$840,000/year</span>
+            </div>
+        </section>
+
+        <footer>
+            <p>Case Study Document | Data Center BESS Integration | ITX Z&T Ranch, Texas</p>
+            <p>Technical specifications subject to final engineering. Financial projections based on 2024 market conditions.</p>
+            <p>Generated: January 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

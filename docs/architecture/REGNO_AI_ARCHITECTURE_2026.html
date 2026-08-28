@@ -1,0 +1,2890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regno.ai Platform Architecture - Comprehensive Technical Reference</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Theme Colors - Customize per report */
+      --primary-color: #6366f1;
+      --primary-light: #818cf8;
+      --primary-dark: #4f46e5;
+      --accent-color: #22d3ee;
+      --success-color: #22c55e;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --info-color: #3b82f6;
+
+      /* Background */
+      --bg-gradient-start: #1e1b4b;
+      --bg-gradient-end: #0f172a;
+
+      /* Text */
+      --text-primary: #e5e7eb;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.15) 100%);
+      border-radius: 1rem;
+      margin-bottom: 3rem;
+      border: 2px solid rgba(99, 102, 241, 0.3);
+    }
+
+    header h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    header .subtitle {
+      font-size: 1.5rem;
+      color: var(--primary-light);
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    header .tagline {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 900px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    /* Section Headers */
+    h2 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin: 3rem 0 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid rgba(99, 102, 241, 0.3);
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--primary-light);
+      margin: 2rem 0 1rem;
+    }
+
+    h4 {
+      font-size: 1.25rem;
+      color: var(--info-color);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    /* Alert Boxes */
+    .summary-box {
+      background: rgba(31, 41, 55, 0.4);
+      border-left: 4px solid var(--primary-color);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .warning-box {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 4px solid var(--danger-color);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+
+    .info-box {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid var(--info-color);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+
+    .success-box {
+      background: rgba(34, 197, 94, 0.1);
+      border-left: 4px solid var(--success-color);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: rgba(31, 41, 55, 0.3);
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+
+    th {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary-light);
+      font-weight: 600;
+      text-align: left;
+      padding: 1rem;
+      border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+    }
+
+    td {
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+      color: var(--text-secondary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    /* Cards Grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .card-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .card {
+      background: linear-gradient(135deg, rgba(31, 41, 55, 0.5) 0%, rgba(55, 65, 81, 0.3) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(99, 102, 241, 0.6);
+    }
+
+    .card h5 {
+      color: var(--primary-light);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+
+    .card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    /* Pre/Code Blocks */
+    pre {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-secondary);
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin: 1.5rem 0;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-family: 'Courier New', Consolas, monospace;
+      white-space: pre;
+    }
+
+    code {
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--primary-light);
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 0.9em;
+    }
+
+    /* Lists */
+    ul {
+      list-style-type: disc;
+      margin: 1rem 0 1rem 1.5rem;
+      color: var(--text-secondary);
+    }
+
+    li {
+      padding: 0.4rem 0;
+      line-height: 1.7;
+    }
+
+    /* Highlight Colors */
+    .text-primary { color: var(--primary-color); }
+    .text-accent { color: var(--accent-color); }
+    .text-blue { color: var(--info-color); }
+    .text-cyan { color: #22d3ee; }
+    .text-green { color: var(--success-color); }
+    .text-red { color: var(--danger-color); }
+    .text-yellow { color: var(--warning-color); }
+    .text-purple { color: #a78bfa; }
+
+    /* Big Numbers / Stats */
+    .big-stat {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-card .number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card .label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Methodology Steps */
+    .methodology-step {
+      background: rgba(31, 41, 55, 0.3);
+      border-left: 4px solid var(--info-color);
+      border-radius: 0.5rem;
+      padding: 1.25rem;
+      margin: 1rem 0;
+    }
+
+    .methodology-step .step-number {
+      display: inline-block;
+      background: var(--info-color);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      font-weight: bold;
+      margin-right: 0.75rem;
+    }
+
+    .methodology-step h5 {
+      display: inline;
+      color: var(--info-color);
+    }
+
+    /* Comparison Layout */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .comparison-item {
+      background: rgba(31, 41, 55, 0.3);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+    }
+
+    .comparison-item.warning {
+      border-left: 4px solid var(--warning-color);
+    }
+
+    .comparison-item.recommended {
+      border-left: 4px solid var(--success-color);
+    }
+
+    .comparison-item h5 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+      margin: 2rem 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(99, 102, 241, 0.3);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 1.5rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem;
+      top: 0.5rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      border: 2px solid var(--bg-gradient-end);
+    }
+
+    .timeline-item h5 {
+      color: var(--primary-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-item p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      margin-top: 4rem;
+      border-top: 1px solid rgba(99, 102, 241, 0.2);
+      color: var(--text-muted);
+    }
+
+    footer .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+
+    /* Table of Contents */
+    .toc {
+      background: rgba(31, 41, 55, 0.3);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+
+    .toc h3 {
+      color: var(--primary-light);
+      margin: 0 0 1rem 0;
+      font-size: 1.2rem;
+    }
+
+    .toc ol {
+      list-style: none;
+      counter-reset: toc-counter;
+      margin: 0;
+      padding: 0;
+    }
+
+    .toc ol li {
+      counter-increment: toc-counter;
+      padding: 0.4rem 0;
+    }
+
+    .toc ol li::before {
+      content: counter(toc-counter) ".";
+      color: var(--primary-color);
+      font-weight: bold;
+      margin-right: 0.75rem;
+    }
+
+    .toc ol li a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .toc ol li a:hover {
+      color: var(--primary-light);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+
+      pre {
+        font-size: 0.75rem;
+        padding: 1rem;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        color: #1f2937;
+      }
+
+      header, .card, .comparison-item, .methodology-step {
+        background: #f9fafb;
+        border-color: #e5e7eb;
+      }
+
+      h1, h2, h3, h4, h5, h6, .text-primary {
+        color: #4f46e5;
+        -webkit-text-fill-color: #4f46e5;
+      }
+
+      td, p, li {
+        color: #374151;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ================================================================== -->
+    <!-- HEADER                                                             -->
+    <!-- ================================================================== -->
+    <header>
+      <h1>Regno.ai Platform Architecture</h1>
+      <div class="subtitle">Comprehensive Technical Reference &mdash; April 2026</div>
+      <p class="tagline">
+        An AI-powered knowledge platform that learns, adapts, and improves with every execution.
+        This document captures the full technical architecture of the Regno.ai platform as of April 2026,
+        spanning three servers, four database engines, a pluggable scoring pipeline, nine specialised agents,
+        and a self-improving wisdom system that compounds quality over time.
+      </p>
+    </header>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h3>Table of Contents</h3>
+      <ol>
+        <li><a href="#executive-summary">Executive Summary</a></li>
+        <li><a href="#architecture-overview">Architecture Overview</a></li>
+        <li><a href="#database-layer">Database Layer</a></li>
+        <li><a href="#bullmq-queues">BullMQ Queue Architecture</a></li>
+        <li><a href="#cortex-flow">Cortex Flow &mdash; AI Execution Engine</a></li>
+        <li><a href="#tool-system">Tool System</a></li>
+        <li><a href="#agent-system">Agent System</a></li>
+        <li><a href="#knowledge-pipeline">Knowledge Pipeline</a></li>
+        <li><a href="#scoring-engines">Scoring Engine Architecture</a></li>
+        <li><a href="#wisdom-system">Wisdom &amp; Learning System</a></li>
+        <li><a href="#cortex-patterns">Cortex Patterns</a></li>
+        <li><a href="#security">Security &amp; Credentials</a></li>
+        <li><a href="#sdk-api">SDK &amp; External API</a></li>
+        <li><a href="#design-principles">Design Principles &amp; Key Decisions</a></li>
+        <li><a href="#platform-usps">Platform USPs</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+      </ol>
+    </div>
+
+
+    <!-- ================================================================== -->
+    <!-- 1. EXECUTIVE SUMMARY                                               -->
+    <!-- ================================================================== -->
+    <section id="executive-summary">
+      <h2>1. Executive Summary</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Regno.ai is an AI-powered knowledge and execution platform designed for enterprises that need to
+        ingest, understand, score, and act on large volumes of domain-specific information. At its core,
+        the platform combines a multi-phase AI execution engine (Cortex Flow) with a pluggable knowledge
+        pipeline that crawls, filters, indexes, extracts, scores, and enriches content across any domain.
+        The system is built on a three-server architecture that cleanly separates web serving, real-time
+        communication, and AI execution concerns.
+      </p>
+
+      <p style="margin-bottom: 1rem;">
+        What distinguishes Regno.ai from conventional RAG platforms is its self-improving quality loop.
+        Every AI execution is automatically evaluated by a three-layer QualityAuditor. Insights, patterns,
+        and anti-patterns are extracted and stored as shared memories. These memories are injected into
+        future executions, creating a compounding effect where the platform literally gets smarter with
+        each use. This is augmented by the WISDOM protocol, where LLMs self-annotate operational insights
+        during their own execution, and by a scheduled wisdom synthesis pipeline that distils cross-domain
+        principles from accumulated knowledge.
+      </p>
+
+      <p style="margin-bottom: 1rem;">
+        The platform supports nine specialised AI agents, each with declarative phase templates, depth-aware
+        filtering, cost ceiling controls, and access to 40+ tools. Knowledge scoring is handled by a
+        pluggable engine architecture supporting seven distinct engines (from simple keyword matching to
+        Cohere Rerank v3.5 and upcoming BGE/Zerank/Voyage integrations), organised into a three-layer
+        pipeline that can be configured via quality tier presets. The entire system is orchestrated through
+        BullMQ with 17+ queues, a fast-lane architecture for sub-100ms job pickup, and crash-resilient
+        checkpointing.
+      </p>
+
+      <div class="summary-box">
+        <strong>Key Value Proposition:</strong> Regno.ai is not just a tool for AI-powered analysis &mdash; it is
+        a platform that learns from every execution, compounds quality over time through its wisdom system,
+        and provides enterprise-grade reliability through its queue-based architecture with crash resilience
+        and automatic recovery. It turns domain knowledge into a durable, ever-improving competitive asset.
+      </div>
+
+      <div class="big-stat">
+        <div class="stat-card">
+          <div class="number">3</div>
+          <div class="label">Servers</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">4</div>
+          <div class="label">Databases</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">17</div>
+          <div class="label">Queues</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">40+</div>
+          <div class="label">Tools</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">7</div>
+          <div class="label">Scoring Engines</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">9</div>
+          <div class="label">AI Agents</div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 2. ARCHITECTURE OVERVIEW                                           -->
+    <!-- ================================================================== -->
+    <section id="architecture-overview">
+      <h2>2. Architecture Overview</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Regno.ai operates as a three-server architecture with strict separation of concerns. The SvelteKit
+        web server handles UI rendering and API routing but <strong>never</strong> runs LLM calls directly.
+        The Realtime server manages WebSocket/SSE connections for live streaming. The Execution server runs
+        all AI workloads via BullMQ workers. This separation ensures the web server remains responsive even
+        during heavy AI processing.
+      </p>
+
+      <pre>
+  +------------------------------------------------------------------+
+  |                        REGNO.AI PLATFORM                          |
+  +------------------------------------------------------------------+
+  |                                                                    |
+  |   +------------------+     +------------------+                    |
+  |   |   SvelteKit Web  |     |  Realtime Server |                    |
+  |   |   Server :5173   |     |     :3002        |                    |
+  |   |                  |     |                  |                    |
+  |   |  - UI Rendering  |     |  - WebSocket     |                    |
+  |   |  - REST API      |     |  - SSE Streams   |                    |
+  |   |  - Auth/JWT      |     |  - Pub/Sub       |                    |
+  |   |  - File Upload   |     |  - Token Stream  |                    |
+  |   |  - CMS Routes    |     |  - Progress Evt  |                    |
+  |   +--------+---------+     +--------+---------+                    |
+  |            |                         |                             |
+  |            |    +--------------------+                             |
+  |            |    |                                                  |
+  |   +--------v----v---------+                                       |
+  |   |   Execution Server    |                                       |
+  |   |       :3003           |                                       |
+  |   |                       |                                       |
+  |   |  - BullMQ Workers     |                                       |
+  |   |  - DirectClaudeExec   |                                       |
+  |   |  - PhaseRunner        |                                       |
+  |   |  - Orchestrator v2    |                                       |
+  |   |  - Tool Execution     |                                       |
+  |   |  - QualityAuditor     |                                       |
+  |   +-----------+-----------+                                       |
+  |               |                                                   |
+  |   +-----------v-----------+                                       |
+  |   |    Data Layer          |                                      |
+  |   |                        |                                      |
+  |   |  +--------+  +-------+ |                                      |
+  |   |  |MongoDB |  | Redis | |                                      |
+  |   |  | :27001 |  | :6379 | |                                      |
+  |   |  +--------+  +-------+ |                                      |
+  |   |  +--------+  +-------+ |                                      |
+  |   |  | Qdrant |  | Neo4j | |                                      |
+  |   |  | :6334  |  | :7687 | |                                      |
+  |   |  +--------+  +-------+ |                                      |
+  |   +------------------------+                                      |
+  +------------------------------------------------------------------+
+      </pre>
+
+      <div class="card-grid">
+        <div class="card">
+          <h5>SvelteKit Web Server (:5173)</h5>
+          <p>
+            The primary interface layer built with SvelteKit 5 and Svelte 5 runes. Handles all HTTP API
+            routes, JWT authentication, file uploads via GridFS, CMS workflow management, and server-side
+            rendering. This server <strong>never</strong> makes direct LLM API calls &mdash; all AI work
+            is dispatched to the execution server via BullMQ queues. This keeps the web server responsive
+            and prevents LLM latency from blocking user requests.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Realtime Server (:3002)</h5>
+          <p>
+            A dedicated Express server that manages persistent connections for real-time communication.
+            Handles WebSocket connections, Server-Sent Events (SSE) for token streaming during AI execution,
+            progress events, and Redis pub/sub message routing. Clients connect here to receive live updates
+            as Cortex Flow executions progress, including token-by-token streaming, tool call notifications,
+            cost tracking, and phase transition events.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Execution Server (:3003)</h5>
+          <p>
+            The AI workhorse. Runs all BullMQ workers that process AI execution jobs. Houses the
+            DirectClaudeExecutor (which manages iterative LLM conversations), PhaseRunner (multi-phase
+            orchestration), tool execution sandboxes, the QualityAuditor (post-execution evaluation),
+            and all knowledge pipeline workers (crawling, indexing, scoring, synthesis). Designed for
+            horizontal scaling &mdash; multiple execution servers can consume from the same Redis queues.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>Separation Principle:</strong> The SvelteKit server enqueues jobs and returns immediately.
+        The execution server picks up jobs via BullMQ (with sub-100ms fast-lane pickup). Results stream back
+        to the client through the realtime server. This three-way split means a 15-minute deep-dive analysis
+        never blocks the web server, and multiple AI tasks can run concurrently without interference.
+      </div>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 3. DATABASE LAYER                                                  -->
+    <!-- ================================================================== -->
+    <section id="database-layer">
+      <h2>3. Database Layer</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Regno.ai uses four distinct database engines, each chosen for its specific strengths. MongoDB serves
+        as the primary document store. Qdrant handles vector embeddings for semantic search. Neo4j manages
+        the knowledge graph for entity relationships. Redis provides queue infrastructure, pub/sub messaging,
+        and ephemeral caching.
+      </p>
+
+      <div class="card-grid-4">
+        <div class="card">
+          <h5>MongoDB (:27001)</h5>
+          <p>
+            Primary document store. Holds all persistent application data including user records, CMS
+            processes, knowledge facts, agent memories, cortex patterns, execution logs, credentials
+            (AES-256-GCM encrypted), and configuration. Auth: <code>regno:regno</code>,
+            database: <code>regno</code>.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Qdrant (:6334)</h5>
+          <p>
+            Vector database for semantic similarity search. Stores embeddings for cortex patterns and
+            wisdom entries. Uses cosine distance metric. Powers pattern matching, near-duplicate detection
+            (similarity &gt; 0.92), and semantic search for agent memory retrieval.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Neo4j (:7687)</h5>
+          <p>
+            Graph database for knowledge relationships. Stores entity nodes, relationship edges, and
+            pattern sequences. Enables graph-based reasoning, entity connectivity scoring, and relationship
+            traversal for GraphRAG hybrid retrieval during query-time operations.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Redis (:6379)</h5>
+          <p>
+            In-memory data store serving three critical roles: BullMQ queue backend (17+ queues), pub/sub
+            message bus for real-time event routing between servers, and ephemeral cache for frequently
+            accessed data like active sessions and rate limiting counters.
+          </p>
+        </div>
+      </div>
+
+      <h3>3.1 Key MongoDB Collections</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Collection</th>
+            <th>Purpose</th>
+            <th>Key Fields</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>cortex_patterns</code></td>
+            <td>Declarative AI configuration patterns (pipeline, goal, field inference, expert workflow)</td>
+            <td>domain, type, content, confidence, usageCount, foundation</td>
+          </tr>
+          <tr>
+            <td><code>cortex_knowledge_facts</code></td>
+            <td>Extracted knowledge facts from indexed content (5-20 per page)</td>
+            <td>domain, fact, source, extractedAt, relevanceScore, entityLinks</td>
+          </tr>
+          <tr>
+            <td><code>cortex_agent_memories</code></td>
+            <td>Shared and agent-specific memories for the wisdom system</td>
+            <td>agentSlug, userId, category, content, confirmationCount, usefulnessRating</td>
+          </tr>
+          <tr>
+            <td><code>cortex_index</code></td>
+            <td>Indexed knowledge documents (crawled, filtered, scored)</td>
+            <td>url, title, content, domain, relevanceScore, qualityTier, indexedAt</td>
+          </tr>
+          <tr>
+            <td><code>credentials</code></td>
+            <td>Encrypted API keys and service credentials (AES-256-GCM)</td>
+            <td>type, name, encryptedValue, provider, createdAt</td>
+          </tr>
+          <tr>
+            <td><code>knowledge_seed_status</code></td>
+            <td>Tracks crawl/ingestion status per URL for zero-waste pipeline</td>
+            <td>url, status, crawledAt, filteredAt, indexedAt, scoreHistory</td>
+          </tr>
+          <tr>
+            <td><code>cortex_domain_analysis</code></td>
+            <td>Domain-level analysis results, entity breakdowns, taxonomy trees</td>
+            <td>domain, entityTypes, taxonomy, analysedAt, factCount</td>
+          </tr>
+          <tr>
+            <td><code>cortex_executions</code></td>
+            <td>Execution logs for all Cortex Flow runs</td>
+            <td>taskId, agentSlug, phases, cost, duration, status, evaluation</td>
+          </tr>
+          <tr>
+            <td><code>cortex_agents</code></td>
+            <td>Agent definitions (slug, phases, tools, triggers, capabilities)</td>
+            <td>slug, name, phases, tools, triggers, costCeiling</td>
+          </tr>
+          <tr>
+            <td><code>users</code></td>
+            <td>User accounts with role-based access control</td>
+            <td>email, passwordHash, role, apiKeys, preferences</td>
+          </tr>
+          <tr>
+            <td><code>cms_processes</code></td>
+            <td>CMS workflow processes (Harmony migration)</td>
+            <td>processId, status, history, gates, assignments, files</td>
+          </tr>
+          <tr>
+            <td><code>showcases</code></td>
+            <td>Dynamic showcase generation with scene-by-scene AI rendering</td>
+            <td>title, scenes, status, generatedAt, evaluationScore</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.2 Qdrant Collections</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Collection</th>
+            <th>Embedding Model</th>
+            <th>Distance Metric</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>cortex_patterns</code></td>
+            <td>OpenAI text-embedding-3-small</td>
+            <td>Cosine</td>
+            <td>Semantic pattern matching and retrieval for context building</td>
+          </tr>
+          <tr>
+            <td><code>cortex_wisdom</code></td>
+            <td>OpenAI text-embedding-3-small</td>
+            <td>Cosine</td>
+            <td>Semantic search for agent memories, near-duplicate merging, conflict detection</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.3 Three-Store Sync</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Cortex Patterns maintain consistency across all three stores. When a pattern is created or updated,
+        the change propagates: MongoDB (source of truth) &#8594; Qdrant (embedding for semantic search) &#8594;
+        Neo4j (graph node for relationship traversal). The sync is eventual but fast, typically completing
+        within seconds of the primary write.
+      </p>
+
+      <pre>
+  Pattern Write Flow:
+  +-----------+      +----------+      +----------+
+  | MongoDB   | ---> | Qdrant   | ---> | Neo4j    |
+  | (primary) |      | (vector) |      | (graph)  |
+  +-----------+      +----------+      +----------+
+       |                  |                  |
+       |  Document store  |  Embedding       |  Entity node
+       |  + metadata      |  + payload       |  + relationships
+       |  + confidence    |  + cosine dist   |  + sequences
+       +------------------+------------------+
+      </pre>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 4. BULLMQ QUEUE ARCHITECTURE                                       -->
+    <!-- ================================================================== -->
+    <section id="bullmq-queues">
+      <h2>4. BullMQ Queue Architecture</h2>
+
+      <p style="margin-bottom: 1rem;">
+        All asynchronous work in Regno.ai flows through BullMQ queues backed by Redis. This provides
+        crash resilience (jobs survive server restarts), priority-based scheduling, concurrency control,
+        and automatic retry with exponential backoff. The platform uses 17+ distinct queues, each with
+        a dedicated worker optimised for its specific workload.
+      </p>
+
+      <div class="info-box">
+        <strong>Fast Lane Innovation:</strong> Critical queues use <code>drainDelay: 0</code>, which means
+        the worker polls Redis continuously with zero delay between checks. Combined with the execution
+        server's dedicated process, this achieves sub-100ms job pickup latency &mdash; from the moment a
+        job is enqueued on the web server to the moment the execution server begins processing it.
+        This is critical for interactive AI tasks where users expect immediate response.
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Queue Name</th>
+            <th>Worker</th>
+            <th>Concurrency</th>
+            <th>Timeout</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>cortex-execution</code></td>
+            <td>CortexExecutionWorker</td>
+            <td>3</td>
+            <td>30 min</td>
+            <td>Primary AI execution &mdash; agent phase orchestration</td>
+          </tr>
+          <tr>
+            <td><code>cortex-quick</code></td>
+            <td>InlineExecutor</td>
+            <td>5</td>
+            <td>60s</td>
+            <td>Fast-lane for quick-depth queries (inline, no queue wait)</td>
+          </tr>
+          <tr>
+            <td><code>knowledge-crawl</code></td>
+            <td>CrawlWorker</td>
+            <td>2</td>
+            <td>10 min</td>
+            <td>Web crawling and content extraction</td>
+          </tr>
+          <tr>
+            <td><code>knowledge-index</code></td>
+            <td>IndexWorker</td>
+            <td>3</td>
+            <td>5 min</td>
+            <td>Document indexing into cortex_index</td>
+          </tr>
+          <tr>
+            <td><code>knowledge-score</code></td>
+            <td>ScoringWorker</td>
+            <td>2</td>
+            <td>15 min</td>
+            <td>Batch scoring via pluggable engine pipeline</td>
+          </tr>
+          <tr>
+            <td><code>knowledge-extract</code></td>
+            <td>ExtractionWorker</td>
+            <td>2</td>
+            <td>10 min</td>
+            <td>LLM fact extraction (5-20 facts per page)</td>
+          </tr>
+          <tr>
+            <td><code>knowledge-audit</code></td>
+            <td>AuditWorker</td>
+            <td>1</td>
+            <td>30 min</td>
+            <td>Three-tier scoring (embedding + cross-encoder + keyword)</td>
+          </tr>
+          <tr>
+            <td><code>knowledge-enhance</code></td>
+            <td>EnhanceWorker</td>
+            <td>2</td>
+            <td>10 min</td>
+            <td>Self-healing knowledge enhancement</td>
+          </tr>
+          <tr>
+            <td><code>knowledge-sync</code></td>
+            <td>SyncWorker</td>
+            <td>1</td>
+            <td>15 min</td>
+            <td>Cortex Sync &mdash; cross-environment knowledge synchronisation</td>
+          </tr>
+          <tr>
+            <td><code>showcase-generation</code></td>
+            <td>ShowcaseGenerationWorker</td>
+            <td>1</td>
+            <td>20 min</td>
+            <td>Dynamic showcase scene generation and rendering</td>
+          </tr>
+          <tr>
+            <td><code>wisdom-synthesis</code></td>
+            <td>WisdomSynthesizer</td>
+            <td>1</td>
+            <td>15 min</td>
+            <td>Cross-domain wisdom distillation from accumulated knowledge</td>
+          </tr>
+          <tr>
+            <td><code>wisdom-prune</code></td>
+            <td>PruneWorker</td>
+            <td>1</td>
+            <td>5 min</td>
+            <td>Auto-prune stale memories (&gt;90 days, low confirmation)</td>
+          </tr>
+          <tr>
+            <td><code>auto-audit</code></td>
+            <td>AutoAuditWorker</td>
+            <td>1</td>
+            <td>30 min</td>
+            <td>Daily scheduled audit + 6-hour integrity checks</td>
+          </tr>
+          <tr>
+            <td><code>auto-extract</code></td>
+            <td>AutoExtractWorker</td>
+            <td>1</td>
+            <td>15 min</td>
+            <td>Auto-extraction from newly indexed content</td>
+          </tr>
+          <tr>
+            <td><code>directory-watch</code></td>
+            <td>DirectoryWatchWorker</td>
+            <td>1</td>
+            <td>10 min</td>
+            <td>Chokidar watcher for watched directory auto-sync</td>
+          </tr>
+          <tr>
+            <td><code>scheduled-tasks</code></td>
+            <td>ScheduledWorker</td>
+            <td>1</td>
+            <td>varies</td>
+            <td>Cron-triggered tasks (daily audit, 6h integrity, synthesis)</td>
+          </tr>
+          <tr>
+            <td><code>bulk-operations</code></td>
+            <td>BulkWorker</td>
+            <td>1</td>
+            <td>30 min</td>
+            <td>Bulk indexing, bulk scoring, mass operations</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>4.1 Priority System</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Priority Level</th>
+            <th>Value</th>
+            <th>Use Case</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="text-red">CRITICAL</span></td>
+            <td>1</td>
+            <td>User-facing, interactive queries</td>
+            <td>Quick-depth AI responses, live data queries</td>
+          </tr>
+          <tr>
+            <td><span class="text-yellow">HIGH</span></td>
+            <td>2</td>
+            <td>Standard user-initiated tasks</td>
+            <td>Standard/deep AI executions, on-demand audits</td>
+          </tr>
+          <tr>
+            <td><span class="text-blue">NORMAL</span></td>
+            <td>3</td>
+            <td>Background processing</td>
+            <td>Knowledge indexing, fact extraction, scoring</td>
+          </tr>
+          <tr>
+            <td><span class="text-purple">LOW</span></td>
+            <td>4</td>
+            <td>Scheduled maintenance</td>
+            <td>Wisdom synthesis, auto-prune, integrity checks</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>4.2 Crash Resilience</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Every long-running job implements checkpointing. The Orchestrator saves phase progress, tool call
+        results, and accumulated context to MongoDB at regular intervals. If the execution server crashes
+        mid-job, the BullMQ retry mechanism re-enqueues the job, and the worker resumes from the last
+        checkpoint rather than restarting from scratch. This is critical for deep-dive analyses that can
+        run for 10-15 minutes and cost $2-4 in API calls.
+      </p>
+
+      <pre>
+  Crash Recovery Flow:
+
+  1. Job starts             -->  Checkpoint 0 saved (initial state)
+  2. Phase 1 completes      -->  Checkpoint 1 saved (phase 1 results)
+  3. Phase 2, iteration 5   -->  Checkpoint 2 saved (partial phase 2)
+  4. SERVER CRASHES
+  5. BullMQ retries job     -->  Worker loads Checkpoint 2
+  6. Phase 2 resumes at #6  -->  No wasted API calls
+  7. Job completes normally -->  Final state saved
+      </pre>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 5. CORTEX FLOW                                                     -->
+    <!-- ================================================================== -->
+    <section id="cortex-flow">
+      <h2>5. Cortex Flow &mdash; AI Execution Engine</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Cortex Flow is the platform's AI execution engine. It transforms user queries into multi-phase,
+        tool-augmented AI workflows. The engine supports three analysis depths (quick, standard, deep),
+        declarative phase templates, cost ceiling budget control, and iterative tool use with streaming
+        output.
+      </p>
+
+      <pre>
+  Cortex Flow Execution Pipeline:
+
+  User Query
+      |
+      v
+  +------------------+
+  | AgentRouter      |  Selects best agent for the query
+  +--------+---------+  (capability matching, domain detection)
+           |
+           v
+  +------------------+
+  | Plan Generation  |  Converts agent template to execution plan
+  +--------+---------+  (depth filtering, phase optimisation)
+           |
+           v
+  +------------------+
+  | BullMQ Enqueue   |  Job dispatched to execution server
+  +--------+---------+  (priority based on depth)
+           |
+           v
+  +------------------+
+  | Orchestrator v2  |  Multi-phase orchestration
+  +--------+---------+  (checkpoint, pause/resume, phase transitions)
+           |
+           v
+  +------------------+
+  | PhaseRunner      |  Runs individual phases
+  +--------+---------+  (settings override, cost ceiling wiring)
+           |
+           v
+  +-------------------+
+  | DirectClaudeExec  |  Iterative LLM conversation loop
+  +--------+----------+  (tool calls, streaming, budget tracking)
+           |
+           v
+  +------------------+
+  | Tool Execution   |  40+ tools available to LLM
+  +--------+---------+  (sandboxed, results fed back to LLM)
+           |
+           v
+  +------------------+
+  | QualityAuditor   |  Post-execution evaluation (3-layer)
+  +--------+---------+  (metrics + heuristics + LLM assessment)
+           |
+           v
+  +------------------+
+  | Wisdom Extract   |  WISDOM protocol + insight storage
+  +------------------+  (self-improving loop completes)
+      </pre>
+
+      <h3>5.1 Orchestrator v2</h3>
+
+      <p style="margin-bottom: 1rem;">
+        The Orchestrator manages multi-phase execution with the following capabilities:
+      </p>
+
+      <ul>
+        <li><strong>Phase sequencing:</strong> Phases execute in order, with output from phase N available as context for phase N+1</li>
+        <li><strong>Checkpoint persistence:</strong> State saved to MongoDB after each phase completion and periodically during long phases</li>
+        <li><strong>Pause/Resume:</strong> Long executions can be paused by the user and resumed later without loss of progress</li>
+        <li><strong>Cost tracking:</strong> Running cost computed after each LLM iteration, with SSE events broadcasting progress</li>
+        <li><strong>Extended thinking:</strong> Support for Claude's extended thinking mode for complex reasoning tasks</li>
+        <li><strong>Wisdom extraction:</strong> After final phase, <code>extractAndSaveAgentMemories()</code> processes WISDOM annotations</li>
+        <li><strong>Quality evaluation:</strong> After successful completion, QualityAuditor runs automatically when <code>enableMemory: true</code></li>
+      </ul>
+
+      <h3>5.2 Cost Ceiling Loop Control</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Rather than limiting AI executions by iteration count (which is unpredictable in cost), Cortex Flow
+        uses USD-denominated cost ceilings. The DirectClaudeExecutor computes running cost after each
+        iteration and manages the budget:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Budget Threshold</th>
+            <th>Action</th>
+            <th>Message to LLM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0-70%</td>
+            <td>Normal execution</td>
+            <td>No intervention</td>
+          </tr>
+          <tr>
+            <td>70%</td>
+            <td>Informational alert</td>
+            <td>"$X.XX of $Y.YY used, ~N iterations remaining"</td>
+          </tr>
+          <tr>
+            <td>95%</td>
+            <td>Final iteration</td>
+            <td>"Produce your report NOW &mdash; budget nearly exhausted"</td>
+          </tr>
+          <tr>
+            <td>100%</td>
+            <td>Loop break</td>
+            <td>Execution stops, results returned</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>5.3 Analysis Depths</h3>
+
+      <div class="card-grid">
+        <div class="card">
+          <h5>Quick Depth</h5>
+          <p>
+            Inline execution via InlineExecutor (no queue). Single-phase, Haiku model, sub-10s response.
+            Cost: ~$0.01-0.05. Used for simple lookups, summaries, and conversational queries.
+            Phases with <code>depths: ["standard", "deep"]</code> are excluded at this depth.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Standard Depth</h5>
+          <p>
+            Queued execution. Multi-phase with Sonnet model. 1-5 minute runtime. Cost: $0.10-1.00.
+            Used for analysis tasks, report generation, and knowledge queries that need tool access.
+            Balanced cost/quality trade-off.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Deep Depth</h5>
+          <p>
+            Queued execution with elevated budget. Multi-phase with Sonnet and cost ceiling ($4.00).
+            10-15 minute runtime. Cost: $2.50-4.00. Used for deep-dive explorations, comprehensive
+            data analysis, and multi-source research. 25-35 queries typical.
+          </p>
+        </div>
+      </div>
+
+      <h3>5.4 Streaming Architecture</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Token streaming flows from the LLM API through the execution server, through Redis pub/sub, to
+        the realtime server, and finally to the client via SSE:
+      </p>
+
+      <pre>
+  Claude API  --(tokens)-->  DirectClaudeExecutor
+                                    |
+                             Redis pub/sub
+                                    |
+                             Realtime Server (:3002)
+                                    |
+                              SSE to Client
+                                    |
+                             SvelteKit UI renders tokens
+
+  SSE Event Types:
+  - token_stream    : Individual tokens from LLM response
+  - token_progress  : Cost/iteration progress (includes runningCost, costCeiling)
+  - tool_call       : Tool invocation notification
+  - tool_result     : Tool execution result
+  - phase_transition: Phase N complete, starting phase N+1
+  - execution_complete: Final result with evaluation
+  - execution_evaluation: QualityAuditor scores
+      </pre>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 6. TOOL SYSTEM                                                     -->
+    <!-- ================================================================== -->
+    <section id="tool-system">
+      <h2>6. Tool System</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Regno.ai provides 40+ tools to the LLM during AI execution. Following the "Trust the LLM" principle,
+        <strong>all</strong> tools are enabled by default via <code>ToolRegistry.configureFromSettings()</code>.
+        The LLM decides which tools to use based on the task at hand &mdash; there are no mechanical
+        restrictions (no <code>restrictedTools</code> or <code>requiredTools</code> enforcement).
+        Phase prompts carry behavioural guidance about tool usage preferences.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Tool</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="5"><strong>File Operations</strong></td>
+            <td><code>FileRead</code></td>
+            <td>Read file contents from filesystem or watched directories</td>
+          </tr>
+          <tr>
+            <td><code>FileWrite</code></td>
+            <td>Write/create files in the execution output path</td>
+          </tr>
+          <tr>
+            <td><code>FileList</code></td>
+            <td>List directory contents with filtering</td>
+          </tr>
+          <tr>
+            <td><code>FileSearch</code></td>
+            <td>Search for files by name, pattern, or content</td>
+          </tr>
+          <tr>
+            <td><code>FileDelete</code></td>
+            <td>Delete files (with confirmation safeguards)</td>
+          </tr>
+          <tr>
+            <td rowspan="4"><strong>Web</strong></td>
+            <td><code>WebSearch</code></td>
+            <td>Search the web via integrated search APIs</td>
+          </tr>
+          <tr>
+            <td><code>WebFetch</code></td>
+            <td>Fetch and extract content from URLs</td>
+          </tr>
+          <tr>
+            <td><code>WebCrawl</code></td>
+            <td>Multi-page crawling with depth control</td>
+          </tr>
+          <tr>
+            <td><code>WebScreenshot</code></td>
+            <td>Capture screenshots of web pages</td>
+          </tr>
+          <tr>
+            <td rowspan="2"><strong>Code Execution</strong></td>
+            <td><code>PythonExec</code></td>
+            <td>Execute Python scripts in isolated-vm sandbox (NumPy, Pandas available)</td>
+          </tr>
+          <tr>
+            <td><code>JavaScriptExec</code></td>
+            <td>Execute JavaScript in sandboxed environment</td>
+          </tr>
+          <tr>
+            <td rowspan="5"><strong>Knowledge</strong></td>
+            <td><code>KnowledgeBase</code></td>
+            <td>Query the knowledge base with semantic + keyword hybrid search</td>
+          </tr>
+          <tr>
+            <td><code>KnowledgeFacts</code></td>
+            <td>Retrieve extracted facts for a domain</td>
+          </tr>
+          <tr>
+            <td><code>KnowledgeGraph</code></td>
+            <td>Query Neo4j knowledge graph for entity relationships</td>
+          </tr>
+          <tr>
+            <td><code>KnowledgeAudit</code></td>
+            <td>Trigger knowledge audit/scoring for a domain</td>
+          </tr>
+          <tr>
+            <td><code>KnowledgeIngest</code></td>
+            <td>Ingest new content into the knowledge pipeline</td>
+          </tr>
+          <tr>
+            <td rowspan="3"><strong>Document</strong></td>
+            <td><code>DocumentRender</code></td>
+            <td>Render HTML documents (complete HTML saved as-is, partial gets template injection)</td>
+          </tr>
+          <tr>
+            <td><code>DocumentParse</code></td>
+            <td>Parse PDF, DOCX, XLSX, CSV files into structured text</td>
+          </tr>
+          <tr>
+            <td><code>DocumentSummarise</code></td>
+            <td>Generate summaries of long documents</td>
+          </tr>
+          <tr>
+            <td rowspan="3"><strong>Media</strong></td>
+            <td><code>ImageAnalyse</code></td>
+            <td>Analyse images using vision models</td>
+          </tr>
+          <tr>
+            <td><code>VideoTranscribe</code></td>
+            <td>Transcribe video/audio content</td>
+          </tr>
+          <tr>
+            <td><code>ImageGenerate</code></td>
+            <td>Generate images via AI models</td>
+          </tr>
+          <tr>
+            <td rowspan="3"><strong>Data Source</strong></td>
+            <td><code>DataSourceQuery</code></td>
+            <td>Natural language to MongoDB query pipeline (DataSourceQueryBridge)</td>
+          </tr>
+          <tr>
+            <td><code>DataSourceSchema</code></td>
+            <td>Discover database schemas and collection structures</td>
+          </tr>
+          <tr>
+            <td><code>DataSourceAggregate</code></td>
+            <td>Run MongoDB aggregation pipelines</td>
+          </tr>
+          <tr>
+            <td rowspan="4"><strong>Utility</strong></td>
+            <td><code>Calculator</code></td>
+            <td>Mathematical calculations and unit conversions</td>
+          </tr>
+          <tr>
+            <td><code>DateTime</code></td>
+            <td>Date/time calculations, timezone conversions, formatting</td>
+          </tr>
+          <tr>
+            <td><code>JSONTransform</code></td>
+            <td>Transform, filter, and restructure JSON data</td>
+          </tr>
+          <tr>
+            <td><code>MemoryStore</code></td>
+            <td>Store/retrieve key-value data within an execution session</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>6.1 Tool Registration</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Tools are registered in <code>ToolRegistry</code> with a standardised interface:
+      </p>
+
+      <pre>
+  interface Tool {
+    name: string;               // Unique identifier
+    description: string;        // Shown to LLM in system prompt
+    inputSchema: JSONSchema;    // Parameters the LLM must provide
+    execute(input): Promise;    // Execution function
+    category: string;           // Grouping for UI display
+    costEstimate?: number;      // Estimated cost per invocation
+  }
+
+  // All tools enabled by default:
+  ToolRegistry.configureFromSettings()  // enables everything
+
+  // Phase prompts carry behavioural guidance:
+  "PREFERRED TOOLS: PythonExec for data analysis, DocumentRender for reports"
+  "AVOID: WebSearch unless specifically asked for current information"
+      </pre>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 7. AGENT SYSTEM                                                    -->
+    <!-- ================================================================== -->
+    <section id="agent-system">
+      <h2>7. Agent System</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Agents are the highest-level abstraction in Cortex Flow. Each agent is a specialised AI personality
+        with defined capabilities, phase templates, tool preferences, and cost parameters. The AgentRouter
+        automatically selects the best agent for a given query based on capability matching and domain
+        detection.
+      </p>
+
+      <h3>7.1 Agent Definitions</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Agent Slug</th>
+            <th>Name</th>
+            <th>Architecture</th>
+            <th>Cost Ceiling</th>
+            <th>Specialisation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>deep-dive</code></td>
+            <td>Deep-Dive Explorer</td>
+            <td>Single-phase (Sonnet)</td>
+            <td>$4.00</td>
+            <td>Comprehensive data exploration with iterative analysis and HTML report generation. 25-35 queries, per-hour-per-parameter breakdowns.</td>
+          </tr>
+          <tr>
+            <td><code>data-analyst</code></td>
+            <td>Data Analyst</td>
+            <td>2-phase (Haiku + Sonnet)</td>
+            <td>$2.00</td>
+            <td>Schema discovery (Phase 1) then analysis + report in one shot (Phase 2). PythonExec for statistics, DocumentRender for output.</td>
+          </tr>
+          <tr>
+            <td><code>general-assistant</code></td>
+            <td>General Assistant</td>
+            <td>Single-phase (Sonnet)</td>
+            <td>$1.00</td>
+            <td>General-purpose AI assistant for conversational queries, summaries, and simple tasks.</td>
+          </tr>
+          <tr>
+            <td><code>market-research</code></td>
+            <td>Market Research</td>
+            <td>Multi-phase (Sonnet)</td>
+            <td>$3.00</td>
+            <td>Market analysis, competitive intelligence, trend identification with web search integration.</td>
+          </tr>
+          <tr>
+            <td><code>deep-research</code></td>
+            <td>Deep Research</td>
+            <td>Multi-phase (Sonnet)</td>
+            <td>$4.00</td>
+            <td>Comprehensive research with multiple source types, cross-referencing, and citation tracking.</td>
+          </tr>
+          <tr>
+            <td><code>video-podcast</code></td>
+            <td>Video Podcast</td>
+            <td>Multi-phase (Sonnet)</td>
+            <td>$2.00</td>
+            <td>Video/audio content analysis, transcription, key moment extraction, summary generation.</td>
+          </tr>
+          <tr>
+            <td><code>code-explorer</code></td>
+            <td>Code Explorer</td>
+            <td>Multi-phase (Sonnet)</td>
+            <td>$2.00</td>
+            <td>Codebase analysis, architecture documentation, bug investigation, refactoring suggestions.</td>
+          </tr>
+          <tr>
+            <td><code>document-analyst</code></td>
+            <td>Document Analyst</td>
+            <td>Multi-phase (Sonnet)</td>
+            <td>$2.00</td>
+            <td>PDF/DOCX/XLSX analysis, data extraction, document comparison, structured reporting.</td>
+          </tr>
+          <tr>
+            <td><code>video-intelligence-scout</code></td>
+            <td>Video Intelligence Scout</td>
+            <td>Multi-phase (Sonnet)</td>
+            <td>$2.00</td>
+            <td>Video content discovery, intelligence gathering, trend analysis across video platforms.</td>
+          </tr>
+          <tr>
+            <td><code>data-source-query</code></td>
+            <td>Data Source Query</td>
+            <td>Single-phase (Sonnet)</td>
+            <td>$1.00</td>
+            <td>Natural language to MongoDB query bridge. Multi-step query plans with template references.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>7.2 Agent Routing</h3>
+
+      <p style="margin-bottom: 1rem;">
+        The AgentRouter analyses the user's query and selects the most appropriate agent through a
+        capability matching algorithm:
+      </p>
+
+      <pre>
+  AgentRouter Selection Flow:
+
+  User Query: "Analyse the charging patterns for Station 42 over the last month"
+      |
+      v
+  1. Domain Detection       -->  "energy" domain detected
+  2. Intent Classification  -->  "data_analysis" intent
+  3. Capability Matching    -->  deep-dive (0.92), data-analyst (0.87), general (0.45)
+  4. Depth Inference        -->  "deep" (multi-parameter, time-series analysis)
+  5. Agent Selected         -->  deep-dive with costCeiling: $4.00
+      |
+      v
+  Execution plan generated with depth-filtered phases
+      </pre>
+
+      <h3>7.3 Phase Templates with Depth Filtering</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Agent phase templates use the <code>depths</code> property for declarative, agent-aware filtering.
+        When a phase specifies <code>depths: ["standard", "deep"]</code>, it is automatically excluded from
+        quick-depth executions. The filtering happens at plan conversion time, not execution time:
+      </p>
+
+      <pre>
+  // Phase template example (deep-dive agent)
+  {
+    name: "explore-and-report",
+    model: "claude-sonnet-4-20250514",
+    costCeiling: 4.00,
+    maxIterations: 200,        // Safety net only (cost ceiling controls the loop)
+    tools: ["DataSourceQuery", "PythonExec", "KnowledgeBase", "DocumentRender"],
+    needs: {
+      agentMemory: true,       // Inject shared wisdom
+      knowledgeFacts: true,    // Inject domain facts
+      domainContext: true      // Inject domain taxonomy
+    }
+    // No depths array = included at ALL depths
+  }
+      </pre>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 8. KNOWLEDGE PIPELINE                                              -->
+    <!-- ================================================================== -->
+    <section id="knowledge-pipeline">
+      <h2>8. Knowledge Pipeline</h2>
+
+      <p style="margin-bottom: 1rem;">
+        The knowledge pipeline transforms raw web content and documents into scored, enriched, queryable
+        knowledge. It follows a zero-waste philosophy &mdash; data is never discarded, only tagged for
+        relevancy. The pipeline supports both staged ingestion (crawl-first) and bulk indexing (direct to
+        cortex_index for trusted sources).
+      </p>
+
+      <div class="methodology-step">
+        <span class="step-number">1</span>
+        <h5>Crawl</h5>
+        <p style="margin-top: 0.75rem; color: #9ca3af;">
+          Web content is crawled using configurable depth, domain restrictions, and rate limiting.
+          The CrawlWorker extracts clean text, metadata, and structural information. Content is stored
+          with its source URL in <code>knowledge_seed_status</code> for tracking. Duplicate URL detection
+          prevents re-crawling previously processed pages.
+        </p>
+      </div>
+
+      <div class="methodology-step">
+        <span class="step-number">2</span>
+        <h5>Filter (Three-Outcome Relevance)</h5>
+        <p style="margin-top: 0.75rem; color: #9ca3af;">
+          Every crawled page passes through a three-outcome relevance filter. The LLM evaluates each page
+          against the target domain and produces one of three outcomes: <strong>Accept</strong> (relevant,
+          proceed to indexing), <strong>Reclassify</strong> (relevant to a different domain, re-tag and
+          keep), or <strong>Drop</strong> (genuinely irrelevant, marked as filtered but never deleted).
+          This is the zero-waste principle in action &mdash; even "dropped" pages remain in the system
+          with their filter status for future review.
+        </p>
+      </div>
+
+      <div class="methodology-step">
+        <span class="step-number">3</span>
+        <h5>Index</h5>
+        <p style="margin-top: 0.75rem; color: #9ca3af;">
+          Accepted content is indexed into <code>cortex_index</code> with full metadata, domain tags,
+          and initial quality markers. Bulk indexing mode skips the crawl/filter stages and writes
+          directly to cortex_index &mdash; used for trusted sources like API documentation or known-good
+          datasets. Contextual chunking (Anthropic approach, 67% retrieval improvement) is available
+          as a configurable option.
+        </p>
+      </div>
+
+      <div class="methodology-step">
+        <span class="step-number">4</span>
+        <h5>Extract</h5>
+        <p style="margin-top: 0.75rem; color: #9ca3af;">
+          LLM fact extraction processes each indexed page and produces 5-20 structured knowledge facts
+          as complete sentences. Facts are stored in <code>cortex_knowledge_facts</code> with entity
+          links, source references, and extraction confidence scores. Entity-domain linking connects
+          facts to the knowledge graph in Neo4j.
+        </p>
+      </div>
+
+      <div class="methodology-step">
+        <span class="step-number">5</span>
+        <h5>Score</h5>
+        <p style="margin-top: 0.75rem; color: #9ca3af;">
+          The pluggable scoring engine pipeline (see Section 9) evaluates each document and fact for
+          quality and relevance. Scoring is three-tiered: embedding similarity as Layer 1 bulk filter,
+          optional graph enhancement as Layer 2, and LLM cross-encoder as Layer 3 judge for the top
+          candidates. Results are stored as <code>scoreHistory</code> arrays for trend analysis.
+        </p>
+      </div>
+
+      <div class="methodology-step">
+        <span class="step-number">6</span>
+        <h5>Analyse</h5>
+        <p style="margin-top: 0.75rem; color: #9ca3af;">
+          Domain-level analysis aggregates facts, entities, and scores into a comprehensive domain
+          profile stored in <code>cortex_domain_analysis</code>. This includes entity type breakdowns,
+          LLM-generated domain taxonomies (subject trees), quality distribution curves, growth trends,
+          stale content alerts, and integrity gap detection.
+        </p>
+      </div>
+
+      <div class="methodology-step">
+        <span class="step-number">7</span>
+        <h5>Enhance</h5>
+        <p style="margin-top: 0.75rem; color: #9ca3af;">
+          Self-healing knowledge enhancement. The "enhance" button triggers LLM re-processing of
+          low-scoring or stale content. The LLM can enrich facts, add missing context, update
+          entity links, and improve content quality. This is the platform's self-healing mechanism
+          &mdash; knowledge quality improves over time even without new crawls.
+        </p>
+      </div>
+
+      <pre>
+  Knowledge Pipeline Flow:
+
+  External Source                     Trusted Source
+       |                                   |
+       v                                   v
+  +----------+                      +-----------+
+  |  Crawl   |                      |   Bulk    |
+  |  Worker  |                      |  Indexing  |
+  +----+-----+                      +-----+-----+
+       |                                   |
+       v                                   |
+  +----------+                             |
+  |  Filter  |  3 outcomes:                |
+  |  (LLM)   |  accept/reclassify/drop     |
+  +----+-----+                             |
+       |                                   |
+       v                                   v
+  +----+----------------------------------+-----+
+  |              cortex_index                    |
+  +----+----------------------------------------+
+       |
+       +---> Extract (LLM, 5-20 facts/page)
+       |         |
+       |         v
+       |    cortex_knowledge_facts
+       |         |
+       +---> Score (7-engine pipeline)
+       |         |
+       +---> Analyse (domain profiles)
+       |         |
+       +---> Enhance (self-healing)
+       |
+       +---> Auto-Audit (daily + 6h integrity)
+      </pre>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 9. SCORING ENGINE ARCHITECTURE                                     -->
+    <!-- ================================================================== -->
+    <section id="scoring-engines">
+      <h2>9. Scoring Engine Architecture</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Regno.ai implements a pluggable scoring engine architecture through the <code>ScoringEngine</code>
+        interface and <code>ScoringEngineFactory</code>. Seven engines are available for batch scoring, and
+        four engines support query-time reranking. Engines are organised into a three-layer pipeline with
+        configurable quality tier presets.
+      </p>
+
+      <h3>9.1 Batch Scoring Engines</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Engine</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Cost</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>EmbeddingCosine</code></td>
+            <td>Vector similarity</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~$0.001/doc</td>
+            <td>Cosine similarity between document embedding and domain centroid. Fast, cheap, good baseline.</td>
+          </tr>
+          <tr>
+            <td><code>Keyword</code></td>
+            <td>Text matching</td>
+            <td><span class="text-green">Live</span></td>
+            <td>Free</td>
+            <td>TF-IDF keyword scoring with domain term matching. Zero-cost fallback engine.</td>
+          </tr>
+          <tr>
+            <td><code>LLM Cross-Encoder</code></td>
+            <td>Haiku judge</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~$0.01/doc</td>
+            <td>Claude Haiku evaluates document relevance to domain with structured scoring rubric.</td>
+          </tr>
+          <tr>
+            <td><code>Cohere Rerank</code></td>
+            <td>Neural reranker</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~$0.001/query</td>
+            <td>Cohere Rerank v3.5 — batch scoring + query-time reranking. API: <code>api.cohere.com/v2/rerank</code></td>
+          </tr>
+          <tr>
+            <td><code>BGE Reranker</code></td>
+            <td>Cross-encoder</td>
+            <td><span class="text-green">Live</span></td>
+            <td>Free</td>
+            <td>BGE-reranker-v2-m3 via HuggingFace Inference API. Batch + query-time. Always available (free tier).</td>
+          </tr>
+          <tr>
+            <td><code>Zerank</code></td>
+            <td>Neural reranker</td>
+            <td><span class="text-green">Live</span></td>
+            <td>$0.025/1M tokens</td>
+            <td>Zerank-2 (#1 ELO 1638) via ZeroEntropy API. Batch + query-time. Best accuracy/cost ratio.</td>
+          </tr>
+          <tr>
+            <td><code>Voyage Rerank</code></td>
+            <td>Neural reranker</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~$0.005/query</td>
+            <td>Voyage Rerank 2.5 via Voyage AI API. Batch + query-time. 32K token context window.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>9.2 Three-Layer Pipeline</h3>
+
+      <pre>
+  Scoring Pipeline: 3-Layer Architecture
+
+  +================================================================+
+  |  LAYER 1: Bulk Scoring (all documents)                         |
+  |                                                                 |
+  |  EmbeddingCosine  -->  Score all docs against domain centroid   |
+  |  Keyword          -->  TF-IDF domain term matching             |
+  |  BGE / Cohere     -->  Neural reranking (when enabled)         |
+  |                                                                 |
+  |  Output: Scored list, sorted by composite score                |
+  +============================+===================================+
+                                |
+                    Top N candidates pass through
+                                |
+  +============================v===================================+
+  |  LAYER 2: Graph Enhancement (optional, top candidates)         |
+  |                                                                 |
+  |  Neo4j entity connectivity scoring                             |
+  |  Qdrant duplicate detection (similarity > 0.92)                |
+  |  Cross-reference bonus for well-connected entities             |
+  |                                                                 |
+  |  Status: Available but disabled by default (stability)         |
+  +============================+===================================+
+                                |
+                    Top M candidates pass through
+                                |
+  +============================v===================================+
+  |  LAYER 3: LLM Judge (top candidates only)                      |
+  |                                                                 |
+  |  Claude Haiku cross-encoder evaluation                         |
+  |  Structured rubric: relevance, accuracy, completeness          |
+  |  Final quality tier assignment                                 |
+  |                                                                 |
+  |  Output: Quality tier (excellent/good/fair/poor)               |
+  +================================================================+
+      </pre>
+
+      <h3>9.3 Quality Tier Presets</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Preset</th>
+            <th>Layer 1</th>
+            <th>Layer 2</th>
+            <th>Layer 3</th>
+            <th>Cost/1K docs</th>
+            <th>Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Good</strong></td>
+            <td>EmbeddingCosine + Keyword</td>
+            <td>Off</td>
+            <td>Off</td>
+            <td>~$1</td>
+            <td>Fast bulk scoring for large corpora</td>
+          </tr>
+          <tr>
+            <td><strong>Better</strong></td>
+            <td>EmbeddingCosine + Keyword</td>
+            <td>Off</td>
+            <td>Haiku (top 50)</td>
+            <td>~$1.50</td>
+            <td>Standard quality with LLM verification</td>
+          </tr>
+          <tr>
+            <td><strong>Best</strong></td>
+            <td>EmbeddingCosine + Cohere</td>
+            <td>Neo4j</td>
+            <td>Haiku (top 100)</td>
+            <td>~$3</td>
+            <td>High-quality domain knowledge bases</td>
+          </tr>
+          <tr>
+            <td><strong>Ultimate</strong></td>
+            <td>Embedding + BGE + Cohere</td>
+            <td>Neo4j + Qdrant</td>
+            <td>Haiku (all)</td>
+            <td>~$10</td>
+            <td>Maximum accuracy for critical knowledge</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>9.4 Query-Time Reranking</h3>
+
+      <p style="margin-bottom: 1rem;">
+        At query time, a separate reranking step re-scores the top K retrieved documents against the actual
+        user query (not just the domain centroid). This dramatically improves result relevance:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Reranker</th>
+            <th>Status</th>
+            <th>Latency</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cohere Rerank v3.5</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~200ms</td>
+            <td>Primary reranker. Integrated via RerankService.</td>
+          </tr>
+          <tr>
+            <td>BGE Reranker v2-m3</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~100ms</td>
+            <td>HuggingFace Inference API. Free tier, always available.</td>
+          </tr>
+          <tr>
+            <td>Zerank-2</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~150ms</td>
+            <td>#1 ELO (1638). ZeroEntropy API. $0.025/1M tokens.</td>
+          </tr>
+          <tr>
+            <td>Voyage Rerank 2.5</td>
+            <td><span class="text-green">Live</span></td>
+            <td>~200ms</td>
+            <td>Voyage AI API. 32K context. MongoDB integration path.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 10. WISDOM & LEARNING SYSTEM                                       -->
+    <!-- ================================================================== -->
+    <section id="wisdom-system">
+      <h2>10. Wisdom &amp; Learning System</h2>
+
+      <p style="margin-bottom: 1rem;">
+        The wisdom system is what makes Regno.ai a self-improving platform. Every AI execution feeds into
+        a quality loop that extracts insights, stores them as shared memories, and injects them into future
+        executions. Over time, the platform accumulates operational wisdom that measurably improves the
+        quality of its output.
+      </p>
+
+      <div class="info-box">
+        <strong>Quality Compounds Over Time:</strong> The wisdom system creates a flywheel effect. Early
+        executions produce baseline quality. Insights from those executions improve the next round. Patterns
+        that work are reinforced (confirmation count increases). Anti-patterns are recorded and avoided.
+        Cross-domain principles emerge through synthesis. After hundreds of executions, the platform has
+        accumulated a rich library of operational wisdom that guides every new task &mdash; producing
+        measurably better results than a fresh system.
+      </div>
+
+      <pre>
+  The Self-Improving Loop:
+
+  +----------+      +-----------+      +----------+      +-----------+
+  | Execute  | ---> | Evaluate  | ---> |  Store   | ---> |  Inject   |
+  | (Cortex  |      | (Quality  |      | (Shared  |      | (Context  |
+  |  Flow)   |      |  Auditor) |      | Memories)|      |  Builder) |
+  +----+-----+      +-----------+      +----------+      +-----+-----+
+       ^                                                        |
+       |                                                        |
+       +--------------------------------------------------------+
+                    Next execution is better
+
+
+  Detailed Wisdom Flow:
+
+  Execution Output
+       |
+       +---> [WISDOM]: annotations extracted (regex)
+       |         |
+       |         v
+       |    cortex_agent_memories (category: wisdom, score: 0.85)
+       |
+       +---> QualityAuditor (3-layer evaluation)
+       |         |
+       |         +---> Layer 1: Objective metrics (cost, speed, tool precision)
+       |         +---> Layer 2: Output heuristics (HTML size, table count, number density)
+       |         +---> Layer 3: Sonnet LLM assessment (~$0.10)
+       |         |
+       |         v
+       |    Insights stored: patterns (0.85), errors (0.90), wisdom (0.85)
+       |
+       +---> execution_evaluation SSE event
+
+
+  Context Injection (next execution):
+
+  ContextBuilder
+       |
+       +---> Agent-specific text search
+       +---> Agent-specific recent memories
+       +---> Shared text search (agentSlug: null, userId: null)
+       +---> Shared recent memories
+       +---> Qdrant semantic search (cortex_wisdom collection)
+       |
+       v
+  Merged memory set injected into system prompt
+  (ordered: wisdom > patterns > errors > facts > preferences)
+      </pre>
+
+      <h3>10.1 WISDOM Protocol (Self-Annotation)</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Nine agents include the WISDOM protocol in their phase prompts. During normal execution, the LLM
+        writes <code>[WISDOM]: &lt;insight&gt;</code> annotations inline with its response. These are
+        extracted by the Orchestrator using regex (<code>\[WISDOM\]:?\s*(.{10,300})</code>) and stored
+        as shared memories with category <code>wisdom</code> and relevance score 0.85. This approach
+        requires zero extra API calls &mdash; the LLM self-annotates during its normal work.
+      </p>
+
+      <p style="margin-bottom: 1rem;">
+        WISDOM protocol agents: deep-dive, deep-research, market-research, document-analyst, video-podcast,
+        video-intelligence-scout, general-assistant, code-explorer, data-source-query.
+      </p>
+
+      <h3>10.2 Five Sources of Shared Memory</h3>
+
+      <div class="card-grid">
+        <div class="card">
+          <h5>1. Seed Quality Principles</h5>
+          <p>
+            <code>seed-quality-principles.cjs</code> bootstraps 18 foundational principles for cold start.
+            Idempotent: running again reinforces existing principles (increases confirmation count) rather
+            than creating duplicates.
+          </p>
+        </div>
+        <div class="card">
+          <h5>2. QualityAuditor</h5>
+          <p>
+            Automatic post-execution evaluation. <code>evaluateExecution()</code> runs after every final
+            phase when <code>enableMemory: true</code> and <code>result.success</code>. Writes anti-patterns,
+            patterns, and wisdom to shared memory.
+          </p>
+        </div>
+        <div class="card">
+          <h5>3. Manual Evaluation (/apple)</h5>
+          <p>
+            Step 8j of the <code>/apple</code> evaluation command bridges Steve Jobs-style assessment
+            insights to shared memory. Writes to both <code>cortex_agent_memories</code> and
+            <code>stevejobs</code> collections.
+          </p>
+        </div>
+        <div class="card">
+          <h5>4. Wisdom Synthesiser</h5>
+          <p>
+            Scheduled task that converts knowledge facts and documents into operational principles via LLM.
+            Phase 1: domain-specific wisdom. Phase 2: cross-concern universal patterns that apply across
+            all domains.
+          </p>
+        </div>
+        <div class="card">
+          <h5>5. Showcase Generation</h5>
+          <p>
+            ShowcaseGenerationWorker stores patterns/errors from scene evaluation and wisdom from scene
+            fixes. All showcase AI work reads quality memories for guidance.
+          </p>
+        </div>
+      </div>
+
+      <h3>10.3 Memory Lifecycle</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Default Score</th>
+            <th>Purpose</th>
+            <th>Injection Priority</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>wisdom</code></td>
+            <td>0.85</td>
+            <td>Operational/structural knowledge about HOW to work with data</td>
+            <td>Highest</td>
+          </tr>
+          <tr>
+            <td><code>pattern</code></td>
+            <td>0.85</td>
+            <td>Proven approaches that consistently work well</td>
+            <td>High</td>
+          </tr>
+          <tr>
+            <td><code>error</code></td>
+            <td>0.90</td>
+            <td>Anti-patterns and mistakes to avoid</td>
+            <td>High</td>
+          </tr>
+          <tr>
+            <td><code>fact</code></td>
+            <td>0.50</td>
+            <td>Domain-specific knowledge facts</td>
+            <td>Normal</td>
+          </tr>
+          <tr>
+            <td><code>preference</code></td>
+            <td>0.50</td>
+            <td>User/agent preferences for output style</td>
+            <td>Low</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>10.4 Memory Governance</h3>
+
+      <ul>
+        <li><strong>Confirmation count:</strong> Tracks how many times a memory has been reinforced. Well-confirmed memories (count &ge; 3) survive pruning.</li>
+        <li><strong>Usefulness rating:</strong> User feedback via admin dashboard. Three strikes (rating &le; -0.45) triggers auto-archive.</li>
+        <li><strong>Auto-prune:</strong> Scheduled task removes stale memories (&gt;90 days unaccessed) with low confirmation counts.</li>
+        <li><strong>Near-duplicate merging:</strong> Qdrant similarity search (threshold &gt; 0.92) merges semantically identical memories.</li>
+        <li><strong>Conflict detection:</strong> Contradictory memories are flagged for human review via the admin dashboard.</li>
+        <li><strong>Domain tagging:</strong> Memories have optional <code>domain</code> field for filtered retrieval by domain.</li>
+      </ul>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 11. CORTEX PATTERNS                                                -->
+    <!-- ================================================================== -->
+    <section id="cortex-patterns">
+      <h2>11. Cortex Patterns</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Cortex Patterns are the declarative configuration substrate of the platform. They encode AI
+        behaviours, pipeline configurations, domain expertise, and workflow templates as structured
+        documents that can be versioned, scored, and evolved over time. Patterns replace hardcoded logic
+        with flexible, LLM-readable configuration.
+      </p>
+
+      <h3>11.1 Pattern Types</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Purpose</th>
+            <th>Example Domain</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>pipeline</code></td>
+            <td>Multi-step processing workflows with stage definitions</td>
+            <td><code>knowledge.ingestion.pipeline</code></td>
+          </tr>
+          <tr>
+            <td><code>goal</code></td>
+            <td>Objective definitions with success criteria and metrics</td>
+            <td><code>analysis.deep_dive.goal</code></td>
+          </tr>
+          <tr>
+            <td><code>field_inference</code></td>
+            <td>LLM-driven field value inference rules</td>
+            <td><code>cms.process.field_inference</code></td>
+          </tr>
+          <tr>
+            <td><code>expert_workflow</code></td>
+            <td>Domain expert analysis templates</td>
+            <td><code>plan_generation.templates.data_analysis</code></td>
+          </tr>
+          <tr>
+            <td><code>prompt_template</code></td>
+            <td>Reusable prompt fragments and system instructions</td>
+            <td><code>agent.deep_dive.system_prompt</code></td>
+          </tr>
+          <tr>
+            <td><code>scoring_rubric</code></td>
+            <td>Quality evaluation criteria and scoring matrices</td>
+            <td><code>audit.scoring.relevance_rubric</code></td>
+          </tr>
+          <tr>
+            <td><code>domain_taxonomy</code></td>
+            <td>LLM-generated subject trees for domain categorisation</td>
+            <td><code>knowledge.taxonomy.energy</code></td>
+          </tr>
+          <tr>
+            <td><code>tool_guidance</code></td>
+            <td>Tool usage recommendations and best practices</td>
+            <td><code>tools.python_exec.guidance</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>11.2 Pattern Evolution Cycle</h3>
+
+      <pre>
+  Pattern Lifecycle:
+
+  Create          Use             Score           Evolve
+  +------+     +------+       +--------+      +----------+
+  | New  | --> | Used | --->  | Scored | ---> | Reinforce|
+  | (1.0)|     |      |       |        |      | or Decay |
+  +------+     +------+       +--------+      +----------+
+                  |                               |    |
+                  +--- usageCount++                |    |
+                  +--- lastUsedAt = now            |    |
+                                                   |    |
+                                        confidence++  confidence--
+                                        (if good)     (if poor)
+
+  Foundation patterns:  confidence = 1.0, protected, cannot be deleted
+  Learned patterns:     confidence starts at 0.5, evolves with usage
+  Decayed patterns:     confidence < 0.2 after extended non-use
+      </pre>
+
+      <h3>11.3 Foundation Patterns</h3>
+
+      <p style="margin-bottom: 1rem;">
+        The platform ships with 82 foundation patterns across 8 categories. These are protected patterns
+        with maximum confidence (1.0) that cannot be deleted. They establish the baseline behaviour of the
+        system and are reinforced through usage:
+      </p>
+
+      <div class="big-stat">
+        <div class="stat-card">
+          <div class="number">82</div>
+          <div class="label">Foundation Patterns</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">8</div>
+          <div class="label">Categories</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">1.0</div>
+          <div class="label">Confidence (Protected)</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">3</div>
+          <div class="label">Stores Synced</div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 12. SECURITY & CREDENTIALS                                         -->
+    <!-- ================================================================== -->
+    <section id="security">
+      <h2>12. Security &amp; Credentials</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Regno.ai implements multiple layers of security across authentication, credential storage, and
+        execution sandboxing. All sensitive data is encrypted at rest, and all AI execution happens in
+        isolated environments.
+      </p>
+
+      <h3>12.1 Authentication</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Mechanism</th>
+            <th>Scope</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>JWT Tokens</td>
+            <td>Web UI sessions</td>
+            <td>HTTP-only cookies, configurable expiry, refresh token rotation</td>
+          </tr>
+          <tr>
+            <td>API Keys</td>
+            <td>SDK / External API</td>
+            <td>Per-user API keys with rate limiting and scope restrictions</td>
+          </tr>
+          <tr>
+            <td>Role-Based Access</td>
+            <td>All endpoints</td>
+            <td>Admin, user, viewer roles with endpoint-level permission checks</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>12.2 Credential Encryption</h3>
+
+      <p style="margin-bottom: 1rem;">
+        All API keys and service credentials are stored encrypted in the <code>credentials</code> collection
+        using AES-256-GCM encryption:
+      </p>
+
+      <pre>
+  Credential Encryption:
+
+  Algorithm:   AES-256-GCM
+  Key:         SHA256(CREDENTIALS_ENCRYPTION_SECRET)
+  Format:      enc:base64(IV + AuthTag + EncryptedData)
+
+  Storage:     MongoDB credentials collection
+  Access:      llmCredentialsStore.ts (decrypt on read)
+
+  Supported credential types: 26
+  (LLM providers, search APIs, reranking services,
+   cloud storage, video platforms, etc.)
+
+  IMPORTANT: Never hardcode API keys.
+  Always read from DB credentials via getAnthropicClient()
+  or manual decrypt for standalone scripts.
+      </pre>
+
+      <h3>12.3 Execution Sandboxing</h3>
+
+      <ul>
+        <li><strong>PythonExec:</strong> Runs in <code>isolated-vm</code> sandbox with restricted filesystem access, no network, and memory limits</li>
+        <li><strong>JavaScriptExec:</strong> V8 isolate with separate heap, no access to Node.js APIs or filesystem</li>
+        <li><strong>Tool execution:</strong> Each tool runs with minimum required permissions; file operations restricted to output paths</li>
+        <li><strong>LLM API calls:</strong> Only made from execution server, never from web server; credential decryption happens just-in-time</li>
+      </ul>
+
+      <h3>12.4 Supported Credential Types</h3>
+
+      <div class="card-grid">
+        <div class="card">
+          <h5>LLM Providers</h5>
+          <p>
+            Anthropic (Claude), OpenAI (GPT-4, embeddings), Google (Gemini), Cohere (reranking),
+            together with model-specific configuration (temperature, max tokens, system prompts).
+          </p>
+        </div>
+        <div class="card">
+          <h5>Search &amp; Data</h5>
+          <p>
+            Tavily (web search), Brave Search, SerpAPI, Google Custom Search, Bing API. MongoDB Atlas
+            (data source queries), PostgreSQL connectors.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Infrastructure</h5>
+          <p>
+            AWS (S3 storage), GCP (Cloud Storage), Azure (Blob Storage). SMTP (email notifications).
+            Webhook endpoints for integration callbacks.
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 13. SDK & EXTERNAL API                                             -->
+    <!-- ================================================================== -->
+    <section id="sdk-api">
+      <h2>13. SDK &amp; External API</h2>
+
+      <p style="margin-bottom: 1rem;">
+        Regno.ai provides a comprehensive REST API and multi-language SDK for external integration. The SDK
+        enables developers to embed AI-powered knowledge capabilities into their own applications with
+        minimal effort.
+      </p>
+
+      <h3>13.1 REST API Overview</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint Group</th>
+            <th>Base Path</th>
+            <th>Key Operations</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cortex Flow</td>
+            <td><code>/api/cortex-flow</code></td>
+            <td>Execute tasks, list agents, get execution status, stream results</td>
+          </tr>
+          <tr>
+            <td>Knowledge</td>
+            <td><code>/api/knowledge</code></td>
+            <td>Query, ingest, audit, score, browse across 16 collections</td>
+          </tr>
+          <tr>
+            <td>Wisdom</td>
+            <td><code>/api/cortex-flow/wisdom</code></td>
+            <td>Browse memories, filter, rate, delete, trigger synthesis</td>
+          </tr>
+          <tr>
+            <td>Patterns</td>
+            <td><code>/api/patterns</code></td>
+            <td>CRUD patterns, search, sync across 3 stores</td>
+          </tr>
+          <tr>
+            <td>Data Source</td>
+            <td><code>/api/data-source</code></td>
+            <td>NL queries, schema discovery, bridge debug (<code>?q=</code>)</td>
+          </tr>
+          <tr>
+            <td>CMS</td>
+            <td><code>/api/cms</code></td>
+            <td>Process management, file upload (GridFS), workflow transitions</td>
+          </tr>
+          <tr>
+            <td>Auth</td>
+            <td><code>/api/auth</code></td>
+            <td>Login, register, token refresh, API key management</td>
+          </tr>
+          <tr>
+            <td>Health</td>
+            <td><code>/api/health</code></td>
+            <td>6-service health grid (SvelteKit, Realtime, Execution, MongoDB, Redis, BullMQ)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>13.2 SDK Availability</h3>
+
+      <div class="card-grid">
+        <div class="card">
+          <h5>npm (Node.js)</h5>
+          <p>
+            Full-featured SDK with TypeScript types. Supports all API operations, SSE streaming for
+            execution results, and webhook configuration. Primary SDK, most complete feature coverage.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Browser (ES Module)</h5>
+          <p>
+            Lightweight browser bundle for direct integration into web applications. Supports query
+            execution, knowledge search, and SSE streaming. Includes 3 embeddable widgets with
+            depth selector.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Python</h5>
+          <p>
+            Python SDK for data science and ML pipeline integration. Async support via
+            <code>asyncio</code>. Pandas DataFrame conversion for knowledge query results.
+          </p>
+        </div>
+        <div class="card">
+          <h5>.NET</h5>
+          <p>
+            C# SDK for enterprise .NET applications. Full async/await support, strongly-typed models,
+            and NuGet package distribution.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Go</h5>
+          <p>
+            Go SDK for microservice and CLI integrations. Goroutine-safe, context-aware cancellation,
+            and streaming support via channels.
+          </p>
+        </div>
+      </div>
+
+      <h3>13.3 Embeddable Widgets</h3>
+
+      <p style="margin-bottom: 1rem;">
+        Three pre-built widgets can be embedded in any web application via the browser SDK. Each widget
+        includes a depth selector (quick/standard/deep) so users can control analysis depth and cost:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Widget</th>
+            <th>Purpose</th>
+            <th>Features</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Chat Widget</td>
+            <td>Conversational AI interface</td>
+            <td>Streaming responses, tool call visibility, markdown rendering, depth selector</td>
+          </tr>
+          <tr>
+            <td>Search Widget</td>
+            <td>Knowledge search interface</td>
+            <td>Semantic search, faceted filtering, result previews, domain scoping</td>
+          </tr>
+          <tr>
+            <td>Report Widget</td>
+            <td>Analysis report viewer</td>
+            <td>HTML report display, download, print, execution progress tracking</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>13.4 F1 Module &mdash; Vertical Example</h3>
+
+      <p style="margin-bottom: 1rem;">
+        The F1 Module is a dedicated SvelteKit application (<code>/disks/disk1/apps/f1</code>) that
+        demonstrates Regno.ai as a vertical AI platform for Formula 1 analytics. It uses the Regno SDK,
+        has its own agent in MongoDB, and showcases knowledge ingestion for motorsport data. The F1 module
+        serves as a reference implementation for building domain-specific applications on top of the
+        Regno.ai platform.
+      </p>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 14. DESIGN PRINCIPLES & KEY DECISIONS                              -->
+    <!-- ================================================================== -->
+    <section id="design-principles">
+      <h2>14. Design Principles &amp; Key Decisions</h2>
+
+      <p style="margin-bottom: 1rem;">
+        The platform is built on a set of core design principles that guide every architectural decision.
+        These principles are non-negotiable and inform how new features are designed and implemented.
+      </p>
+
+      <h3>14.1 Core Principles</h3>
+
+      <div class="card-grid">
+        <div class="card">
+          <h5>Trust the LLM</h5>
+          <p>
+            Instruct the LLM verbosely and trust it to follow instructions. Force compliance through clear
+            prompt instructions, NOT mechanical code restrictions. All registered tools are available &mdash;
+            the LLM decides when and when not to use them (like Claude Code). No <code>restrictedTools</code>
+            or <code>requiredTools</code> mechanical enforcement.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Declarative, Agent-Aware Configuration</h5>
+          <p>
+            Phase templates use <code>depths</code> property for declarative filtering. Filtering happens at
+            conversion time, not execution time. No hardcoded condensing logic. Depth filtering is
+            declarative and agent-aware. The system is maximally flexible.
+          </p>
+        </div>
+        <div class="card">
+          <h5>The LLM IS the Template Engine</h5>
+          <p>
+            For data analysis and report generation: single phase, LLM writes complete self-contained HTML.
+            DocumentRenderTool detects complete HTML docs and saves them directly &mdash; no template
+            injection. One turn: read data, Python stats, write HTML, save. This mirrors Claude.ai's
+            approach and produces equivalent quality.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Never Run LLM on Web Server</h5>
+          <p>
+            The SvelteKit web server NEVER makes direct LLM API calls. All AI work is dispatched to the
+            execution server via BullMQ. This keeps the web server responsive, prevents memory pressure
+            from long-running AI tasks, and enables horizontal scaling of AI workloads independently.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Never Discard Data</h5>
+          <p>
+            Zero-waste philosophy across the platform. The knowledge pipeline never deletes content &mdash;
+            it tags for relevancy. Audit/score/clean operations tag only; deletion is master-level only.
+            Even "dropped" content from the relevance filter is preserved with its status for future review.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Slide-to-Confirm for Destructive Actions</h5>
+          <p>
+            Every delete/archive across the platform uses a trash icon that reveals a
+            <code>SlideToConfirm</code> component (slide 85% to trigger). No browser <code>confirm()</code>
+            dialogs. Consistent UX pattern that prevents accidental data loss.
+          </p>
+        </div>
+      </div>
+
+      <h3>14.2 Key Architectural Decisions</h3>
+
+      <div class="comparison">
+        <div class="comparison-item warning">
+          <h5><span class="text-yellow">Rejected: LLM calls on web server</span></h5>
+          <ul>
+            <li>Blocks event loop during 10-15 minute deep analyses</li>
+            <li>Memory pressure from multiple concurrent LLM sessions</li>
+            <li>Cannot scale AI workload independently</li>
+            <li>Crash in LLM processing takes down web server</li>
+          </ul>
+        </div>
+        <div class="comparison-item recommended">
+          <h5><span class="text-green">Chosen: Dedicated execution server + BullMQ</span></h5>
+          <ul>
+            <li>Web server stays responsive under any AI load</li>
+            <li>Crash-resilient with checkpoint recovery</li>
+            <li>Horizontal scaling by adding execution servers</li>
+            <li>Priority queues ensure interactive queries are fast</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comparison">
+        <div class="comparison-item warning">
+          <h5><span class="text-yellow">Rejected: Mechanical tool restrictions</span></h5>
+          <ul>
+            <li><code>restrictedTools</code> arrays blocked valid tool usage</li>
+            <li><code>requiredTools</code> forced unnecessary tool calls</li>
+            <li>Combinatorial explosion of restriction configurations</li>
+            <li>LLM fought against restrictions, wasting tokens</li>
+          </ul>
+        </div>
+        <div class="comparison-item recommended">
+          <h5><span class="text-green">Chosen: Trust the LLM + prompt guidance</span></h5>
+          <ul>
+            <li>All tools available; LLM chooses based on task</li>
+            <li>Phase prompts carry behavioural guidance</li>
+            <li>No mechanical enforcement overhead</li>
+            <li>Higher quality output with fewer wasted iterations</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comparison">
+        <div class="comparison-item warning">
+          <h5><span class="text-yellow">Rejected: Iteration-based loop control</span></h5>
+          <ul>
+            <li>Fixed iteration count is unpredictable in cost</li>
+            <li>Simple queries waste iterations; complex ones run out</li>
+            <li>No way to budget across different model costs</li>
+            <li>Checkpoint messages at fixed intervals add noise</li>
+          </ul>
+        </div>
+        <div class="comparison-item recommended">
+          <h5><span class="text-green">Chosen: USD cost ceiling with budget alerts</span></h5>
+          <ul>
+            <li>Predictable spending per execution ($4 max for deep-dive)</li>
+            <li>LLM gets budget awareness at 70%, urgency at 95%</li>
+            <li>Works across different model costs automatically</li>
+            <li>maxIterations = 200 as safety net only</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comparison">
+        <div class="comparison-item warning">
+          <h5><span class="text-yellow">Rejected: Separate analysis + report phases</span></h5>
+          <ul>
+            <li>Phase 2 (analyse) + Phase 3 (report) = pure duplication</li>
+            <li>Phase 3 just reformatted Phase 2 output into HTML</li>
+            <li>1350 words of prompts for two phases vs 400 for one</li>
+            <li>Extra LLM call with no quality improvement</li>
+          </ul>
+        </div>
+        <div class="comparison-item recommended">
+          <h5><span class="text-green">Chosen: LLM writes complete HTML in one phase</span></h5>
+          <ul>
+            <li>Single phase: data query + Python stats + HTML report</li>
+            <li>70% prompt token reduction</li>
+            <li>Complete HTML detected by DocumentRenderTool and saved directly</li>
+            <li>Design Pillar 3: The LLM IS the Template Engine</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 15. PLATFORM USPs                                                  -->
+    <!-- ================================================================== -->
+    <section id="platform-usps">
+      <h2>15. Platform USPs</h2>
+
+      <p style="margin-bottom: 1rem;">
+        These unique selling points differentiate Regno.ai from conventional RAG platforms and AI tooling.
+        Each USP represents a deliberate architectural choice that compounds into a significant competitive
+        advantage.
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h5>Self-Healing Knowledge</h5>
+          <p>
+            The "enhance" button triggers LLM re-processing of low-scoring or stale content. Knowledge
+            quality improves over time even without new crawls. Combined with auto-audit (daily + 6h
+            integrity checks), the knowledge base actively maintains itself.
+          </p>
+        </div>
+        <div class="card">
+          <h5>7 Pluggable Scoring Engines</h5>
+          <p>
+            From free keyword matching to premium neural rerankers (Cohere, BGE, Zerank, Voyage). Mix and
+            match engines across a 3-layer pipeline. Quality tier presets (Good/Better/Best/Ultimate) make
+            it simple to balance cost vs accuracy.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Zero-Waste Ingestion</h5>
+          <p>
+            The three-outcome relevance filter (accept/reclassify/drop) never deletes data. Even dropped
+            content is preserved with metadata for future review. Reclassified content finds its correct
+            domain automatically. Nothing is wasted.
+          </p>
+        </div>
+        <div class="card">
+          <h5>WISDOM Protocol</h5>
+          <p>
+            LLMs self-annotate operational insights during execution with zero extra API calls. Nine agents
+            include the protocol. Extracted insights are stored as shared memories and injected into all
+            future executions. The platform literally teaches itself.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Fast Lane Execution</h5>
+          <p>
+            Sub-100ms job pickup via <code>drainDelay: 0</code> continuous polling. Quick-depth queries
+            execute inline via InlineExecutor, bypassing the queue entirely. Interactive AI feels
+            instantaneous.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Universal Job Console</h5>
+          <p>
+            Single dashboard to monitor all 17+ queues, view job status, retry failed jobs, inspect
+            execution logs, and manage priorities. Full visibility into every background process across
+            the entire platform.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Contextual Chunking</h5>
+          <p>
+            Anthropic's contextual chunking approach that reduces retrieval failure by 67%. Each chunk
+            includes surrounding context from its parent document, dramatically improving semantic search
+            accuracy. Available as a configurable option per domain.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Multi-Framework LLM Support</h5>
+          <p>
+            Supports multiple LLM providers (Anthropic Claude, OpenAI GPT, Google Gemini) with
+            per-phase model selection. Extended thinking support for Claude. Cost ceiling works across
+            all providers automatically.
+          </p>
+        </div>
+        <div class="card">
+          <h5>GraphRAG Hybrid Retrieval</h5>
+          <p>
+            Combines vector similarity (Qdrant), graph traversal (Neo4j), and keyword matching into a
+            unified retrieval pipeline. Entity connectivity scoring enriches results with relationship
+            context that pure vector search misses.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Crash-Resilient Execution</h5>
+          <p>
+            BullMQ checkpointing saves phase progress and tool call results periodically. Server crashes
+            during 15-minute analyses resume from the last checkpoint &mdash; no wasted API calls. Retry
+            strategies with exponential backoff handle transient failures.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Brain Browser</h5>
+          <p>
+            Unified search interface across all 11+ knowledge types (facts, patterns, memories, index
+            entries, domain analyses, and more). A single query searches the entire knowledge substrate
+            with relevance ranking.
+          </p>
+        </div>
+        <div class="card">
+          <h5>Declarative AI Configuration</h5>
+          <p>
+            82 foundation patterns across 8 categories. Pattern evolution with confidence scoring, usage
+            tracking, and automatic decay. Three-store sync (MongoDB + Qdrant + Neo4j). Patterns replace
+            hardcoded logic with flexible, LLM-readable configuration.
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- 16. ROADMAP                                                        -->
+    <!-- ================================================================== -->
+    <section id="roadmap">
+      <h2>16. Roadmap</h2>
+
+      <p style="margin-bottom: 1rem;">
+        The following roadmap outlines planned development across the next four quarters, from immediate
+        infrastructure improvements to longer-term platform expansion initiatives.
+      </p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <h5>Q3 2026 &mdash; Infrastructure Hardening</h5>
+          <p>
+            <strong>Prod-Dev Environment Sync:</strong> Automated two-way synchronisation of patterns,
+            configurations, and knowledge between production and development environments. Selective sync
+            with conflict resolution.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>WebSocket Consolidation:</strong> Unify the SSE and WebSocket pathways in the realtime
+            server. Migrate all streaming to a single WebSocket connection with multiplexed channels,
+            reducing connection overhead and improving mobile reliability.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>Horizontal Scaling:</strong> Multi-instance execution server support with Redis-based
+            job distribution. Auto-scaling based on queue depth and cost ceiling utilisation metrics.
+            Target: 10x concurrent execution capacity.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <h5>Q4 2026 &mdash; Enterprise Features</h5>
+          <p>
+            <strong>Multi-Tenant Isolation:</strong> Per-tenant data isolation with separate MongoDB
+            databases, dedicated Qdrant collections, and tenant-scoped Redis key prefixes. Shared
+            infrastructure with logical separation. SOC 2 compliance preparation.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>Self-Hosted LLM Support:</strong> Integrate Ollama and vLLM backends for organisations
+            that require on-premises AI processing. Automatic model selection between cloud and local
+            models based on data sensitivity classification.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>Advanced Graph Reasoning:</strong> Enable Layer 2 graph scoring by default after
+            Neo4j stability improvements. Multi-hop reasoning for complex entity relationship queries.
+            Temporal graph analysis for knowledge evolution tracking.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <h5>Q1 2027 &mdash; Platform Extensibility</h5>
+          <p>
+            <strong>Plugin Marketplace:</strong> Third-party tool and engine plugins with sandboxed
+            execution, versioning, and review system. Plugin SDK with standardised interfaces for
+            custom scoring engines, data connectors, and output renderers.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>Custom Agent Builder UI:</strong> Visual interface for creating and configuring custom
+            agents without code. Phase template editor with depth filtering, tool selection, cost ceiling
+            configuration, and prompt engineering assistance.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>Visual Workflow Designer:</strong> Drag-and-drop workflow builder for complex multi-step
+            processes. Conditional branching, parallel execution, human-in-the-loop gates, and
+            integration with the CMS pipeline system.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <h5>Q2 2027 &mdash; Advanced Capabilities</h5>
+          <p>
+            <strong>Edge Deployment:</strong> Lightweight execution runtime for edge locations with
+            local model inference and selective cloud escalation. Offline-capable knowledge queries with
+            sync-on-reconnect for field operations.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>Federated Knowledge:</strong> Cross-organisation knowledge sharing with privacy-
+            preserving federation. Shared pattern libraries, anonymous wisdom pooling, and collaborative
+            domain taxonomy development across tenant boundaries.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <strong>Real-Time Collaboration:</strong> Multi-user collaborative AI sessions with shared
+            context, co-editing of execution parameters, and live result streaming to all participants.
+            Operational transformation for concurrent modifications.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>Immediate Priorities (Current):</strong> Complete the scoring engine integrations
+        (BGE Reranker, Zerank, Voyage), enable Layer 2 graph scoring after stability testing, promote
+        Cohere from query-time-only to batch scoring, and activate contextual chunking platform-wide
+        after cost/quality validation.
+      </div>
+    </section>
+
+
+    <!-- ================================================================== -->
+    <!-- FOOTER                                                             -->
+    <!-- ================================================================== -->
+    <footer>
+      <div class="logo">Regno.ai</div>
+      <p style="font-size: 1.2rem; margin-bottom: 0.5rem;">Intelligence that compounds</p>
+      <p style="margin-top: 1rem;">
+        Generated April 2026<br>
+        Document Version: 1.0
+      </p>
+      <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #6b7280;">
+        Confidential &mdash; Internal Architecture Reference<br>
+        Regno.ai Platform Architecture &copy; 2026
+      </p>
+    </footer>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sand Mine BESS Case Study - Dual-Inverter Architecture | Regno AI</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --border-color: #30363d;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .header .meta {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+
+        /* Navigation */
+        .toc {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .toc h2 {
+            font-size: 1rem;
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section h4 {
+            font-size: 1rem;
+            color: var(--accent-blue);
+            margin: 1rem 0 0.5rem;
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .stat-card.blue .value { color: var(--accent-blue); }
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.purple .value { color: var(--accent-purple); }
+        .stat-card.cyan .value { color: var(--accent-cyan); }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        /* Code/Formula blocks */
+        .formula-block {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--accent-orange);
+            overflow-x: auto;
+        }
+
+        .formula-block .result {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* Callout boxes */
+        .callout {
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .callout-warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--accent-orange);
+        }
+
+        .callout-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .callout-danger {
+            background: rgba(248, 81, 73, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .callout-cyan {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: var(--accent-cyan);
+        }
+
+        .callout h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-blue { color: var(--accent-blue); }
+        .highlight-green { color: var(--accent-green); }
+        .highlight-cyan { color: var(--accent-cyan); }
+
+        /* Comparison cards */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-card h4 {
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Architecture Diagram */
+        .architecture-diagram {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .diagram-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .diagram-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            min-width: 150px;
+        }
+
+        .diagram-box.grid {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .diagram-box.inverter-charge {
+            background: linear-gradient(135deg, var(--accent-cyan), #0891b2);
+            color: white;
+        }
+
+        .diagram-box.inverter-discharge {
+            background: linear-gradient(135deg, var(--accent-orange), #ea580c);
+            color: white;
+        }
+
+        .diagram-box.battery {
+            background: linear-gradient(135deg, var(--accent-green), #16a34a);
+            color: white;
+        }
+
+        .diagram-box.plant {
+            background: linear-gradient(135deg, var(--accent-purple), #7c3aed);
+            color: white;
+        }
+
+        .diagram-arrow {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .diagram-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .diagram-row {
+                flex-direction: column;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .section {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Sand Mine BESS Configuration Analysis</h1>
+            <p class="subtitle">Dual-Inverter Architecture: Charge/Discharge Separation</p>
+            <div class="meta">
+                <span class="badge badge-orange">SC4000UD-MV</span>
+                <span class="badge badge-cyan">Dual-Inverter Topology</span>
+                <span class="badge badge-green">89.44 MWh Total</span>
+                <span class="badge badge-purple">Grid-Isolated Discharge</span>
+            </div>
+            <p class="meta" style="margin-top: 1rem;">
+                Research Document | Generated by Regno AI | January 2026
+            </p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#topology">1. Dual-Inverter Topology</a></li>
+                <li><a href="#methodology">2. Research Methodology</a></li>
+                <li><a href="#equipment">3. Equipment Specifications</a></li>
+                <li><a href="#configuration">4. Configuration Analysis</a></li>
+                <li><a href="#power-flow">5. Power Flow Analysis</a></li>
+                <li><a href="#load-analysis">6. Sand Mine Load Analysis</a></li>
+                <li><a href="#sizing">7. Sizing Recommendations</a></li>
+                <li><a href="#financial">8. Financial Analysis</a></li>
+                <li><a href="#calculations">9. Technical Calculations</a></li>
+                <li><a href="#appendices">10. Appendices</a></li>
+            </ul>
+        </nav>
+
+        <!-- Executive Summary -->
+        <section class="section">
+            <h2>Executive Summary</h2>
+            <p>This document analyzes a Battery Energy Storage System (BESS) using a <span class="highlight-cyan">dual-inverter topology</span> where charging and discharging functions are separated across dedicated inverter groups. This architecture provides <strong>grid-isolated plant discharge</strong> and enables simultaneous charge/discharge operations.</p>
+
+            <div class="callout callout-cyan">
+                <h4>Your Topology: Dual-Inverter Architecture</h4>
+                <p><strong>Inverter Group 1 (Charging):</strong> Connected to Grid → Charges Battery Bank</p>
+                <p><strong>Inverter Group 2 (Discharging):</strong> Connected to Battery → Discharges into Plant</p>
+                <p>This separates grid-side and load-side power conversion, providing operational flexibility and grid independence during discharge.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">89.44</div>
+                    <div class="label">MWh Total Storage</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">2+3</div>
+                    <div class="label">Charge + Discharge Inverters</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">8 MW</div>
+                    <div class="label">Charging Power (2x 4MW)</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">12 MW</div>
+                    <div class="label">Discharge Power (3x 4MW)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Dual-Inverter Topology -->
+        <section class="section" id="topology">
+            <h2>1. Dual-Inverter Topology Explained</h2>
+
+            <h3>1.1 Architecture Overview</h3>
+            <p>Unlike conventional single-path BESS where the same inverters handle both charging and discharging, your dual-inverter architecture separates these functions. This provides several operational advantages for industrial applications.</p>
+
+            <div class="architecture-diagram">
+                <h4 style="text-align: center; color: var(--accent-orange); margin-bottom: 1.5rem;">System Architecture Diagram</h4>
+
+                <div class="diagram-row">
+                    <div class="diagram-box grid">
+                        GRID<br/>
+                        <span class="diagram-label">33kV / 11kV</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box inverter-charge">
+                        CHARGING INVERTERS<br/>
+                        <span class="diagram-label">2x SC4000UD-MV = 8 MW</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box battery">
+                        BATTERY BANK<br/>
+                        <span class="diagram-label">40x ST2236UX = 89.44 MWh</span>
+                    </div>
+                </div>
+
+                <div class="diagram-row" style="margin-top: 2rem;">
+                    <div class="diagram-box battery">
+                        BATTERY BANK<br/>
+                        <span class="diagram-label">40x ST2236UX = 89.44 MWh</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box inverter-discharge">
+                        DISCHARGE INVERTERS<br/>
+                        <span class="diagram-label">3x SC4000UD-MV = 12 MW</span>
+                    </div>
+                    <div class="diagram-arrow">→</div>
+                    <div class="diagram-box plant">
+                        PLANT LOAD<br/>
+                        <span class="diagram-label">Sand Mine Operations</span>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                    <strong>Key:</strong> Grid power flows through dedicated charging inverters. Plant receives power from separate discharge inverters.
+                </p>
+            </div>
+
+            <h3>1.2 Inverter Split Options (5 Inverters Total)</h3>
+            <p>With 5x SC4000UD-MV inverters (4 MW each), you can configure the charge/discharge split in several ways:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Configuration</th>
+                            <th>Charging</th>
+                            <th>Discharging</th>
+                            <th>Charge Time</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: var(--bg-tertiary);">
+                            <td><strong>2 + 3 (Recommended)</strong></td>
+                            <td>8 MW (2 units)</td>
+                            <td>12 MW (3 units)</td>
+                            <td>~11.2 hours</td>
+                            <td>Higher discharge for peak demand</td>
+                        </tr>
+                        <tr>
+                            <td>3 + 2</td>
+                            <td>12 MW (3 units)</td>
+                            <td>8 MW (2 units)</td>
+                            <td>~7.5 hours</td>
+                            <td>Faster charging, moderate discharge</td>
+                        </tr>
+                        <tr>
+                            <td>2 + 2 + 1 Swing</td>
+                            <td>8-12 MW</td>
+                            <td>8-12 MW</td>
+                            <td>Variable</td>
+                            <td>Flexible operation with swing unit</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>1.3 Advantages of Dual-Inverter Topology</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-green);">Operational Benefits</h4>
+                    <ul>
+                        <li><strong>Grid Independence:</strong> Plant runs on battery even during grid outages</li>
+                        <li><strong>Simultaneous Charge/Discharge:</strong> Can charge from grid while powering plant</li>
+                        <li><strong>Load Isolation:</strong> Plant power quality unaffected by grid disturbances</li>
+                        <li><strong>Maintenance Flexibility:</strong> Service one side without full shutdown</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-blue);">Technical Benefits</h4>
+                    <ul>
+                        <li><strong>Optimized Sizing:</strong> Size each side for actual duty cycle</li>
+                        <li><strong>Reduced Stress:</strong> Inverters operate in single direction</li>
+                        <li><strong>Better Efficiency:</strong> Inverters optimized for specific function</li>
+                        <li><strong>Simpler Control:</strong> Separate charge/discharge controllers</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout callout-warning">
+                <h4>Key Consideration</h4>
+                <p>With the 2+3 split, your <strong>charging power (8 MW)</strong> is less than your <strong>discharge power (12 MW)</strong>. This means full recharge takes longer than full discharge. Plan charging schedules around off-peak grid periods to optimize energy costs.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: Research Methodology -->
+        <section class="section" id="methodology">
+            <h2>2. Research Methodology</h2>
+
+            <h3>2.1 Research Approach</h3>
+            <p>This analysis incorporates the dual-inverter topology into equipment specification review, operational modeling, and financial analysis.</p>
+
+            <h4>Key Analysis Areas</h4>
+            <ul>
+                <li>Charge/discharge power asymmetry and scheduling implications</li>
+                <li>Simultaneous operation scenarios (grid charging while plant operates)</li>
+                <li>Grid-independent operation duration and reliability</li>
+                <li>Capital cost comparison with single-path topology</li>
+            </ul>
+
+            <h3>2.2 Assumptions</h3>
+            <ul>
+                <li><strong>Location:</strong> United Kingdom (UK grid codes and pricing)</li>
+                <li><strong>Grid Connection:</strong> Grid-tied for charging only; discharge path is islanded</li>
+                <li><strong>Inverter Split:</strong> 2 charging + 3 discharging (8 MW / 12 MW)</li>
+                <li><strong>Operation:</strong> Single shift (8-10 hours/day), 5 days/week</li>
+                <li><strong>Charging Window:</strong> Off-peak hours (night/weekend) preferred</li>
+            </ul>
+        </section>
+
+        <!-- Section 3: Equipment Specifications -->
+        <section class="section" id="equipment">
+            <h2>3. Equipment Specifications</h2>
+
+            <h3>3.1 Sungrow ST2236UX Battery System</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Specification</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rated Energy Capacity</td>
+                            <td><span class="highlight">2,236 kWh</span> per unit</td>
+                            <td>40 units = 89.44 MWh total</td>
+                        </tr>
+                        <tr>
+                            <td>Battery Chemistry</td>
+                            <td>LFP (Lithium Iron Phosphate)</td>
+                            <td>Enhanced safety, long cycle life</td>
+                        </tr>
+                        <tr>
+                            <td>Cycle Life</td>
+                            <td>>6,000 cycles at 90% DoD</td>
+                            <td>16+ year operational life</td>
+                        </tr>
+                        <tr>
+                            <td>Round-Trip Efficiency</td>
+                            <td>~95%</td>
+                            <td>DC-to-DC</td>
+                        </tr>
+                        <tr>
+                            <td>DC Voltage Range</td>
+                            <td>1,160-1,500 VDC</td>
+                            <td>Compatible with SC4000UD-MV</td>
+                        </tr>
+                        <tr>
+                            <td>Max Charge/Discharge Rate</td>
+                            <td>0.5C (1,118 kW per unit)</td>
+                            <td>40 units = 44.7 MW max</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>3.2 Sungrow SC4000UD-MV Power Conversion System</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Specification</th>
+                            <th>Role in Your System</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rated Power</td>
+                            <td><span class="highlight">4,000 kW (4 MW)</span></td>
+                            <td>Per unit capacity</td>
+                        </tr>
+                        <tr>
+                            <td>Quantity - Charging</td>
+                            <td>2 units</td>
+                            <td>8 MW total charging capacity</td>
+                        </tr>
+                        <tr>
+                            <td>Quantity - Discharging</td>
+                            <td>3 units</td>
+                            <td>12 MW total discharge capacity</td>
+                        </tr>
+                        <tr>
+                            <td>AC Voltage</td>
+                            <td>10-35 kV (Medium Voltage)</td>
+                            <td>Direct MV grid/plant connection</td>
+                        </tr>
+                        <tr>
+                            <td>Max Efficiency</td>
+                            <td>>99%</td>
+                            <td>Minimal conversion losses</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Support</td>
+                            <td>Full 4-quadrant operation</td>
+                            <td>Charging inverters only</td>
+                        </tr>
+                        <tr>
+                            <td>Islanding Capability</td>
+                            <td>Grid-forming capable</td>
+                            <td>Discharge inverters can island</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 4: Configuration Analysis -->
+        <section class="section" id="configuration">
+            <h2>4. Configuration Analysis</h2>
+
+            <h3>4.1 System Summary - Dual Inverter Split</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">40</div>
+                    <div class="label">Battery Units (ST2236UX)</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">2</div>
+                    <div class="label">Charging Inverters (8 MW)</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">3</div>
+                    <div class="label">Discharge Inverters (12 MW)</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">89.44</div>
+                    <div class="label">MWh Total Storage</div>
+                </div>
+            </div>
+
+            <h3>4.2 Charging Path Analysis</h3>
+            <div class="formula-block">
+<strong>Charging Configuration:</strong>
+Inverters: 2x SC4000UD-MV = 8 MW charging power
+Battery Bank: 40x ST2236UX = 89.44 MWh
+
+<strong>Full Charge Time (0% to 100%):</strong>
+Time = Energy / Power
+Time = 89.44 MWh / 8 MW
+<span class="result">Time = 11.18 hours</span>
+
+<strong>Charge Time at 90% DoD (10% to 100%):</strong>
+Energy needed = 89.44 MWh x 0.90 = 80.5 MWh
+Time = 80.5 MWh / 8 MW
+<span class="result">Time = 10.06 hours</span>
+            </div>
+
+            <h3>4.3 Discharge Path Analysis</h3>
+            <div class="formula-block">
+<strong>Discharge Configuration:</strong>
+Inverters: 3x SC4000UD-MV = 12 MW discharge power
+Battery Bank: 40x ST2236UX = 89.44 MWh
+
+<strong>Full Discharge Time (at max power):</strong>
+Time = Energy / Power
+Time = 89.44 MWh / 12 MW
+<span class="result">Time = 7.45 hours at 12 MW</span>
+
+<strong>Discharge at 90% DoD:</strong>
+Usable Energy = 89.44 MWh x 0.90 = 80.5 MWh
+Time = 80.5 MWh / 12 MW
+<span class="result">Time = 6.71 hours usable</span>
+            </div>
+
+            <h3>4.4 Asymmetric Power Comparison</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Path</th>
+                            <th>Power</th>
+                            <th>Full Cycle Time</th>
+                            <th>C-Rate</th>
+                            <th>Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Charging (Grid → Battery)</td>
+                            <td>8 MW</td>
+                            <td>11.18 hours</td>
+                            <td>0.089C</td>
+                            <td>1.0x</td>
+                        </tr>
+                        <tr>
+                            <td>Discharging (Battery → Plant)</td>
+                            <td>12 MW</td>
+                            <td>7.45 hours</td>
+                            <td>0.134C</td>
+                            <td>1.5x faster</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>Operational Implication</h4>
+                <p>With the 2+3 split, you can discharge the full battery in <strong>7.45 hours</strong> but need <strong>11.18 hours</strong> to fully recharge. This is ideal if:</p>
+                <ul>
+                    <li>Your plant operates during daytime (discharge)</li>
+                    <li>You charge overnight using off-peak electricity rates</li>
+                    <li>You have 10-12 hours of non-production time daily</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 5: Power Flow Analysis -->
+        <section class="section" id="power-flow">
+            <h2>5. Power Flow Analysis</h2>
+
+            <h3>5.1 Operating Modes</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-cyan);">Mode 1: Grid Charging Only</h4>
+                    <p><strong>When:</strong> Off-peak hours, plant not operating</p>
+                    <ul>
+                        <li>Grid → 8 MW → Battery</li>
+                        <li>Plant disconnected or minimal load</li>
+                        <li>Charging time: 10-11 hours</li>
+                        <li>Use cheap overnight electricity</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-orange);">Mode 2: Battery Discharge Only</h4>
+                    <p><strong>When:</strong> Peak hours, grid outage, or cost savings</p>
+                    <ul>
+                        <li>Battery → 12 MW → Plant</li>
+                        <li>Grid disconnected (optional)</li>
+                        <li>Runtime: 7+ hours at full power</li>
+                        <li>Complete grid independence</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-green);">Mode 3: Simultaneous Operation</h4>
+                    <p><strong>When:</strong> Grid available, plant operating</p>
+                    <ul>
+                        <li>Grid → 8 MW → Battery (charging)</li>
+                        <li>Battery → 12 MW → Plant (discharging)</li>
+                        <li>Net battery: -4 MW (discharging)</li>
+                        <li>Extends runtime, smooths transitions</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-purple);">Mode 4: Grid + Battery to Plant</h4>
+                    <p><strong>When:</strong> Peak demand exceeds battery capacity</p>
+                    <ul>
+                        <li>Grid → Direct to plant (via grid connection)</li>
+                        <li>Battery → 12 MW → Plant (supplement)</li>
+                        <li>Provides peak shaving capability</li>
+                        <li>Reduces demand charges</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>5.2 Simultaneous Charge/Discharge Analysis</h3>
+            <div class="formula-block">
+<strong>Scenario: Plant running at 10 MW while grid charging at 8 MW</strong>
+
+Battery discharge required: 10 MW (plant demand)
+Charge power from grid: 8 MW
+Net battery flow: 10 MW - 8 MW = 2 MW (net discharge)
+
+<strong>Extended runtime calculation:</strong>
+Without grid charging: 89.44 MWh / 10 MW = 8.94 hours
+With grid charging: 89.44 MWh / 2 MW = 44.7 hours theoretical
+
+<span class="result">Grid charging extends plant runtime by 4-5x</span>
+            </div>
+
+            <h3>5.3 Daily Operation Cycle Example</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Mode</th>
+                            <th>Grid</th>
+                            <th>Battery</th>
+                            <th>Plant</th>
+                            <th>SoC Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>00:00 - 06:00</td>
+                            <td>Charging</td>
+                            <td>8 MW in</td>
+                            <td>Charging</td>
+                            <td>Off</td>
+                            <td>+48 MWh</td>
+                        </tr>
+                        <tr>
+                            <td>06:00 - 07:00</td>
+                            <td>Standby</td>
+                            <td>Idle</td>
+                            <td>100% SoC</td>
+                            <td>Starting</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>07:00 - 12:00</td>
+                            <td>Discharge</td>
+                            <td>Disconnected</td>
+                            <td>Discharging</td>
+                            <td>Running 8 MW</td>
+                            <td>-40 MWh</td>
+                        </tr>
+                        <tr>
+                            <td>12:00 - 13:00</td>
+                            <td>Simultaneous</td>
+                            <td>8 MW in</td>
+                            <td>Net +4 MW</td>
+                            <td>Reduced 4 MW</td>
+                            <td>+4 MWh</td>
+                        </tr>
+                        <tr>
+                            <td>13:00 - 17:00</td>
+                            <td>Discharge</td>
+                            <td>Disconnected</td>
+                            <td>Discharging</td>
+                            <td>Running 8 MW</td>
+                            <td>-32 MWh</td>
+                        </tr>
+                        <tr>
+                            <td>17:00 - 00:00</td>
+                            <td>Charging</td>
+                            <td>8 MW in</td>
+                            <td>Charging</td>
+                            <td>Off</td>
+                            <td>+56 MWh</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 6: Sand Mine Load Analysis -->
+        <section class="section" id="load-analysis">
+            <h2>6. Sand Mine Load Analysis</h2>
+
+            <h3>6.1 Small Sand Mine Load Profile</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">~420</div>
+                    <div class="label">kW Peak Demand</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">~250</div>
+                    <div class="label">kW Average Load</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">~5</div>
+                    <div class="label">MWh Daily Consumption</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">8-10</div>
+                    <div class="label">Hours Daily Operation</div>
+                </div>
+            </div>
+
+            <h3>6.2 Runtime at Sand Mine Load</h3>
+            <div class="formula-block">
+<strong>At Peak Load (420 kW):</strong>
+Runtime = 89.44 MWh / 0.42 MW
+<span class="result">Runtime = 212.95 hours = 8.87 days</span>
+
+<strong>At Average Load (250 kW):</strong>
+Runtime = 89.44 MWh / 0.25 MW
+<span class="result">Runtime = 357.76 hours = 14.9 days</span>
+
+<strong>For 10-hour shift at 420 kW peak:</strong>
+Energy needed = 0.42 MW x 10 hours = 4.2 MWh per shift
+Shifts per charge = 89.44 MWh / 4.2 MWh
+<span class="result">~21 full shifts per charge</span>
+            </div>
+
+            <h3>6.3 Discharge Inverter Utilization</h3>
+            <div class="callout callout-warning">
+                <h4>Significant Overcapacity</h4>
+                <p>Your 3 discharge inverters provide <strong>12 MW</strong> of power, but your sand mine only needs <strong>420 kW peak</strong>. This is <strong>28.5x more capacity than required</strong>.</p>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Your Discharge Capacity</th>
+                            <th>Sand Mine Needs</th>
+                            <th>Utilization</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Power</td>
+                            <td>12,000 kW</td>
+                            <td>420 kW</td>
+                            <td>3.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Daily Energy</td>
+                            <td>80+ MWh available</td>
+                            <td>5 MWh needed</td>
+                            <td>6.25%</td>
+                        </tr>
+                        <tr>
+                            <td>Runtime needed</td>
+                            <td>7.45 hours max</td>
+                            <td>8-10 hours</td>
+                            <td>Exceeds need</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-success">
+                <h4>With Dual-Inverter Topology for Sand Mine Only</h4>
+                <p>If your sole purpose is powering a small sand mine, the minimum configuration would be:</p>
+                <ul>
+                    <li><strong>Batteries:</strong> 2-3x ST2236UX (4.5-6.7 MWh)</li>
+                    <li><strong>Charging Inverter:</strong> 1x 500 kW - 1 MW unit</li>
+                    <li><strong>Discharge Inverter:</strong> 1x 500 kW - 1 MW unit</li>
+                    <li><strong>Estimated Cost:</strong> GBP 1-2M total</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 7: Sizing Recommendations -->
+        <section class="section" id="sizing">
+            <h2>7. Sizing Recommendations</h2>
+
+            <h3>7.1 Dual-Inverter Configurations by Site Size</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Site Type</th>
+                            <th>Peak Load</th>
+                            <th>Batteries</th>
+                            <th>Charge Inv.</th>
+                            <th>Discharge Inv.</th>
+                            <th>Est. Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Small Sand Mine</td>
+                            <td>400-500 kW</td>
+                            <td>2-3</td>
+                            <td>1x 1MW</td>
+                            <td>1x 1MW</td>
+                            <td>GBP 1-2M</td>
+                        </tr>
+                        <tr>
+                            <td>Medium Quarry</td>
+                            <td>1-2 MW</td>
+                            <td>5-8</td>
+                            <td>1x 2.4MW</td>
+                            <td>1x 2.4MW</td>
+                            <td>GBP 3-5M</td>
+                        </tr>
+                        <tr>
+                            <td>Large Aggregate Plant</td>
+                            <td>3-5 MW</td>
+                            <td>15-20</td>
+                            <td>2x 2.4MW</td>
+                            <td>2x 2.4MW</td>
+                            <td>GBP 8-12M</td>
+                        </tr>
+                        <tr>
+                            <td>Industrial Complex</td>
+                            <td>5-10 MW</td>
+                            <td>25-40</td>
+                            <td>2x 4MW</td>
+                            <td>3x 4MW</td>
+                            <td>GBP 15-25M</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary);">
+                            <td><strong>YOUR CONFIG</strong></td>
+                            <td><strong>12 MW max</strong></td>
+                            <td><strong>40</strong></td>
+                            <td><strong>2x 4MW</strong></td>
+                            <td><strong>3x 4MW</strong></td>
+                            <td><strong>GBP 19-29M</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Grid Services Asset</td>
+                            <td>20-50 MW</td>
+                            <td>50-100+</td>
+                            <td>5-10x 4MW</td>
+                            <td>5-10x 4MW</td>
+                            <td>GBP 40-100M</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>7.2 Optimal Use Cases for Your Configuration</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-green);">Ideal Applications</h4>
+                    <ul>
+                        <li><strong>Multi-facility industrial park</strong> - Power several operations</li>
+                        <li><strong>Grid services + industrial backup</strong> - Revenue + reliability</li>
+                        <li><strong>Remote mining complex</strong> - Full grid independence</li>
+                        <li><strong>Renewable + storage hybrid</strong> - Solar/wind firming</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-red);">Not Optimal For</h4>
+                    <ul>
+                        <li><strong>Single small sand mine only</strong> - 28x oversized</li>
+                        <li><strong>Light industrial backup</strong> - Excessive capacity</li>
+                        <li><strong>Limited capital budget</strong> - High upfront cost</li>
+                        <li><strong>Small site footprint</strong> - 40 containers needed</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>7.3 Alternative: Hybrid Grid Services + Backup</h3>
+            <div class="callout callout-success">
+                <h4>Recommended Strategy</h4>
+                <p>Deploy the full 40-battery, 5-inverter system and use it for <strong>dual purposes</strong>:</p>
+                <ol>
+                    <li><strong>Primary:</strong> UK grid services (Dynamic Containment, Capacity Market, Arbitrage)</li>
+                    <li><strong>Secondary:</strong> Sand mine backup power (automated failover)</li>
+                </ol>
+                <p>This generates <strong>GBP 2.5-5M/year in grid revenue</strong> while providing unlimited backup for your sand mine at essentially zero marginal cost.</p>
+            </div>
+        </section>
+
+        <!-- Section 8: Financial Analysis -->
+        <section class="section" id="financial">
+            <h2>8. Financial Analysis</h2>
+
+            <h3>8.1 Capital Cost - Dual Inverter Configuration</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Quantity</th>
+                            <th>Unit Cost</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ST2236UX Batteries</td>
+                            <td>40</td>
+                            <td>GBP 300-450k</td>
+                            <td>GBP 12-18M</td>
+                        </tr>
+                        <tr>
+                            <td>SC4000UD-MV (Charging)</td>
+                            <td>2</td>
+                            <td>GBP 400-600k</td>
+                            <td>GBP 0.8-1.2M</td>
+                        </tr>
+                        <tr>
+                            <td>SC4000UD-MV (Discharging)</td>
+                            <td>3</td>
+                            <td>GBP 400-600k</td>
+                            <td>GBP 1.2-1.8M</td>
+                        </tr>
+                        <tr>
+                            <td>Dual-Path Switchgear</td>
+                            <td>1</td>
+                            <td>GBP 1.5-2.5M</td>
+                            <td>GBP 1.5-2.5M</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Connection (33kV)</td>
+                            <td>1</td>
+                            <td>GBP 1-2M</td>
+                            <td>GBP 1-2M</td>
+                        </tr>
+                        <tr>
+                            <td>Civil Works & Installation</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>GBP 2-4M</td>
+                        </tr>
+                        <tr>
+                            <td>EPC & Commissioning</td>
+                            <td>-</td>
+                            <td>15-20%</td>
+                            <td>GBP 2.5-4M</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL CAPEX</td>
+                            <td colspan="2">-</td>
+                            <td><span class="highlight">GBP 21-33M</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>Dual-Path Premium</h4>
+                <p>The dual-inverter topology adds approximately <strong>GBP 2-4M</strong> to the system cost compared to a single-path configuration, primarily due to additional switchgear and more complex electrical design. However, this enables simultaneous charge/discharge and grid-independent operation.</p>
+            </div>
+
+            <h3>8.2 Revenue Potential</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Revenue Stream</th>
+                            <th>Available Capacity</th>
+                            <th>Annual Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Dynamic Containment</td>
+                            <td>8 MW (charging side)</td>
+                            <td>GBP 0.7-1.4M</td>
+                        </tr>
+                        <tr>
+                            <td>Capacity Market (T-4)</td>
+                            <td>12 MW (discharge side)</td>
+                            <td>GBP 240-480k</td>
+                        </tr>
+                        <tr>
+                            <td>Wholesale Arbitrage</td>
+                            <td>Full system</td>
+                            <td>GBP 400-1M</td>
+                        </tr>
+                        <tr>
+                            <td>Avoided Electricity Cost</td>
+                            <td>Sand mine usage</td>
+                            <td>GBP 150-200k</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL POTENTIAL</td>
+                            <td>-</td>
+                            <td><span class="highlight-green">GBP 1.5-3M/year</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-warning">
+                <h4>Note on Grid Services with Dual-Inverter</h4>
+                <p>With the charge/discharge separation, your grid services participation may be limited to <strong>8 MW on the charging side</strong> for services requiring grid injection (like Dynamic Containment). The 12 MW discharge side is dedicated to plant supply and cannot directly export to grid in this topology.</p>
+            </div>
+
+            <h3>8.3 Return Summary</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">GBP 27M</div>
+                    <div class="label">Average CAPEX</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">GBP 2.25M</div>
+                    <div class="label">Average Annual Revenue</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">12</div>
+                    <div class="label">Years Simple Payback</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">8-12%</div>
+                    <div class="label">Project IRR (Est.)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: Technical Calculations -->
+        <section class="section" id="calculations">
+            <h2>9. Technical Calculations</h2>
+
+            <h3>9.1 Charging Path Calculations</h3>
+            <div class="formula-block">
+<strong>Charging Power:</strong>
+P_charge = 2 x 4,000 kW = <span class="result">8,000 kW = 8 MW</span>
+
+<strong>Charging Time (0-100%):</strong>
+t_charge = E_total / P_charge
+t_charge = 89.44 MWh / 8 MW
+<span class="result">t_charge = 11.18 hours</span>
+
+<strong>Charging C-Rate:</strong>
+C_charge = P_charge / E_total
+C_charge = 8 MW / 89.44 MWh
+<span class="result">C_charge = 0.089C (very gentle on batteries)</span>
+            </div>
+
+            <h3>9.2 Discharge Path Calculations</h3>
+            <div class="formula-block">
+<strong>Discharge Power:</strong>
+P_discharge = 3 x 4,000 kW = <span class="result">12,000 kW = 12 MW</span>
+
+<strong>Full Discharge Time (at max power):</strong>
+t_discharge = E_total / P_discharge
+t_discharge = 89.44 MWh / 12 MW
+<span class="result">t_discharge = 7.45 hours</span>
+
+<strong>Discharge C-Rate:</strong>
+C_discharge = P_discharge / E_total
+C_discharge = 12 MW / 89.44 MWh
+<span class="result">C_discharge = 0.134C (moderate, battery-friendly)</span>
+            </div>
+
+            <h3>9.3 Sand Mine Runtime</h3>
+            <div class="formula-block">
+<strong>At Sand Mine Peak Load (420 kW):</strong>
+t_mine = E_total / P_mine
+t_mine = 89,440 kWh / 420 kW
+<span class="result">t_mine = 212.95 hours = 8.87 days continuous</span>
+
+<strong>Inverter Utilization at Sand Mine Load:</strong>
+Utilization = P_mine / P_discharge
+Utilization = 420 kW / 12,000 kW
+<span class="result">Utilization = 3.5% of capacity</span>
+
+<strong>Daily Cycles for Sand Mine Only:</strong>
+Energy per day = 5 MWh
+Cycle depth = 5 MWh / 89.44 MWh
+<span class="result">Cycle depth = 5.6% DoD per day</span>
+            </div>
+
+            <h3>9.4 Simultaneous Operation</h3>
+            <div class="formula-block">
+<strong>Scenario: Grid charging while plant operating</strong>
+Grid charging: 8 MW in
+Plant load: 420 kW out
+
+Net battery charge: 8,000 kW - 420 kW = 7,580 kW
+<span class="result">Net charge rate = 7.58 MW (battery still charges while plant runs)</span>
+
+Full charge while plant operates:
+t = 89.44 MWh / 7.58 MW
+<span class="result">t = 11.8 hours (only slightly longer than standalone charge)</span>
+            </div>
+
+            <h3>9.5 Battery Stress Analysis</h3>
+            <div class="formula-block">
+<strong>Maximum Battery Discharge Rate Check:</strong>
+Battery max per unit: 0.5C = 1,118 kW
+Total 40 batteries: 40 x 1,118 kW = 44,720 kW
+
+Discharge inverter demand: 12,000 kW
+Safety margin = 44,720 / 12,000
+<span class="result">Safety margin = 3.7x (batteries can deliver 3.7x inverter demand)</span>
+
+<strong>Actual Operating C-Rate:</strong>
+At 12 MW: C = 12 / 89.44 = 0.134C
+<span class="result">Well within 0.5C battery limit - excellent for longevity</span>
+            </div>
+        </section>
+
+        <!-- Section 10: Appendices -->
+        <section class="section" id="appendices">
+            <h2>10. Appendices</h2>
+
+            <h3>A. Dual-Inverter vs Single-Path Comparison</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aspect</th>
+                            <th>Dual-Inverter (Your Config)</th>
+                            <th>Single-Path (Conventional)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Simultaneous Charge/Discharge</td>
+                            <td><span class="highlight-green">Yes</span></td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td>Grid-Independent Discharge</td>
+                            <td><span class="highlight-green">Yes</span></td>
+                            <td>Requires transfer switch</td>
+                        </tr>
+                        <tr>
+                            <td>Capital Cost</td>
+                            <td>Higher (+10-15%)</td>
+                            <td><span class="highlight-green">Lower</span></td>
+                        </tr>
+                        <tr>
+                            <td>Grid Services Flexibility</td>
+                            <td>Limited to charge-side</td>
+                            <td><span class="highlight-green">Full bidirectional</span></td>
+                        </tr>
+                        <tr>
+                            <td>Complexity</td>
+                            <td>More complex</td>
+                            <td><span class="highlight-green">Simpler</span></td>
+                        </tr>
+                        <tr>
+                            <td>Maintenance</td>
+                            <td><span class="highlight-green">Can service one side</span></td>
+                            <td>Full shutdown required</td>
+                        </tr>
+                        <tr>
+                            <td>Load Power Quality</td>
+                            <td><span class="highlight-green">Isolated from grid</span></td>
+                            <td>Affected by grid quality</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>B. Glossary</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Dual-Inverter Topology</td>
+                            <td>BESS architecture with separate inverters for charging and discharging</td>
+                        </tr>
+                        <tr>
+                            <td>Charge Path</td>
+                            <td>Grid → Charging Inverter(s) → Battery</td>
+                        </tr>
+                        <tr>
+                            <td>Discharge Path</td>
+                            <td>Battery → Discharge Inverter(s) → Load</td>
+                        </tr>
+                        <tr>
+                            <td>Simultaneous Operation</td>
+                            <td>Both charge and discharge paths active concurrently</td>
+                        </tr>
+                        <tr>
+                            <td>Islanded Operation</td>
+                            <td>Discharge path operating independently of grid</td>
+                        </tr>
+                        <tr>
+                            <td>C-Rate</td>
+                            <td>Charge/discharge rate relative to capacity (1C = full in 1 hour)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>C. Document Information</h3>
+            <div class="callout callout-info">
+                <ul>
+                    <li><strong>Document Type:</strong> Technical Case Study - Dual-Inverter Architecture</li>
+                    <li><strong>Version:</strong> 3.0</li>
+                    <li><strong>Configuration:</strong> 40x ST2236UX + 2x SC4000UD-MV (charge) + 3x SC4000UD-MV (discharge)</li>
+                    <li><strong>Generated:</strong> January 2026</li>
+                    <li><strong>Platform:</strong> Regno AI</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Final Recommendation -->
+        <section class="section">
+            <h2>Final Recommendation</h2>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-cyan);">Your Dual-Inverter Architecture</h4>
+                    <p><strong>Configuration:</strong> 2 charging + 3 discharging inverters</p>
+                    <ul>
+                        <li>8 MW charging from grid</li>
+                        <li>12 MW discharge to plant</li>
+                        <li>11.2 hours to full charge</li>
+                        <li>7.45 hours at full discharge</li>
+                        <li>Simultaneous operation capable</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-orange);">Sand Mine Application</h4>
+                    <p><strong>Reality Check:</strong></p>
+                    <ul>
+                        <li>420 kW peak vs 12 MW capacity</li>
+                        <li>3.5% inverter utilization</li>
+                        <li>8.87 days runtime per charge</li>
+                        <li>System is 28x oversized for mine alone</li>
+                    </ul>
+                    <p><strong>Best strategy:</strong> Deploy for grid services + mine backup</p>
+                </div>
+            </div>
+
+            <div class="callout callout-success" style="margin-top: 2rem;">
+                <h4>Bottom Line</h4>
+                <p>Your dual-inverter architecture (Grid → Charge Inverters → Battery → Discharge Inverters → Plant) provides excellent operational flexibility and grid independence. However, for a small sand mine alone, this system is massively oversized. The recommended approach is to:</p>
+                <ol>
+                    <li>Use the 8 MW charging path for grid services (Dynamic Containment, arbitrage)</li>
+                    <li>Keep the 12 MW discharge path ready for plant backup</li>
+                    <li>Enjoy GBP 1.5-3M annual grid revenue while having unlimited backup for the mine</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Generated by Regno AI | Comprehensive BESS Analysis Platform</p>
+            <p>Dual-Inverter Architecture Analysis | SC4000UD-MV Configuration | January 2026</p>
+            <p style="margin-top: 1rem; font-size: 0.75rem;">
+                This document is provided for informational purposes. All specifications should be verified with manufacturer documentation. Financial projections are estimates and actual results may vary.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

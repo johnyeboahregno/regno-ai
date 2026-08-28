@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufacturing Plant BESS Case Study - ITX Z&T Ranch, Texas</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b0;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --border-color: #2a2a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-red) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .location-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-orange);
+            border-radius: 50px;
+            color: var(--accent-orange);
+            font-weight: 500;
+        }
+
+        section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.5rem;
+        }
+
+        h3 {
+            color: var(--accent-green);
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.2rem;
+        }
+
+        h4 {
+            color: var(--accent-orange);
+            margin: 1rem 0 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .spec-table td {
+            color: var(--text-primary);
+        }
+
+        .spec-table tr:hover {
+            background: var(--bg-primary);
+        }
+
+        .highlight {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .highlight-blue {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .highlight-orange {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-red {
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .formula {
+            background: var(--bg-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 1rem 0;
+            border-left: 3px solid var(--accent-purple);
+            overflow-x: auto;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box-title {
+            color: var(--accent-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .success-box-title {
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .critical-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .critical-box-title {
+            color: var(--accent-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .info-box-title {
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .architecture-diagram {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .cost-item {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .cost-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .cost-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid var(--accent-orange);
+            margin: 1.5rem 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+            border: 2px solid var(--bg-secondary);
+        }
+
+        .timeline-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin: 1rem 0;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: var(--bg-primary);
+            padding: 1rem;
+            text-align: left;
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        .process-flow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        .process-step {
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .process-arrow {
+            color: var(--accent-orange);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .architecture-diagram {
+                font-size: 0.7rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Advanced Manufacturing Plant BESS Integration</h1>
+            <p class="subtitle">Utility-Scale Battery Energy Storage System - Technical Case Study</p>
+            <span class="location-badge">ITX Z&T Ranch, Texas, USA</span>
+        </header>
+
+        <!-- Executive Summary -->
+        <section>
+            <h2>Executive Summary</h2>
+            <div class="grid-3">
+                <div class="stat-box">
+                    <div class="stat-value">89.44 MWh</div>
+                    <div class="stat-label">Total Storage Capacity</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">20 MW</div>
+                    <div class="stat-label">Total Power Rating</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">4.47 hrs</div>
+                    <div class="stat-label">Duration at Full Power</div>
+                </div>
+            </div>
+            <p style="margin-top: 1.5rem;">
+                This case study examines the deployment of a utility-scale Battery Energy Storage System (BESS)
+                at a precision manufacturing facility located at ITX Z&T Ranch in Texas, USA. The facility produces
+                semiconductor components and advanced electronics, requiring exceptionally stable power quality and
+                zero unplanned downtime. The system utilizes <span class="highlight">40 Sungrow ST2236UX battery units</span>
+                paired with <span class="highlight">5 Sungrow SC4000UD-MV inverters</span> in a specialized dual-inverter
+                topology designed for industrial ride-through, motor starting support, power quality conditioning,
+                and significant demand charge reduction.
+            </p>
+            <div class="critical-box">
+                <div class="critical-box-title">Critical Manufacturing Application</div>
+                <p style="margin: 0;">Precision manufacturing demands exceptional power quality. A single voltage sag can
+                destroy in-process semiconductor wafers worth $500,000+. This BESS provides instantaneous voltage support,
+                harmonic filtering, and extended backup power while generating $2-4M annually through demand management
+                and grid services in the ERCOT market.</p>
+            </div>
+        </section>
+
+        <!-- Facility Overview -->
+        <section>
+            <h2>Facility Overview</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Manufacturing Facility Specifications</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Location</td>
+                            <td class="highlight">ITX Z&T Ranch, Texas, USA</td>
+                        </tr>
+                        <tr>
+                            <td>Facility Type</td>
+                            <td>Semiconductor / Electronics Manufacturing</td>
+                        </tr>
+                        <tr>
+                            <td>Production Area</td>
+                            <td>450,000 sq ft (42,000 m²)</td>
+                        </tr>
+                        <tr>
+                            <td>Clean Room Classification</td>
+                            <td>ISO Class 5 (Class 100)</td>
+                        </tr>
+                        <tr>
+                            <td>Operating Schedule</td>
+                            <td>24/7/365 Continuous</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Connection</td>
+                            <td>ERCOT (Texas Interconnection)</td>
+                        </tr>
+                        <tr>
+                            <td>Utility</td>
+                            <td>Oncor Electric Delivery</td>
+                        </tr>
+                        <tr>
+                            <td>Current Rate Structure</td>
+                            <td>Industrial Large Load (>1 MW)</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Production Equipment</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Lithography Systems</td>
+                            <td>12 units (EUV/DUV)</td>
+                        </tr>
+                        <tr>
+                            <td>Deposition Tools (CVD/PVD)</td>
+                            <td>24 units</td>
+                        </tr>
+                        <tr>
+                            <td>Etch Systems (Plasma)</td>
+                            <td>18 units</td>
+                        </tr>
+                        <tr>
+                            <td>CMP Tools</td>
+                            <td>8 units</td>
+                        </tr>
+                        <tr>
+                            <td>Ion Implantation</td>
+                            <td>6 units</td>
+                        </tr>
+                        <tr>
+                            <td>Metrology & Inspection</td>
+                            <td>32 units</td>
+                        </tr>
+                        <tr>
+                            <td>HVAC/Clean Room Support</td>
+                            <td>Central plant (chillers, AHUs)</td>
+                        </tr>
+                        <tr>
+                            <td>Ultrapure Water System</td>
+                            <td>500 GPM capacity</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Load Profile Analysis</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Electrical Load Breakdown</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Production Equipment</td>
+                            <td class="highlight-blue">8.5 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Clean Room HVAC</td>
+                            <td class="highlight-blue">4.0 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Process Cooling</td>
+                            <td class="highlight-blue">2.5 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Ultrapure Water/Chemicals</td>
+                            <td class="highlight-blue">1.5 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Facility Support</td>
+                            <td class="highlight-blue">1.0 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Process Exhaust/Abatement</td>
+                            <td class="highlight-blue">0.5 MW</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Base Load</td>
+                            <td class="highlight" style="font-weight: 600;">18 MW continuous</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Load Characteristics</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Base Load (24/7)</td>
+                            <td class="highlight">18 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Peak Load (Production Ramp)</td>
+                            <td class="highlight-red">22 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Motor Starting Inrush</td>
+                            <td class="highlight-orange">+8 MW (instantaneous)</td>
+                        </tr>
+                        <tr>
+                            <td>Average Daily Consumption</td>
+                            <td>432-480 MWh/day</td>
+                        </tr>
+                        <tr>
+                            <td>Monthly Consumption</td>
+                            <td>~14,000 MWh/month</td>
+                        </tr>
+                        <tr>
+                            <td>Annual Consumption</td>
+                            <td>~168,000 MWh/year</td>
+                        </tr>
+                        <tr>
+                            <td>Power Factor</td>
+                            <td>0.85 (uncorrected)</td>
+                        </tr>
+                        <tr>
+                            <td>Load Factor</td>
+                            <td>82%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="warning-box-title">Power Quality Requirements - Semiconductor Manufacturing</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Voltage Tolerance:</strong> ±5% nominal (SEMI F47 Class 2 compliance)</li>
+                    <li><strong>Voltage Sag Ride-Through:</strong> 50% for 200ms, 70% for 500ms, 80% for 10 seconds</li>
+                    <li><strong>Harmonic Distortion:</strong> THD < 5%, individual harmonics < 3%</li>
+                    <li><strong>Frequency Tolerance:</strong> ±0.5 Hz from 60 Hz nominal</li>
+                    <li><strong>Zero Crossings:</strong> No interruptions > 10ms</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Production Impact Analysis -->
+        <section>
+            <h2>Production Impact Analysis</h2>
+            <p>
+                Power quality events have severe financial consequences in semiconductor manufacturing. The BESS
+                provides critical protection against these costly disruptions while generating revenue during
+                normal operations.
+            </p>
+
+            <h3>Cost of Power Quality Events</h3>
+            <div class="grid-4">
+                <div class="stat-box">
+                    <div class="stat-value" style="color: var(--accent-red);">$2.5M</div>
+                    <div class="stat-label">Cost per Sustained Outage (>1 min)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" style="color: var(--accent-orange);">$500K</div>
+                    <div class="stat-label">Cost per Voltage Sag Event</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" style="color: var(--accent-orange);">$150K</div>
+                    <div class="stat-label">Cost per Momentary Interruption</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" style="color: var(--accent-blue);">12-15</div>
+                    <div class="stat-label">Average Events per Year (No BESS)</div>
+                </div>
+            </div>
+
+            <h3>Financial Impact Breakdown</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Per-Event Cost Components</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Work-in-Progress (WIP) Loss</td>
+                            <td class="highlight-red">$300,000 - $1,500,000</td>
+                        </tr>
+                        <tr>
+                            <td>Tool Recovery/Recalibration</td>
+                            <td class="highlight-orange">$50,000 - $200,000</td>
+                        </tr>
+                        <tr>
+                            <td>Production Schedule Impact</td>
+                            <td class="highlight-orange">$100,000 - $500,000</td>
+                        </tr>
+                        <tr>
+                            <td>Chemical/Gas Waste</td>
+                            <td class="highlight-orange">$25,000 - $75,000</td>
+                        </tr>
+                        <tr>
+                            <td>Labor (Recovery/Rework)</td>
+                            <td class="highlight-orange">$15,000 - $50,000</td>
+                        </tr>
+                        <tr>
+                            <td>Clean Room Requalification</td>
+                            <td class="highlight-orange">$10,000 - $100,000</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Annual Loss Without BESS</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Sustained Outages (2/year)</td>
+                            <td class="highlight-red">$5,000,000</td>
+                        </tr>
+                        <tr>
+                            <td>Voltage Sags (8/year)</td>
+                            <td class="highlight-red">$4,000,000</td>
+                        </tr>
+                        <tr>
+                            <td>Momentary Interruptions (5/year)</td>
+                            <td class="highlight-red">$750,000</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Annual Loss</td>
+                            <td class="highlight-red" style="font-weight: 600;">$9,750,000</td>
+                        </tr>
+                        <tr>
+                            <td>BESS Prevention Rate</td>
+                            <td class="highlight">95%+</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Annual Loss Avoidance</td>
+                            <td class="highlight" style="font-weight: 600;">$9,250,000+</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <div class="success-box-title">SEMI F47 Compliance - Voltage Sag Ride-Through</div>
+                <p style="margin: 0;">The BESS enables full SEMI F47 compliance by providing:</p>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Instantaneous Response:</strong> < 1ms voltage support initiation</li>
+                    <li><strong>Full Ride-Through:</strong> 0% voltage (complete outage) for 50ms without impact</li>
+                    <li><strong>Extended Support:</strong> 70% voltage maintained for up to 4.5 hours</li>
+                    <li><strong>Black Start:</strong> Full facility restart capability from stored energy</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Battery System Configuration -->
+        <section>
+            <h2>Battery System Configuration</h2>
+            <h3>Sungrow ST2236UX Battery Specifications</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Single Unit Specifications</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Model</td>
+                            <td class="highlight">ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Usable Energy Capacity</td>
+                            <td class="highlight-blue">2,236 kWh</td>
+                        </tr>
+                        <tr>
+                            <td>Nominal Voltage</td>
+                            <td>1,280 V DC</td>
+                        </tr>
+                        <tr>
+                            <td>Chemistry</td>
+                            <td>LFP (Lithium Iron Phosphate)</td>
+                        </tr>
+                        <tr>
+                            <td>Cycle Life</td>
+                            <td>> 6,000 cycles @ 90% DoD</td>
+                        </tr>
+                        <tr>
+                            <td>Round-Trip Efficiency</td>
+                            <td>95.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Operating Temperature</td>
+                            <td>-20°C to +55°C</td>
+                        </tr>
+                        <tr>
+                            <td>Dimensions (L×W×H)</td>
+                            <td>6,058 × 2,438 × 2,896 mm</td>
+                        </tr>
+                        <tr>
+                            <td>Weight</td>
+                            <td>~35,000 kg</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Fleet Configuration (40 Units)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Total Units</td>
+                            <td class="highlight">40 × ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Total Usable Capacity</td>
+                            <td class="highlight-blue">89,440 kWh (89.44 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Battery Footprint</td>
+                            <td>~3,000 m² (including access)</td>
+                        </tr>
+                        <tr>
+                            <td>Total Battery Weight</td>
+                            <td>~1,400 tonnes</td>
+                        </tr>
+                        <tr>
+                            <td>Configuration</td>
+                            <td>8 batteries per inverter</td>
+                        </tr>
+                        <tr>
+                            <td>DC Architecture</td>
+                            <td>Parallel strings at 1,280V</td>
+                        </tr>
+                        <tr>
+                            <td>Expected Lifespan</td>
+                            <td>15-20 years</td>
+                        </tr>
+                        <tr>
+                            <td>Warranty</td>
+                            <td>10 years / 70% capacity</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="formula">
+Total Capacity = 40 units × 2,236 kWh/unit = <span class="highlight">89,440 kWh = 89.44 MWh</span>
+
+Full Facility Runtime (18 MW base): 89.44 MWh ÷ 18 MW = <span class="highlight">4.97 hours</span>
+Critical Process Runtime (8.5 MW): 89.44 MWh ÷ 8.5 MW = <span class="highlight">10.5 hours</span>
+            </div>
+
+            <div class="success-box">
+                <div class="success-box-title">LFP Chemistry Benefits for Manufacturing</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Fire Safety:</strong> No thermal runaway risk - safe for placement near production areas</li>
+                    <li><strong>High Cycle Life:</strong> 6,000+ cycles supports aggressive demand management cycling</li>
+                    <li><strong>Temperature Tolerance:</strong> Performs well in Texas climate (-20°C to +55°C)</li>
+                    <li><strong>Consistent Power:</strong> Flat discharge curve provides stable voltage throughout cycle</li>
+                    <li><strong>Fast Response:</strong> Sub-millisecond response for voltage sag mitigation</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Inverter System Configuration -->
+        <section>
+            <h2>Inverter System Configuration</h2>
+            <h3>Sungrow SC4000UD-MV Specifications</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Single Inverter Specifications</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Model</td>
+                            <td class="highlight">SC4000UD-MV</td>
+                        </tr>
+                        <tr>
+                            <td>AC Power Rating</td>
+                            <td class="highlight-blue">4,000 kVA / 4,000 kW</td>
+                        </tr>
+                        <tr>
+                            <td>Max DC Input Voltage</td>
+                            <td>1,500 V</td>
+                        </tr>
+                        <tr>
+                            <td>MPPT Voltage Range</td>
+                            <td>875 - 1,300 V</td>
+                        </tr>
+                        <tr>
+                            <td>AC Output Voltage</td>
+                            <td>35 kV (Medium Voltage)</td>
+                        </tr>
+                        <tr>
+                            <td>Max Efficiency</td>
+                            <td>98.8%</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Support</td>
+                            <td>Full 4-quadrant operation</td>
+                        </tr>
+                        <tr>
+                            <td>Response Time</td>
+                            <td>&lt; 1 ms (voltage support)</td>
+                        </tr>
+                        <tr>
+                            <td>Black Start</td>
+                            <td>Yes (grid-forming mode)</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Fleet Configuration (5 Units)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Total Inverters</td>
+                            <td class="highlight">5 × SC4000UD-MV</td>
+                        </tr>
+                        <tr>
+                            <td>Total Power Capacity</td>
+                            <td class="highlight-blue">20,000 kW (20 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>Batteries per Inverter</td>
+                            <td>8 × ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Energy per Inverter Group</td>
+                            <td>17,888 kWh (17.89 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Charging Inverters</td>
+                            <td class="highlight-orange">2 units (8 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>Discharging Inverters</td>
+                            <td class="highlight-green">3 units (12 MW)</td>
+                        </tr>
+                        <tr>
+                            <td>Power Quality Mode</td>
+                            <td>Active Filter + DVR</td>
+                        </tr>
+                        <tr>
+                            <td>Motor Starting Support</td>
+                            <td>Up to 8 MW transient</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="formula">
+Total Power = 5 inverters × 4 MW/inverter = <span class="highlight">20 MW</span>
+Energy-to-Power Ratio (E/P) = 89.44 MWh ÷ 20 MW = <span class="highlight">4.47 hours</span>
+Overload Capability = 110% for 10 minutes = <span class="highlight">22 MW</span>
+            </div>
+        </section>
+
+        <!-- Dual-Inverter Architecture -->
+        <section>
+            <h2>Dual-Inverter Architecture for Manufacturing</h2>
+            <p>
+                The dual-inverter topology is specifically configured for manufacturing applications, separating
+                charging from discharging functions while providing dedicated power quality and grid services capabilities.
+            </p>
+
+            <h3>Architecture Overview</h3>
+            <div class="architecture-diagram">
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                    DUAL-INVERTER BESS ARCHITECTURE - MANUFACTURING                          │
+│                        Semiconductor Facility Power System                                  │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                             │
+│    ┌─────────────────────────────────────────────────────────────────────────────────┐     │
+│    │                           ERCOT GRID (138kV)                                    │     │
+│    │                     Transmission: Oncor Electric                                │     │
+│    └───────────────────────────────────┬─────────────────────────────────────────────┘     │
+│                                        │                                                   │
+│                                        ▼                                                   │
+│                        ┌───────────────────────────────┐                                   │
+│                        │    Main Substation (35kV)     │                                   │
+│                        │    Revenue Metering + PQ      │                                   │
+│                        └───────────────┬───────────────┘                                   │
+│                                        │                                                   │
+│              ┌─────────────────────────┼─────────────────────────┐                         │
+│              │                         │                         │                         │
+│              ▼                         │                         ▼                         │
+│   ┌─────────────────────┐              │              ┌─────────────────────┐              │
+│   │  CHARGING PATH      │              │              │  POWER QUALITY +    │              │
+│   │  + GRID SERVICES    │              │              │  DISCHARGE PATH     │              │
+│   └─────────────────────┘              │              └─────────────────────┘              │
+│              │                         │                         │                         │
+│              ▼                         │                         ▼                         │
+│   ┌─────────────────────┐              │              ┌─────────────────────┐              │
+│   │   INVERTER 1 (4MW)  │              │              │   INVERTER 3 (4MW)  │              │
+│   │   SC4000UD-MV       │              │              │   SC4000UD-MV       │              │
+│   │   [Charging +       │              │              │   [DVR Mode +       │              │
+│   │    ECRS Reserve]    │              │              │    Active Filter]   │              │
+│   └─────────┬───────────┘              │              └─────────┬───────────┘              │
+│             │                          │                        │                          │
+│   ┌─────────────────────┐              │              ┌─────────────────────┐              │
+│   │   INVERTER 2 (4MW)  │              │              │   INVERTER 4 (4MW)  │              │
+│   │   SC4000UD-MV       │              │              │   SC4000UD-MV       │              │
+│   │   [Charging +       │              │              │   [DVR Mode +       │              │
+│   │    Arbitrage]       │              │              │    Peak Shave]      │              │
+│   └─────────┬───────────┘              │              └─────────┬───────────┘              │
+│             │                          │                        │                          │
+│             │                          │              ┌─────────────────────┐              │
+│             │                          │              │   INVERTER 5 (4MW)  │              │
+│             │                          │              │   SC4000UD-MV       │              │
+│             │                          │              │   [Motor Starting   │              │
+│             │                          │              │    + Backup Power]  │              │
+│             │                          │              └─────────┬───────────┘              │
+│             │                          │                        │                          │
+│             └──────────────────────────┼────────────────────────┘                          │
+│                                        │                                                   │
+│                                        ▼                                                   │
+│              ┌─────────────────────────────────────────────────────────┐                   │
+│              │               BATTERY ENERGY STORAGE                    │                   │
+│              │                  40 × ST2236UX                          │                   │
+│              │              Total: 89.44 MWh                           │                   │
+│              │                                                         │                   │
+│              │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐       │                   │
+│              │  │ Bank 1  │ │ Bank 2  │ │ Bank 3  │ │ Bank 4  │ ...   │                   │
+│              │  │ 8 units │ │ 8 units │ │ 8 units │ │ 8 units │       │                   │
+│              │  │17.89MWh │ │17.89MWh │ │17.89MWh │ │17.89MWh │       │                   │
+│              │  └─────────┘ └─────────┘ └─────────┘ └─────────┘       │                   │
+│              └─────────────────────────────────────────────────────────┘                   │
+│                                        │                                                   │
+│                                        ▼                                                   │
+│    ┌───────────────────────────────────────────────────────────────────────────────────┐  │
+│    │                    MANUFACTURING FACILITY LOADS (18-22 MW)                        │  │
+│    │                                                                                   │  │
+│    │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │  │
+│    │  │ Lithography │  │ Deposition  │  │    Etch     │  │     CMP     │              │  │
+│    │  │  (3.5 MW)   │  │  (2.5 MW)   │  │  (1.8 MW)   │  │  (0.8 MW)   │              │  │
+│    │  │   [PQ-A]    │  │   [PQ-A]    │  │   [PQ-A]    │  │   [PQ-B]    │              │  │
+│    │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘              │  │
+│    │                                                                                   │  │
+│    │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │  │
+│    │  │  Clean Room │  │   Process   │  │  Ultrapure  │  │   Facility  │              │  │
+│    │  │    HVAC     │  │   Cooling   │  │    Water    │  │   Support   │              │  │
+│    │  │  (4.0 MW)   │  │  (2.5 MW)   │  │  (1.5 MW)   │  │  (1.4 MW)   │              │  │
+│    │  │ [Large MTR] │  │ [Large MTR] │  │   [Pumps]   │  │ [Lighting]  │              │  │
+│    │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘              │  │
+│    │                                                                                   │  │
+│    │  PQ-A = Critical Power Quality (SEMI F47)    Total: 18-22 MW                     │  │
+│    │  PQ-B = Standard Power Quality                                                    │  │
+│    │  Large MTR = Motor Starting Support Required                                      │  │
+│    └───────────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
+            </div>
+
+            <h3>Inverter Function Allocation</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title" style="color: var(--accent-orange);">Charging Inverters (2 Units - 8 MW)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Primary Function</td>
+                            <td>Grid → Battery charging</td>
+                        </tr>
+                        <tr>
+                            <td>Total Charge Power</td>
+                            <td class="highlight-orange">8 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Connected Batteries</td>
+                            <td>16 × ST2236UX (35.78 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Full Charge Time</td>
+                            <td>~4.5 hours (0-100%)</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Services</td>
+                            <td>ECRS, NSR, Frequency Response</td>
+                        </tr>
+                        <tr>
+                            <td>Operating Mode</td>
+                            <td>Grid-following (PQ mode)</td>
+                        </tr>
+                        <tr>
+                            <td>Charge Strategy</td>
+                            <td>TOU optimization + arbitrage</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title" style="color: var(--accent-green);">Power Quality + Discharge Inverters (3 Units - 12 MW)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Primary Function</td>
+                            <td>Power Quality + Peak Shaving</td>
+                        </tr>
+                        <tr>
+                            <td>Total Discharge Power</td>
+                            <td class="highlight">12 MW continuous</td>
+                        </tr>
+                        <tr>
+                            <td>Connected Batteries</td>
+                            <td>24 × ST2236UX (53.66 MWh)</td>
+                        </tr>
+                        <tr>
+                            <td>Backup Duration @ 12MW</td>
+                            <td>~4.5 hours</td>
+                        </tr>
+                        <tr>
+                            <td>DVR Function</td>
+                            <td>Voltage sag mitigation &lt;1ms</td>
+                        </tr>
+                        <tr>
+                            <td>Active Filter</td>
+                            <td>Harmonic compensation 2nd-50th</td>
+                        </tr>
+                        <tr>
+                            <td>Motor Starting</td>
+                            <td>Up to 8 MW inrush support</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">Dynamic Voltage Restorer (DVR) Operation</div>
+                <p style="margin: 0;">The three discharging inverters provide DVR functionality for the entire manufacturing facility:</p>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Detection Time:</strong> &lt; 0.25ms voltage sag detection</li>
+                    <li><strong>Response Time:</strong> &lt; 1ms full voltage compensation</li>
+                    <li><strong>Compensation Range:</strong> 0-50% voltage sag correction</li>
+                    <li><strong>Duration:</strong> Up to 4.5 hours at full compensation power</li>
+                    <li><strong>Harmonic Injection:</strong> Active cancellation of grid harmonics</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Operating Modes -->
+        <section>
+            <h2>Operating Modes</h2>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Mode 1: Normal Production (Power Quality)</div>
+                    <p>Primary mode during normal grid conditions:</p>
+                    <ul>
+                        <li>DVR active: Continuous voltage monitoring/support</li>
+                        <li>Active filter engaged: Harmonic compensation</li>
+                        <li>Peak shaving armed: Ready for demand spikes</li>
+                        <li>Charging inverters: TOU/arbitrage optimization</li>
+                        <li>SOC maintained > 50% for PQ reserve</li>
+                    </ul>
+                    <div class="formula">
+Power Quality: Active | Charging: Opportunistic
+Grid: Normal | Response Time: &lt;1ms for sags
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 2: Peak Demand Management</div>
+                    <p>Activated during high-demand periods:</p>
+                    <ul>
+                        <li>Discharge inverters: Peak shaving active</li>
+                        <li>Target: Reduce demand below 18 MW</li>
+                        <li>4CP peak shaving during summer (Jun-Sep)</li>
+                        <li>Real-time demand monitoring</li>
+                        <li>Automatic load forecasting</li>
+                    </ul>
+                    <div class="formula">
+Peak Reduction: Up to 12 MW available
+Target Demand: 18 MW → 6 MW (during 4CP)
+Grid: Active | Discharge: Peak Shave | Charge: Suspended
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 3: Motor Starting Support</div>
+                    <p>Activated during large motor starts (chillers, AHUs):</p>
+                    <ul>
+                        <li>Pre-emptive voltage support armed</li>
+                        <li>Instantaneous power boost (up to 8 MW)</li>
+                        <li>Prevents voltage dip during inrush</li>
+                        <li>Coordinated with BMS for chiller sequences</li>
+                        <li>Returns to normal within 10-30 seconds</li>
+                    </ul>
+                    <div class="formula">
+Motor Inrush Support: 8 MW for 30 seconds
+Voltage Support: Maintain >95% during start
+Duration: Typical 10-30 second events
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mode 4: Island/Backup Power</div>
+                    <p>Activated during grid outage:</p>
+                    <ul>
+                        <li>Seamless transfer (&lt;10ms)</li>
+                        <li>Discharge inverters form microgrid</li>
+                        <li>Load shedding sequence if needed</li>
+                        <li>Generator sync if extended outage</li>
+                        <li>Black start capable for full restart</li>
+                    </ul>
+                    <div class="formula">
+Transfer Time: &lt; 10 milliseconds
+Full Facility: 89.44 MWh ÷ 18 MW = 4.97 hours
+Critical Only: 89.44 MWh ÷ 8.5 MW = 10.5 hours
+                    </div>
+                </div>
+            </div>
+
+            <h3>Priority Hierarchy</h3>
+            <div class="architecture-diagram">
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                        OPERATING MODE PRIORITY HIERARCHY                          │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│   PRIORITY 1 (HIGHEST)                                                           │
+│   ┌─────────────────────────────────────────────────────────────────────────┐   │
+│   │  GRID FAULT / ISLAND MODE                                               │   │
+│   │  • Immediate response to grid loss (&lt;10ms transfer)                    │   │
+│   │  • Override all other functions                                          │   │
+│   │  • Maintain critical production loads                                    │   │
+│   └─────────────────────────────────────────────────────────────────────────┘   │
+│                                        ↓                                         │
+│   PRIORITY 2                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────────┐   │
+│   │  VOLTAGE SAG MITIGATION (DVR)                                           │   │
+│   │  • Sub-millisecond response to voltage events                            │   │
+│   │  • SEMI F47 compliance maintenance                                       │   │
+│   │  • Always-on monitoring during normal operation                          │   │
+│   └─────────────────────────────────────────────────────────────────────────┘   │
+│                                        ↓                                         │
+│   PRIORITY 3                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────────┐   │
+│   │  MOTOR STARTING SUPPORT                                                 │   │
+│   │  • Pre-scheduled chiller/AHU start sequences                             │   │
+│   │  • Automatic inrush detection and response                               │   │
+│   │  • Prevents production-affecting voltage dips                            │   │
+│   └─────────────────────────────────────────────────────────────────────────┘   │
+│                                        ↓                                         │
+│   PRIORITY 4                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────────┐   │
+│   │  PEAK DEMAND MANAGEMENT / 4CP                                           │   │
+│   │  • Demand charge reduction                                               │   │
+│   │  • 4CP peak shaving (June-September)                                     │   │
+│   │  • Scheduled based on forecast and real-time data                        │   │
+│   └─────────────────────────────────────────────────────────────────────────┘   │
+│                                        ↓                                         │
+│   PRIORITY 5 (LOWEST)                                                            │
+│   ┌─────────────────────────────────────────────────────────────────────────┐   │
+│   │  GRID SERVICES / ARBITRAGE                                              │   │
+│   │  • ERCOT ancillary services (when not needed for above)                  │   │
+│   │  • Energy arbitrage (charge low, discharge high)                         │   │
+│   │  • Revenue optimization                                                  │   │
+│   └─────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                  │
+│   SOC Reservation:                                                               │
+│   • 50% minimum reserved for Priority 1-3 functions at all times                │
+│   • 30% minimum reserved for Priority 4 functions                               │
+│   • 20% available for Priority 5 (grid services/arbitrage)                      │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+            </div>
+        </section>
+
+        <!-- Power Quality Benefits -->
+        <section>
+            <h2>Power Quality Benefits</h2>
+
+            <h3>SEMI F47 Voltage Sag Tolerance Curves</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Without BESS (Typical Grid)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>0% Voltage (Interruption)</td>
+                            <td class="highlight-red">Immediate Equipment Trip</td>
+                        </tr>
+                        <tr>
+                            <td>50% Voltage Sag</td>
+                            <td class="highlight-red">Trip within 20ms</td>
+                        </tr>
+                        <tr>
+                            <td>70% Voltage Sag</td>
+                            <td class="highlight-orange">Trip within 200ms</td>
+                        </tr>
+                        <tr>
+                            <td>80% Voltage Sag</td>
+                            <td class="highlight-orange">Trip within 500ms</td>
+                        </tr>
+                        <tr>
+                            <td>90% Voltage</td>
+                            <td class="highlight">Marginal Operation</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">With BESS (DVR Mode)</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>0% Voltage (Interruption)</td>
+                            <td class="highlight">Ride-through 50ms+</td>
+                        </tr>
+                        <tr>
+                            <td>50% Voltage Sag</td>
+                            <td class="highlight">Ride-through 4+ hours</td>
+                        </tr>
+                        <tr>
+                            <td>70% Voltage Sag</td>
+                            <td class="highlight">Ride-through 4+ hours</td>
+                        </tr>
+                        <tr>
+                            <td>80% Voltage Sag</td>
+                            <td class="highlight">Ride-through 4+ hours</td>
+                        </tr>
+                        <tr>
+                            <td>90% Voltage</td>
+                            <td class="highlight">Normal Operation</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Harmonic Mitigation</h3>
+            <div class="info-box">
+                <div class="info-box-title">Active Harmonic Filtering</div>
+                <table class="spec-table">
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Without BESS</th>
+                        <th>With BESS Active Filter</th>
+                    </tr>
+                    <tr>
+                        <td>Total Harmonic Distortion (THD)</td>
+                        <td class="highlight-red">8-12%</td>
+                        <td class="highlight">&lt; 3%</td>
+                    </tr>
+                    <tr>
+                        <td>5th Harmonic</td>
+                        <td class="highlight-orange">6-8%</td>
+                        <td class="highlight">&lt; 1%</td>
+                    </tr>
+                    <tr>
+                        <td>7th Harmonic</td>
+                        <td class="highlight-orange">4-6%</td>
+                        <td class="highlight">&lt; 1%</td>
+                    </tr>
+                    <tr>
+                        <td>Power Factor</td>
+                        <td>0.85</td>
+                        <td class="highlight">0.98+</td>
+                    </tr>
+                    <tr>
+                        <td>Neutral Current (3-phase)</td>
+                        <td class="highlight-orange">15-20% of phase</td>
+                        <td class="highlight">&lt; 5%</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="success-box">
+                <div class="success-box-title">Equipment Protection Benefits</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Lithography Systems:</strong> Zero sag-related aborts (was 8-12/year)</li>
+                    <li><strong>Plasma Etch Tools:</strong> Stable RF matching, no arc events</li>
+                    <li><strong>CVD/PVD Systems:</strong> Consistent deposition with stable power</li>
+                    <li><strong>CMP Tools:</strong> No slurry contamination from pump restarts</li>
+                    <li><strong>Motors/Drives:</strong> Extended VFD life, reduced thermal stress</li>
+                    <li><strong>Metrology:</strong> Improved measurement accuracy and repeatability</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Financial Analysis -->
+        <section>
+            <h2>Financial Analysis</h2>
+
+            <h3>Capital Expenditure (CAPEX)</h3>
+            <div class="cost-breakdown">
+                <div class="cost-item">
+                    <div class="cost-amount">$17.9M</div>
+                    <div class="cost-label">Battery System (40 × ST2236UX @ $200/kWh)</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$5.0M</div>
+                    <div class="cost-label">Inverters (5 × SC4000UD-MV @ $1M each)</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$4.0M</div>
+                    <div class="cost-label">BOP (Transformers, Switchgear, PQ Controls)</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$2.5M</div>
+                    <div class="cost-label">Site Work & Grid Interconnection</div>
+                </div>
+                <div class="cost-item">
+                    <div class="cost-amount">$3.6M</div>
+                    <div class="cost-label">EPC, Commissioning & Contingency</div>
+                </div>
+            </div>
+
+            <div class="stat-box" style="margin-top: 1rem;">
+                <div class="stat-value">$33.0M</div>
+                <div class="stat-label">Total Installed Cost ($369/kWh all-in)</div>
+            </div>
+
+            <h3>Annual Value Creation</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Production Loss Avoidance</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Voltage Sag Protection</td>
+                            <td class="highlight">$4,000,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Sustained Outage Prevention</td>
+                            <td class="highlight">$4,750,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Momentary Interruption Prevention</td>
+                            <td class="highlight">$500,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Loss Avoidance</td>
+                            <td class="highlight-blue" style="font-weight: 600;">$9,250,000/yr</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Energy Cost Savings</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>4CP Demand Charge Reduction</td>
+                            <td class="highlight">$1,400,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Monthly Demand Reduction</td>
+                            <td class="highlight">$300,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Power Factor Penalty Avoided</td>
+                            <td class="highlight">$100,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Energy Savings</td>
+                            <td class="highlight-blue" style="font-weight: 600;">$1,800,000/yr</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top: 1rem;">
+                <div class="card">
+                    <div class="card-title">ERCOT Grid Services Revenue</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>ECRS (Emergency Capacity)</td>
+                            <td class="highlight">$500,000 - $750,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Non-Spinning Reserve</td>
+                            <td class="highlight">$150,000 - $300,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>Energy Arbitrage</td>
+                            <td class="highlight">$200,000 - $500,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Grid Revenue</td>
+                            <td class="highlight-blue" style="font-weight: 600;">$850,000 - $1,550,000/yr</td>
+                        </tr>
+                    </table>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem;">
+                        Note: Grid services limited due to 50% SOC reservation for power quality
+                    </p>
+                </div>
+                <div class="card">
+                    <div class="card-title">Operational Savings</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>UPS System Avoided</td>
+                            <td class="highlight">$4,000,000 (capital)</td>
+                        </tr>
+                        <tr>
+                            <td>UPS Battery Replacement Avoided</td>
+                            <td class="highlight">$200,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td>DVR/Active Filter Avoided</td>
+                            <td class="highlight">$2,500,000 (capital)</td>
+                        </tr>
+                        <tr>
+                            <td>Maintenance Cost Reduction</td>
+                            <td class="highlight">$100,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Total Op. Savings</td>
+                            <td class="highlight-blue" style="font-weight: 600;">$300,000/yr + $6.5M capital</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Total Annual Value</h3>
+            <div class="formula">
+Production Loss Avoidance:     $9,250,000/yr (most significant - semiconductor-specific)
+Energy Cost Savings:           $1,800,000/yr
+Grid Services Revenue:         $1,200,000/yr (mid-range estimate)
+Operational Savings:           $300,000/yr
+────────────────────────────────────────────
+<span class="highlight">Total Annual Value:           $12,550,000/yr</span>
+            </div>
+
+            <h3>Investment Tax Credit (ITC)</h3>
+            <div class="success-box">
+                <div class="success-box-title">Inflation Reduction Act Benefits</div>
+                <table class="spec-table">
+                    <tr>
+                        <td>Base ITC Rate</td>
+                        <td class="highlight">30%</td>
+                    </tr>
+                    <tr>
+                        <td>Domestic Content Bonus</td>
+                        <td>+10% (if applicable)</td>
+                    </tr>
+                    <tr>
+                        <td>Energy Community Bonus</td>
+                        <td>+10% (if applicable)</td>
+                    </tr>
+                    <tr>
+                        <td>Base ITC Value (30%)</td>
+                        <td class="highlight-blue">$9.9M</td>
+                    </tr>
+                    <tr>
+                        <td>Maximum ITC Value (50%)</td>
+                        <td class="highlight-blue">$16.5M</td>
+                    </tr>
+                    <tr>
+                        <td>Effective Cost After ITC</td>
+                        <td class="highlight">$16.5M - $23.1M</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Return on Investment</h3>
+            <div class="formula">
+<strong>Conservative Case (Grid Services Only + Energy Savings):</strong>
+Annual Value = $1,800,000 + $1,200,000 + $300,000 = $3,300,000/yr
+Net Investment (30% ITC) = $33.0M - $9.9M = $23.1M
+Simple Payback = $23.1M ÷ $3.3M/year = <span class="highlight-orange">7.0 years</span>
+
+<strong>Full Value Case (Including Production Loss Avoidance):</strong>
+Annual Value = $12,550,000/yr
+Net Investment (30% ITC) = $23.1M
+Simple Payback = $23.1M ÷ $12.55M/year = <span class="highlight">1.8 years</span>
+
+<strong>With Maximum ITC (50%):</strong>
+Net Investment = $33.0M - $16.5M = $16.5M
+Simple Payback = $16.5M ÷ $12.55M/year = <span class="highlight">1.3 years</span>
+            </div>
+
+            <div class="grid-3" style="margin-top: 1rem;">
+                <div class="stat-box">
+                    <div class="stat-value">1.3 - 1.8 yrs</div>
+                    <div class="stat-label">Simple Payback (Full Value)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">45-65%</div>
+                    <div class="stat-label">Projected IRR (15-year)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">$150M+</div>
+                    <div class="stat-label">Lifetime Value (15 years)</div>
+                </div>
+            </div>
+
+            <div class="critical-box">
+                <div class="critical-box-title">Manufacturing-Specific ROI Note</div>
+                <p style="margin: 0;">
+                    The dominant value driver for this installation is <strong>production loss avoidance</strong> ($9.25M/yr),
+                    which reflects the extremely high cost of power quality events in semiconductor manufacturing. A single
+                    prevented voltage sag event can recover the entire BESS investment. For facilities with lower production
+                    value density, the ROI would be primarily driven by energy cost savings and grid services (~7 year payback).
+                </p>
+            </div>
+        </section>
+
+        <!-- Demand Charge Analysis -->
+        <section>
+            <h2>Demand Charge Analysis</h2>
+
+            <h3>Texas 4CP Program Optimization</h3>
+            <div class="info-box">
+                <div class="info-box-title">Four Coincident Peak (4CP) Transmission Cost Structure</div>
+                <p style="margin: 0;">ERCOT transmission costs are allocated based on the facility's demand during the 4 highest
+                system-wide peaks during June through September. Reducing demand during these 15-minute intervals directly
+                reduces annual transmission costs.</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Current 4CP Exposure</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Typical Summer Peak</td>
+                            <td class="highlight-red">22 MW</td>
+                        </tr>
+                        <tr>
+                            <td>4CP Transmission Rate</td>
+                            <td>$5.50/kW-month</td>
+                        </tr>
+                        <tr>
+                            <td>Annual 4CP Cost (No BESS)</td>
+                            <td class="highlight-red">$1,452,000/yr</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">4CP With BESS</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Target Peak During 4CP</td>
+                            <td class="highlight">10 MW</td>
+                        </tr>
+                        <tr>
+                            <td>BESS Discharge During 4CP</td>
+                            <td class="highlight-blue">12 MW</td>
+                        </tr>
+                        <tr>
+                            <td>Annual 4CP Cost (With BESS)</td>
+                            <td class="highlight">$660,000/yr</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Annual 4CP Savings</td>
+                            <td class="highlight" style="font-weight: 600;">$792,000/yr</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Monthly Demand Charge Reduction</h3>
+            <div class="formula">
+<strong>Monthly (Non-4CP) Demand Charges:</strong>
+Peak Demand Without BESS: 22 MW
+Demand Charge Rate: ~$12/kW-month
+Monthly Cost: 22,000 kW × $12 = $264,000/month
+
+<strong>With BESS Peak Shaving:</strong>
+Target Peak: 14 MW (BESS provides 8 MW reduction)
+Monthly Cost: 14,000 kW × $12 = $168,000/month
+Monthly Savings: $96,000/month × 8 months (non-4CP) = <span class="highlight">$768,000/yr</span>
+
+<strong>Combined Demand Savings (4CP + Monthly):</strong>
+4CP Savings: $792,000/yr
+Monthly Demand: $768,000/yr (conservative estimate - 8 non-summer months)
+Total: <span class="highlight">$1,400,000 - $1,600,000/yr</span>
+            </div>
+        </section>
+
+        <!-- Risk Mitigation -->
+        <section>
+            <h2>Risk Mitigation</h2>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Technical Risks</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Battery Degradation</td>
+                            <td>LFP chemistry, 6,000+ cycles, 10-year warranty</td>
+                        </tr>
+                        <tr>
+                            <td>Inverter Failure</td>
+                            <td>N+1 redundancy for critical PQ functions</td>
+                        </tr>
+                        <tr>
+                            <td>Control System</td>
+                            <td>Redundant PLC, automatic failover</td>
+                        </tr>
+                        <tr>
+                            <td>PQ Detection</td>
+                            <td>Triple-redundant voltage sensing</td>
+                        </tr>
+                        <tr>
+                            <td>Response Time</td>
+                            <td>Factory-verified &lt;1ms response</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <div class="card-title">Operational Risks</div>
+                    <table class="spec-table">
+                        <tr>
+                            <td>Production Impact During Install</td>
+                            <td>Staged commissioning during low-load periods</td>
+                        </tr>
+                        <tr>
+                            <td>Maintenance Windows</td>
+                            <td>Hot-swap capability, rolling maintenance</td>
+                        </tr>
+                        <tr>
+                            <td>Cyber Security</td>
+                            <td>Air-gapped critical controls, IEC 62443</td>
+                        </tr>
+                        <tr>
+                            <td>Performance Guarantee</td>
+                            <td>OEM warranty + independent testing</td>
+                        </tr>
+                        <tr>
+                            <td>Insurance</td>
+                            <td>Equipment + business interruption coverage</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="warning-box-title">Site-Specific Considerations</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Texas Heat:</strong> System rated to +55°C; active cooling ensures optimal performance</li>
+                    <li><strong>Grid Reliability:</strong> ERCOT's isolated grid increases value of backup capability</li>
+                    <li><strong>Expansion Capability:</strong> Foundation and switchgear sized for future 50% expansion</li>
+                    <li><strong>Environmental:</strong> LFP batteries are non-hazardous; minimal permitting requirements</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Implementation Timeline -->
+        <section>
+            <h2>Implementation Timeline</h2>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 1: Engineering & Permitting (Months 1-4)</div>
+                    <div class="timeline-desc">Detailed engineering, power flow studies, protection coordination, utility interconnection application, building permits, ERCOT registration</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 2: Equipment Procurement (Months 3-8)</div>
+                    <div class="timeline-desc">Battery and inverter orders (16-20 week lead time), transformer procurement, PQ monitoring equipment, BOP materials</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 3: Site Preparation (Months 6-9)</div>
+                    <div class="timeline-desc">Civil works, foundations, cable trenching, MV switchgear installation (coordinated with production schedule)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 4: Equipment Installation (Months 9-13)</div>
+                    <div class="timeline-desc">Battery container placement, inverter installation, cabling, PQ controls integration, BMS commissioning</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 5: Commissioning (Months 13-15)</div>
+                    <div class="timeline-desc">System testing, DVR validation, protection coordination, SEMI F47 compliance verification, ERCOT witness testing</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">Phase 6: Commercial Operation (Month 15+)</div>
+                    <div class="timeline-desc">Full operation, power quality protection active, grid services market participation, continuous monitoring</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">Manufacturing Integration Considerations</div>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Production Continuity:</strong> All tie-in work scheduled during planned maintenance windows</li>
+                    <li><strong>Staged Cutover:</strong> Protection systems verified in parallel before transfer</li>
+                    <li><strong>Validation Testing:</strong> Full SEMI F47 compliance testing before production commitment</li>
+                    <li><strong>Training:</strong> Operations team trained on BESS interface and emergency procedures</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Conclusion & Recommendations -->
+        <section>
+            <h2>Conclusion & Recommendations</h2>
+
+            <div class="success-box">
+                <div class="success-box-title">Key Value Propositions for Manufacturing</div>
+                <ol style="margin-bottom: 0;">
+                    <li><strong>Production Protection:</strong> $9.25M annual loss avoidance through SEMI F47 compliance and outage prevention</li>
+                    <li><strong>Exceptional ROI:</strong> 1.3-1.8 year payback, 45-65% IRR - among the best returns for industrial infrastructure</li>
+                    <li><strong>Demand Charge Savings:</strong> $1.4-1.6M annual reduction in 4CP and monthly demand charges</li>
+                    <li><strong>Grid Services Revenue:</strong> $850K-1.55M annual revenue while maintaining power quality reserve</li>
+                    <li><strong>Tax Benefits:</strong> 30-50% ITC reduces effective cost by $9.9-16.5M</li>
+                    <li><strong>Operational Excellence:</strong> Replaces UPS, DVR, and active filter with single integrated system</li>
+                </ol>
+            </div>
+
+            <h3>Recommended Next Steps</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Immediate Actions</div>
+                    <ul>
+                        <li>Conduct detailed power quality audit (baseline events)</li>
+                        <li>Engage ERCOT for interconnection pre-application</li>
+                        <li>Request formal quotations from Sungrow</li>
+                        <li>Engage EPC contractor with semiconductor facility experience</li>
+                        <li>Validate production loss cost estimates with operations team</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">Due Diligence Items</div>
+                    <ul>
+                        <li>Independent SEMI F47 compliance analysis</li>
+                        <li>Third-party battery/inverter technical review</li>
+                        <li>Legal review of ERCOT market participation</li>
+                        <li>Insurance consultation (equipment + production interruption)</li>
+                        <li>Tax advisor consultation for ITC optimization</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="critical-box" style="margin-top: 1.5rem;">
+                <div class="critical-box-title">Final Assessment</div>
+                <p style="margin: 0;">
+                    The 89.44 MWh / 20 MW BESS system represents an <strong>exceptionally compelling investment</strong>
+                    for the ITX Z&T Ranch semiconductor manufacturing facility. Unlike typical BESS installations where
+                    grid services drive value, this manufacturing application delivers <strong>dominant value through
+                    production protection</strong> - preventing a single major voltage sag event recovers the entire
+                    investment. Combined with substantial demand charge savings and grid services revenue, the project
+                    achieves <strong>sub-2-year payback</strong> and creates <strong>$150M+ in lifetime value</strong>.
+                    This project is <strong>strongly recommended for immediate development</strong>.
+                </p>
+            </div>
+        </section>
+
+        <!-- Technical Appendix -->
+        <section>
+            <h2>Technical Appendix</h2>
+
+            <h3>A. System Sizing Calculations</h3>
+            <div class="formula">
+<strong>Power Quality Reserve Requirement:</strong>
+Critical Process Load = 8.5 MW (lithography, deposition, etch, metrology)
+DVR Duration Target = 4 hours minimum
+Required Reserve = 8.5 MW × 4 hours = 34 MWh
+Maintained SOC = 50% × 89.44 MWh = 44.72 MWh > 34 MWh ✓
+
+<strong>Peak Shaving Capacity:</strong>
+Peak Load = 22 MW
+Target Peak = 10 MW (for 4CP)
+Required Discharge = 12 MW
+Available Discharge = 12 MW (3 × 4 MW inverters) ✓
+
+<strong>Backup Duration:</strong>
+Full Facility Load = 18 MW
+Full Capacity Runtime = 89.44 MWh ÷ 18 MW = 4.97 hours
+Critical Load Only = 8.5 MW
+Critical Runtime = 89.44 MWh ÷ 8.5 MW = 10.5 hours
+            </div>
+
+            <h3>B. SEMI F47 Compliance Verification</h3>
+            <table class="spec-table">
+                <tr>
+                    <th>Voltage Level</th>
+                    <th>SEMI F47 Requirement</th>
+                    <th>BESS Capability</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>0% (Interruption)</td>
+                    <td>Ride-through 20ms</td>
+                    <td>Ride-through 50ms+</td>
+                    <td class="highlight">Exceeds</td>
+                </tr>
+                <tr>
+                    <td>50% Voltage</td>
+                    <td>Ride-through 200ms</td>
+                    <td>Ride-through 4+ hours</td>
+                    <td class="highlight">Exceeds</td>
+                </tr>
+                <tr>
+                    <td>70% Voltage</td>
+                    <td>Ride-through 500ms</td>
+                    <td>Ride-through 4+ hours</td>
+                    <td class="highlight">Exceeds</td>
+                </tr>
+                <tr>
+                    <td>80% Voltage</td>
+                    <td>Ride-through 10 seconds</td>
+                    <td>Ride-through 4+ hours</td>
+                    <td class="highlight">Exceeds</td>
+                </tr>
+            </table>
+
+            <h3>C. Production Loss Cost Methodology</h3>
+            <div class="formula">
+<strong>Work-in-Progress (WIP) Value Assumptions:</strong>
+Wafers in Process: ~5,000 wafers across facility
+Average WIP Value: $2,000/wafer (varies by process step)
+Total WIP at Risk: $10,000,000
+
+<strong>Event Impact Factors:</strong>
+Sustained Outage (>1 min): 25% WIP loss = $2,500,000
+Voltage Sag (SEMI F47 violation): 5% WIP loss = $500,000
+Momentary Interruption (<1 sec): 1.5% WIP loss = $150,000
+
+<strong>Historical Event Frequency (Without Protection):</strong>
+Sustained Outages: 2/year
+Voltage Sags: 8/year
+Momentary Interruptions: 5/year
+
+<strong>Annual Loss Calculation:</strong>
+Sustained: 2 × $2,500,000 = $5,000,000
+Voltage Sags: 8 × $500,000 = $4,000,000
+Momentary: 5 × $150,000 = $750,000
+<span class="highlight">Total: $9,750,000/year</span>
+            </div>
+
+            <h3>D. ERCOT Market Parameters</h3>
+            <table class="spec-table">
+                <tr>
+                    <th>Service</th>
+                    <th>Capacity Offered</th>
+                    <th>Availability</th>
+                    <th>Annual Revenue Est.</th>
+                </tr>
+                <tr>
+                    <td>ECRS (Emergency Capacity)</td>
+                    <td>8 MW (charging inverters)</td>
+                    <td>50% (PQ reserve priority)</td>
+                    <td>$500,000 - $750,000</td>
+                </tr>
+                <tr>
+                    <td>Non-Spinning Reserve</td>
+                    <td>8 MW</td>
+                    <td>50%</td>
+                    <td>$150,000 - $300,000</td>
+                </tr>
+                <tr>
+                    <td>Energy Arbitrage</td>
+                    <td>17.9 MWh (20% SOC)</td>
+                    <td>Limited cycles</td>
+                    <td>$200,000 - $500,000</td>
+                </tr>
+            </table>
+            <p style="font-size: 0.9rem;">
+                Note: Grid services participation is limited compared to dedicated merchant storage installations
+                due to the 50% SOC reservation required for power quality and backup functions. This is the correct
+                trade-off for manufacturing applications where production protection vastly outweighs grid revenue.
+            </p>
+        </section>
+
+        <footer>
+            <p>Case Study Document | Advanced Manufacturing BESS Integration | ITX Z&T Ranch, Texas</p>
+            <p>Technical specifications subject to final engineering. Financial projections based on 2024 market conditions and typical semiconductor facility economics.</p>
+            <p>Generated: January 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

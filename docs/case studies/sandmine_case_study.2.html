@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sand Mine BESS Case Study - SC4000UD-MV Configuration | Regno AI</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --border-color: #30363d;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .header .meta {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+
+        /* Navigation */
+        .toc {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .toc h2 {
+            font-size: 1rem;
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section h4 {
+            font-size: 1rem;
+            color: var(--accent-blue);
+            margin: 1rem 0 0.5rem;
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .stat-card.blue .value { color: var(--accent-blue); }
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.purple .value { color: var(--accent-purple); }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        /* Code/Formula blocks */
+        .formula-block {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--accent-orange);
+            overflow-x: auto;
+        }
+
+        .formula-block .result {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* Callout boxes */
+        .callout {
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .callout-warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--accent-orange);
+        }
+
+        .callout-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .callout-danger {
+            background: rgba(248, 81, 73, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .callout h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-blue { color: var(--accent-blue); }
+        .highlight-green { color: var(--accent-green); }
+
+        /* Comparison cards */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-card h4 {
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .section {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Sand Mine BESS Configuration Analysis</h1>
+            <p class="subtitle">Sungrow ST2236UX + SC4000UD-MV System Evaluation</p>
+            <div class="meta">
+                <span class="badge badge-orange">SC4000UD-MV</span>
+                <span class="badge badge-blue">4 MW Inverters</span>
+                <span class="badge badge-green">89.44 MWh Total</span>
+                <span class="badge badge-purple">20 MW Output</span>
+            </div>
+            <p class="meta" style="margin-top: 1rem;">
+                Research Document | Generated by Regno AI | January 2026
+            </p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#methodology">1. Research Methodology</a></li>
+                <li><a href="#equipment">2. Equipment Specifications</a></li>
+                <li><a href="#configuration">3. Configuration Analysis</a></li>
+                <li><a href="#load-analysis">4. Sand Mine Load Analysis</a></li>
+                <li><a href="#power-capability">5. System Power Capability</a></li>
+                <li><a href="#sizing">6. Sizing Recommendations</a></li>
+                <li><a href="#financial">7. Financial Analysis</a></li>
+                <li><a href="#calculations">8. Technical Calculations</a></li>
+                <li><a href="#appendices">9. Appendices</a></li>
+            </ul>
+        </nav>
+
+        <!-- Executive Summary -->
+        <section class="section">
+            <h2>Executive Summary</h2>
+            <p>This document provides a comprehensive analysis of a Battery Energy Storage System (BESS) configuration consisting of <span class="highlight">40 Sungrow ST2236UX battery units</span> paired with <span class="highlight">5 Sungrow SC4000UD-MV inverters</span> for a small sand mine application serving local construction supply.</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">89.44</div>
+                    <div class="label">MWh Total Storage</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">20</div>
+                    <div class="label">MW Power Output</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">4.47</div>
+                    <div class="label">Hours at Full Power</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">~48x</div>
+                    <div class="label">Oversized for Small Mine</div>
+                </div>
+            </div>
+
+            <div class="callout callout-warning">
+                <h4>Key Finding</h4>
+                <p>The proposed 40-battery, 5-inverter configuration delivers <strong>20 MW of power</strong> and <strong>89.44 MWh of storage</strong> - approximately <strong>48 times more power</strong> than a typical small sand mine requires. This system is designed for utility-scale grid services, not small industrial backup.</p>
+            </div>
+        </section>
+
+        <!-- Section 1: Research Methodology -->
+        <section class="section" id="methodology">
+            <h2>1. Research Methodology</h2>
+
+            <h3>1.1 Research Approach</h3>
+            <p>This analysis employs a multi-phase investigative approach combining manufacturer specifications, industry benchmarks, and operational modeling to deliver actionable insights for BESS deployment.</p>
+
+            <h4>Phase 1: Equipment Specification Analysis</h4>
+            <ul>
+                <li>Review of Sungrow ST2236UX technical datasheet and specifications</li>
+                <li>Analysis of SC4000UD-MV Power Conversion System (PCS) capabilities</li>
+                <li>Cross-reference with industry-standard BESS configurations</li>
+            </ul>
+
+            <h4>Phase 2: Load Profiling</h4>
+            <ul>
+                <li>Characterization of small sand mine electrical loads</li>
+                <li>Peak demand estimation for crushing, screening, and conveyor operations</li>
+                <li>Daily energy consumption modeling based on single-shift operation</li>
+            </ul>
+
+            <h4>Phase 3: System Integration Analysis</h4>
+            <ul>
+                <li>Battery-to-inverter ratio optimization</li>
+                <li>Charge/discharge cycle analysis</li>
+                <li>Grid interconnection considerations for UK market</li>
+            </ul>
+
+            <h3>1.2 Data Sources</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Source Type</th>
+                            <th>Description</th>
+                            <th>Application</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Manufacturer Datasheets</td>
+                            <td>Sungrow official technical specifications</td>
+                            <td>Equipment parameters, efficiency ratings</td>
+                        </tr>
+                        <tr>
+                            <td>Industry Reports</td>
+                            <td>BloombergNEF, Wood Mackenzie BESS reports</td>
+                            <td>Pricing benchmarks, market trends</td>
+                        </tr>
+                        <tr>
+                            <td>UK Grid Data</td>
+                            <td>National Grid ESO published rates</td>
+                            <td>Grid services revenue potential</td>
+                        </tr>
+                        <tr>
+                            <td>Mining Industry Standards</td>
+                            <td>Quarrying and aggregate industry benchmarks</td>
+                            <td>Load profiling, operational patterns</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>1.3 Assumptions</h3>
+            <ul>
+                <li><strong>Location:</strong> United Kingdom (UK grid codes and pricing)</li>
+                <li><strong>Grid Connection:</strong> Grid-tied system with export capability</li>
+                <li><strong>Operation:</strong> Single shift (8-10 hours/day), 5 days/week</li>
+                <li><strong>Primary Use:</strong> Backup power + grid services revenue</li>
+                <li><strong>Climate:</strong> Temperate (minimal HVAC derating)</li>
+            </ul>
+        </section>
+
+        <!-- Section 2: Equipment Specifications -->
+        <section class="section" id="equipment">
+            <h2>2. Equipment Specifications</h2>
+
+            <h3>2.1 Sungrow ST2236UX Battery System</h3>
+            <p>The ST2236UX is Sungrow's utility-scale liquid-cooled battery system, featuring advanced Lithium Iron Phosphate (LFP) chemistry for enhanced safety and longevity.</p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Energy Storage</h4>
+                    <ul>
+                        <li><strong>Capacity:</strong> 2,236 kWh (2.236 MWh) per unit</li>
+                        <li><strong>Usable Capacity:</strong> ~2,012 kWh (90% DoD)</li>
+                        <li><strong>Chemistry:</strong> Lithium Iron Phosphate (LiFePO4)</li>
+                        <li><strong>Cycle Life:</strong> >6,000 cycles at 90% DoD</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4>Physical Specifications</h4>
+                    <ul>
+                        <li><strong>Dimensions:</strong> 6,058 x 2,438 x 2,896 mm</li>
+                        <li><strong>Weight:</strong> ~24,000 kg</li>
+                        <li><strong>Cooling:</strong> Integrated liquid cooling system</li>
+                        <li><strong>IP Rating:</strong> IP55 (outdoor rated)</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4>Electrical Parameters</h4>
+                    <ul>
+                        <li><strong>DC Voltage Range:</strong> 1,160-1,500 VDC</li>
+                        <li><strong>Max Charge Rate:</strong> 0.5C (1,118 kW)</li>
+                        <li><strong>Max Discharge Rate:</strong> 0.5C (1,118 kW)</li>
+                        <li><strong>Round-trip Efficiency:</strong> ~95%</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4>Safety & Monitoring</h4>
+                    <ul>
+                        <li><strong>BMS:</strong> Multi-level battery management</li>
+                        <li><strong>Fire Suppression:</strong> Integrated aerosol system</li>
+                        <li><strong>Thermal Management:</strong> Active liquid cooling</li>
+                        <li><strong>Communication:</strong> Modbus TCP/RTU, CAN</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>2.2 Sungrow SC4000UD-MV Power Conversion System</h3>
+            <p>The SC4000UD-MV is a 4 MW medium-voltage power conversion system designed for utility-scale BESS applications, featuring high efficiency and advanced grid support capabilities.</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Specification</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rated Power</td>
+                            <td><span class="highlight">4,000 kW (4 MW)</span></td>
+                            <td>Per unit output capacity</td>
+                        </tr>
+                        <tr>
+                            <td>AC Output Voltage</td>
+                            <td>10-35 kV (configurable)</td>
+                            <td>Medium voltage direct connection</td>
+                        </tr>
+                        <tr>
+                            <td>Max Efficiency</td>
+                            <td>>99%</td>
+                            <td>Peak conversion efficiency</td>
+                        </tr>
+                        <tr>
+                            <td>Power Factor</td>
+                            <td>+/-0.9 leading/lagging</td>
+                            <td>Adjustable for grid support</td>
+                        </tr>
+                        <tr>
+                            <td>DC Input Voltage</td>
+                            <td>1,160-1,500 VDC</td>
+                            <td>Compatible with ST2236UX</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Support</td>
+                            <td>Full grid-forming capability</td>
+                            <td>Black start, frequency response</td>
+                        </tr>
+                        <tr>
+                            <td>Cooling</td>
+                            <td>Forced air cooling</td>
+                            <td>Integrated in container</td>
+                        </tr>
+                        <tr>
+                            <td>Protection Class</td>
+                            <td>IP54</td>
+                            <td>Outdoor installation capable</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>SC4000UD-MV vs SC2400UD-MV Comparison</h4>
+                <p>The SC4000UD-MV delivers <strong>67% more power</strong> per unit than the SC2400UD-MV (4 MW vs 2.4 MW). This higher power density reduces the number of inverters needed but increases the power-to-energy ratio of your system.</p>
+            </div>
+        </section>
+
+        <!-- Section 3: Configuration Analysis -->
+        <section class="section" id="configuration">
+            <h2>3. Configuration Analysis</h2>
+
+            <h3>3.1 Your Proposed Configuration</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">40</div>
+                    <div class="label">Battery Units (ST2236UX)</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">5</div>
+                    <div class="label">Inverters (SC4000UD-MV)</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">8:1</div>
+                    <div class="label">Battery:Inverter Ratio</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">4.47h</div>
+                    <div class="label">Duration at Rated Power</div>
+                </div>
+            </div>
+
+            <h3>3.2 System Totals</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Calculation</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Energy Storage</td>
+                            <td>40 units x 2,236 kWh</td>
+                            <td><span class="highlight">89,440 kWh (89.44 MWh)</span></td>
+                        </tr>
+                        <tr>
+                            <td>Usable Energy (90% DoD)</td>
+                            <td>89.44 MWh x 0.90</td>
+                            <td><span class="highlight-blue">80.5 MWh</span></td>
+                        </tr>
+                        <tr>
+                            <td>Total Power Output</td>
+                            <td>5 units x 4,000 kW</td>
+                            <td><span class="highlight">20,000 kW (20 MW)</span></td>
+                        </tr>
+                        <tr>
+                            <td>Duration at Full Power</td>
+                            <td>89.44 MWh / 20 MW</td>
+                            <td><span class="highlight-green">4.47 hours</span></td>
+                        </tr>
+                        <tr>
+                            <td>Duration at 90% DoD</td>
+                            <td>80.5 MWh / 20 MW</td>
+                            <td><span class="highlight-green">4.03 hours</span></td>
+                        </tr>
+                        <tr>
+                            <td>Total System Weight</td>
+                            <td>40 x 24,000 kg + inverters</td>
+                            <td>~1,000 tonnes</td>
+                        </tr>
+                        <tr>
+                            <td>Footprint Estimate</td>
+                            <td>40 containers + equipment</td>
+                            <td>~2,500-3,000 m2</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>3.3 Configuration Ratio Analysis</h3>
+            <p>Your configuration features an <span class="highlight">8:1 battery-to-inverter ratio</span> (40 batteries per 5 inverters = 8 batteries per inverter). This is a relatively high ratio, indicating a system optimized for longer duration discharge rather than peak power.</p>
+
+            <div class="formula-block">
+<strong>Energy-to-Power Ratio (E/P):</strong>
+E/P = Total Energy / Total Power
+E/P = 89.44 MWh / 20 MW
+<span class="result">E/P = 4.47 hours</span>
+
+This is a "4.5-hour" duration system
+            </div>
+
+            <div class="callout callout-info">
+                <h4>Duration Classification</h4>
+                <ul>
+                    <li><strong>Short Duration (1-2h):</strong> Frequency regulation, peak shaving</li>
+                    <li><strong>Medium Duration (2-4h):</strong> Energy arbitrage, demand response</li>
+                    <li><strong class="highlight">Your System (4.47h):</strong> Extended backup, grid services</li>
+                    <li><strong>Long Duration (6-12h):</strong> Renewable shifting, capacity firming</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 4: Sand Mine Load Analysis -->
+        <section class="section" id="load-analysis">
+            <h2>4. Sand Mine Load Analysis</h2>
+
+            <h3>4.1 Small Sand Mine Characteristics</h3>
+            <p>A small sand mine serving local construction supply typically processes 50-200 tonnes per day, operating a single shift of 8-10 hours. The electrical infrastructure supports crushing, screening, washing, and material handling operations.</p>
+
+            <h4>Typical Equipment Loads</h4>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Equipment</th>
+                            <th>Typical Power (kW)</th>
+                            <th>Operating Hours</th>
+                            <th>Daily kWh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Primary Jaw Crusher</td>
+                            <td>75-150</td>
+                            <td>6-8</td>
+                            <td>600-1,200</td>
+                        </tr>
+                        <tr>
+                            <td>Vibrating Screens (2-3 units)</td>
+                            <td>30-60</td>
+                            <td>8</td>
+                            <td>240-480</td>
+                        </tr>
+                        <tr>
+                            <td>Conveyor Systems (multiple)</td>
+                            <td>50-100</td>
+                            <td>8</td>
+                            <td>400-800</td>
+                        </tr>
+                        <tr>
+                            <td>Sand Washing Plant</td>
+                            <td>40-80</td>
+                            <td>6-8</td>
+                            <td>320-640</td>
+                        </tr>
+                        <tr>
+                            <td>Water Pumps</td>
+                            <td>20-40</td>
+                            <td>8</td>
+                            <td>160-320</td>
+                        </tr>
+                        <tr>
+                            <td>Wheel Loaders (if electric)</td>
+                            <td>100-200</td>
+                            <td>4-6</td>
+                            <td>400-1,200</td>
+                        </tr>
+                        <tr>
+                            <td>Office/Facilities</td>
+                            <td>10-20</td>
+                            <td>10</td>
+                            <td>100-200</td>
+                        </tr>
+                        <tr>
+                            <td>Lighting (site-wide)</td>
+                            <td>15-30</td>
+                            <td>10</td>
+                            <td>150-300</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL ESTIMATED</td>
+                            <td>340-680 kW</td>
+                            <td>-</td>
+                            <td>2,370-5,140 kWh</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>4.2 Load Summary for Small Sand Mine</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">~420</div>
+                    <div class="label">kW Peak Demand</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">~250</div>
+                    <div class="label">kW Average Load</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">~5</div>
+                    <div class="label">MWh Daily Consumption</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">~100</div>
+                    <div class="label">MWh Monthly Usage</div>
+                </div>
+            </div>
+
+            <h3>4.3 Your System vs Small Sand Mine Requirements</h3>
+            <div class="callout callout-danger">
+                <h4>Critical Mismatch Analysis</h4>
+                <p>Your proposed system is <strong>dramatically oversized</strong> for a small sand mine:</p>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Your System</th>
+                            <th>Small Sand Mine Needs</th>
+                            <th>Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Peak Power</td>
+                            <td>20,000 kW</td>
+                            <td>420 kW</td>
+                            <td><span class="highlight">48x oversized</span></td>
+                        </tr>
+                        <tr>
+                            <td>Daily Energy</td>
+                            <td>89,440 kWh available</td>
+                            <td>5,000 kWh needed</td>
+                            <td><span class="highlight-blue">18x capacity</span></td>
+                        </tr>
+                        <tr>
+                            <td>Backup Duration</td>
+                            <td>4.47 hours at 20 MW</td>
+                            <td>8-10 hours needed</td>
+                            <td>See below</td>
+                        </tr>
+                        <tr>
+                            <td>Backup at Mine Load</td>
+                            <td>89,440 / 420 = 213 hours</td>
+                            <td>8-10 hours needed</td>
+                            <td><span class="highlight-green">~27 days backup!</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="formula-block">
+<strong>Backup Duration at Small Sand Mine Load:</strong>
+Duration = Total Energy / Peak Load
+Duration = 89,440 kWh / 420 kW
+<span class="result">Duration = 212.95 hours = 8.87 days of continuous operation</span>
+
+At average load (250 kW):
+Duration = 89,440 kWh / 250 kW
+<span class="result">Duration = 357.76 hours = 14.9 days</span>
+            </div>
+        </section>
+
+        <!-- Section 5: System Power Capability -->
+        <section class="section" id="power-capability">
+            <h2>5. System Power Capability</h2>
+
+            <h3>5.1 What Your System CAN Power</h3>
+            <p>With 20 MW of instantaneous power and 89.44 MWh of storage, your system is designed for utility-scale applications. Here's what it could realistically support:</p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Industrial Scale</h4>
+                    <ul>
+                        <li><strong>Large Manufacturing Plant:</strong> 5-10 MW continuous</li>
+                        <li><strong>Data Center:</strong> 10-15 MW typical</li>
+                        <li><strong>Large Aggregate Quarry:</strong> 2-5 MW</li>
+                        <li><strong>Cement Works:</strong> 10-30 MW</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4>Community Scale</h4>
+                    <ul>
+                        <li><strong>Small Town:</strong> 5,000-10,000 homes</li>
+                        <li><strong>Hospital Complex:</strong> 2-5 MW</li>
+                        <li><strong>Shopping Centre:</strong> 3-8 MW</li>
+                        <li><strong>University Campus:</strong> 5-15 MW</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4>Grid Services</h4>
+                    <ul>
+                        <li><strong>Frequency Response:</strong> Full 20 MW available</li>
+                        <li><strong>Peak Shaving:</strong> 4+ hour duration</li>
+                        <li><strong>Capacity Market:</strong> Eligible for T-4 auction</li>
+                        <li><strong>Black Start:</strong> Grid-forming capable</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h4>Renewable Integration</h4>
+                    <ul>
+                        <li><strong>Solar Farm:</strong> 30-50 MW co-located</li>
+                        <li><strong>Wind Farm:</strong> 20-40 MW pairing</li>
+                        <li><strong>Firming Capacity:</strong> 4+ hours shifting</li>
+                        <li><strong>Curtailment Capture:</strong> Full absorption</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>5.2 Runtime Analysis by Load Size</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Load Size</th>
+                            <th>Example Application</th>
+                            <th>Runtime (hours)</th>
+                            <th>Runtime (days)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>100 kW</td>
+                            <td>Small office building</td>
+                            <td>894.4 hours</td>
+                            <td>37.3 days</td>
+                        </tr>
+                        <tr>
+                            <td>250 kW</td>
+                            <td>Small sand mine (average)</td>
+                            <td>357.8 hours</td>
+                            <td>14.9 days</td>
+                        </tr>
+                        <tr>
+                            <td>420 kW</td>
+                            <td>Small sand mine (peak)</td>
+                            <td>213.0 hours</td>
+                            <td>8.9 days</td>
+                        </tr>
+                        <tr>
+                            <td>1 MW</td>
+                            <td>Medium industrial facility</td>
+                            <td>89.4 hours</td>
+                            <td>3.7 days</td>
+                        </tr>
+                        <tr>
+                            <td>2 MW</td>
+                            <td>Large industrial site</td>
+                            <td>44.7 hours</td>
+                            <td>1.9 days</td>
+                        </tr>
+                        <tr>
+                            <td>5 MW</td>
+                            <td>Data center / large facility</td>
+                            <td>17.9 hours</td>
+                            <td>0.75 days</td>
+                        </tr>
+                        <tr>
+                            <td>10 MW</td>
+                            <td>Major industrial complex</td>
+                            <td>8.9 hours</td>
+                            <td>0.37 days</td>
+                        </tr>
+                        <tr>
+                            <td>20 MW</td>
+                            <td>Full system capacity</td>
+                            <td>4.47 hours</td>
+                            <td>0.19 days</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>5.3 Power Output Comparison: SC4000UD-MV vs SC2400UD-MV</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Configuration</th>
+                            <th>Total Power</th>
+                            <th>Duration</th>
+                            <th>E/P Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>5x SC4000UD-MV (your config)</td>
+                            <td><span class="highlight">20 MW</span></td>
+                            <td>4.47 hours</td>
+                            <td>4.47h</td>
+                        </tr>
+                        <tr>
+                            <td>5x SC2400UD-MV (alternative)</td>
+                            <td>12 MW</td>
+                            <td>7.45 hours</td>
+                            <td>7.45h</td>
+                        </tr>
+                        <tr>
+                            <td>8x SC2400UD-MV (equiv. power)</td>
+                            <td>19.2 MW</td>
+                            <td>4.66 hours</td>
+                            <td>4.66h</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>Key Insight: SC4000UD-MV Trade-offs</h4>
+                <p>By choosing SC4000UD-MV over SC2400UD-MV inverters, you gain higher power density (fewer units for same output) but sacrifice runtime. For grid services like frequency response where fast, high-power discharge is valued, SC4000UD-MV is optimal. For longer duration backup, SC2400UD-MV provides better value.</p>
+            </div>
+        </section>
+
+        <!-- Section 6: Sizing Recommendations -->
+        <section class="section" id="sizing">
+            <h2>6. Sizing Recommendations</h2>
+
+            <h3>6.1 Recommended Configuration for Small Sand Mine</h3>
+            <p>For a small sand mine with ~420 kW peak demand and 5 MWh daily consumption, here are appropriately-sized BESS configurations:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Batteries</th>
+                            <th>Inverters</th>
+                            <th>Energy</th>
+                            <th>Power</th>
+                            <th>Backup Time</th>
+                            <th>Est. Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Minimum Viable</strong></td>
+                            <td>1x ST2236UX</td>
+                            <td>1x 500kW PCS</td>
+                            <td>2.24 MWh</td>
+                            <td>500 kW</td>
+                            <td>4-5 hours</td>
+                            <td>GBP 400-600k</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recommended</strong></td>
+                            <td>2x ST2236UX</td>
+                            <td>1x 1MW PCS</td>
+                            <td>4.47 MWh</td>
+                            <td>1 MW</td>
+                            <td>8-10 hours</td>
+                            <td>GBP 800k-1.2M</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Full Day Backup</strong></td>
+                            <td>3x ST2236UX</td>
+                            <td>1x 1MW PCS</td>
+                            <td>6.71 MWh</td>
+                            <td>1 MW</td>
+                            <td>12-16 hours</td>
+                            <td>GBP 1.2-1.8M</td>
+                        </tr>
+                        <tr>
+                            <td><strong>With Grid Services</strong></td>
+                            <td>4x ST2236UX</td>
+                            <td>2x 1MW PCS</td>
+                            <td>8.94 MWh</td>
+                            <td>2 MW</td>
+                            <td>16-20 hours</td>
+                            <td>GBP 1.5-2.2M</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>6.2 Configuration by Site Size</h3>
+            <p>Here are recommended BESS configurations scaled to different industrial site sizes using Sungrow equipment:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Site Type</th>
+                            <th>Peak Load</th>
+                            <th>Daily Use</th>
+                            <th>Batteries</th>
+                            <th>Inverter Type</th>
+                            <th>Config</th>
+                            <th>Est. CAPEX</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Small Sand Mine</td>
+                            <td>400-500 kW</td>
+                            <td>4-6 MWh</td>
+                            <td>2-3</td>
+                            <td>SC500/1000</td>
+                            <td>2:1</td>
+                            <td>GBP 0.8-1.5M</td>
+                        </tr>
+                        <tr>
+                            <td>Medium Quarry</td>
+                            <td>1-2 MW</td>
+                            <td>10-15 MWh</td>
+                            <td>5-8</td>
+                            <td>SC2400UD-MV</td>
+                            <td>3:1</td>
+                            <td>GBP 2.5-4M</td>
+                        </tr>
+                        <tr>
+                            <td>Large Aggregate Plant</td>
+                            <td>3-5 MW</td>
+                            <td>30-50 MWh</td>
+                            <td>15-25</td>
+                            <td>SC2400UD-MV</td>
+                            <td>5:1</td>
+                            <td>GBP 6-12M</td>
+                        </tr>
+                        <tr>
+                            <td>Major Industrial Complex</td>
+                            <td>5-10 MW</td>
+                            <td>50-100 MWh</td>
+                            <td>25-45</td>
+                            <td>SC4000UD-MV</td>
+                            <td>6:1</td>
+                            <td>GBP 12-25M</td>
+                        </tr>
+                        <tr>
+                            <td>Utility Grid Service</td>
+                            <td>10-50 MW</td>
+                            <td>40-200 MWh</td>
+                            <td>20-100</td>
+                            <td>SC4000UD-MV</td>
+                            <td>4-8:1</td>
+                            <td>GBP 15-80M</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary);">
+                            <td><strong>YOUR CONFIG</strong></td>
+                            <td><strong>20 MW</strong></td>
+                            <td><strong>89.4 MWh</strong></td>
+                            <td><strong>40</strong></td>
+                            <td><strong>SC4000UD-MV</strong></td>
+                            <td><strong>8:1</strong></td>
+                            <td><strong>GBP 19-29M</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-success">
+                <h4>Best Use Case for Your Configuration</h4>
+                <p>Your 40-battery, 5-inverter system is ideally suited for:</p>
+                <ul>
+                    <li><strong>Grid-scale frequency response</strong> - Fast 20 MW injection/absorption</li>
+                    <li><strong>Capacity market participation</strong> - 4+ hour duration qualifies for T-4</li>
+                    <li><strong>Renewable energy firming</strong> - Paired with 30-50 MW solar/wind farm</li>
+                    <li><strong>Industrial park backup</strong> - Supporting multiple large facilities</li>
+                    <li><strong>Distribution network support</strong> - Deferring grid upgrades</li>
+                </ul>
+            </div>
+
+            <h3>6.3 Alternative Configurations with 40 Batteries</h3>
+            <p>If you're committed to 40x ST2236UX batteries, here are inverter options:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Inverter Config</th>
+                            <th>Total Power</th>
+                            <th>Duration</th>
+                            <th>Use Case</th>
+                            <th>CAPEX Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>5x SC4000UD-MV (current)</td>
+                            <td>20 MW</td>
+                            <td>4.47 h</td>
+                            <td>High power, short duration</td>
+                            <td>Baseline</td>
+                        </tr>
+                        <tr>
+                            <td>8x SC2400UD-MV</td>
+                            <td>19.2 MW</td>
+                            <td>4.66 h</td>
+                            <td>Similar power, more flexibility</td>
+                            <td>+5-10%</td>
+                        </tr>
+                        <tr>
+                            <td>5x SC2400UD-MV</td>
+                            <td>12 MW</td>
+                            <td>7.45 h</td>
+                            <td>Medium power, longer duration</td>
+                            <td>-15-20%</td>
+                        </tr>
+                        <tr>
+                            <td>4x SC2400UD-MV</td>
+                            <td>9.6 MW</td>
+                            <td>9.32 h</td>
+                            <td>Lower power, extended backup</td>
+                            <td>-25-30%</td>
+                        </tr>
+                        <tr>
+                            <td>10x SC4000UD-MV</td>
+                            <td>40 MW</td>
+                            <td>2.24 h</td>
+                            <td>Maximum power, short burst</td>
+                            <td>+40-50%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 7: Financial Analysis -->
+        <section class="section" id="financial">
+            <h2>7. Financial Analysis</h2>
+
+            <h3>7.1 Capital Cost Estimate</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Quantity</th>
+                            <th>Unit Cost (Est.)</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ST2236UX Battery Units</td>
+                            <td>40</td>
+                            <td>GBP 300-450k each</td>
+                            <td>GBP 12-18M</td>
+                        </tr>
+                        <tr>
+                            <td>SC4000UD-MV Inverters</td>
+                            <td>5</td>
+                            <td>GBP 400-600k each</td>
+                            <td>GBP 2-3M</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Connection (33kV)</td>
+                            <td>1</td>
+                            <td>GBP 1-2M</td>
+                            <td>GBP 1-2M</td>
+                        </tr>
+                        <tr>
+                            <td>BOP & Auxiliaries</td>
+                            <td>-</td>
+                            <td>10-15% of equipment</td>
+                            <td>GBP 1.5-3M</td>
+                        </tr>
+                        <tr>
+                            <td>Civil Works & Foundations</td>
+                            <td>~3,000 m2</td>
+                            <td>GBP 300-500/m2</td>
+                            <td>GBP 0.9-1.5M</td>
+                        </tr>
+                        <tr>
+                            <td>EPC & Commissioning</td>
+                            <td>-</td>
+                            <td>15-20% of total</td>
+                            <td>GBP 2.5-4M</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL CAPEX</td>
+                            <td colspan="2">-</td>
+                            <td><span class="highlight">GBP 19-29M</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>7.2 Revenue Potential (UK Grid Services)</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Revenue Stream</th>
+                            <th>Rate (Est.)</th>
+                            <th>Availability</th>
+                            <th>Annual Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Dynamic Containment (DC)</td>
+                            <td>GBP 8-15/MW/h</td>
+                            <td>24/7 (20 MW)</td>
+                            <td>GBP 1.4-2.6M</td>
+                        </tr>
+                        <tr>
+                            <td>Capacity Market (T-4)</td>
+                            <td>GBP 20-40k/MW/year</td>
+                            <td>20 MW qualified</td>
+                            <td>GBP 400-800k</td>
+                        </tr>
+                        <tr>
+                            <td>Wholesale Arbitrage</td>
+                            <td>Variable spread</td>
+                            <td>2 cycles/day</td>
+                            <td>GBP 500k-1.5M</td>
+                        </tr>
+                        <tr>
+                            <td>Balancing Mechanism</td>
+                            <td>GBP 50-200/MWh</td>
+                            <td>Opportunistic</td>
+                            <td>GBP 200-600k</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL POTENTIAL</td>
+                            <td colspan="2">Stacked revenues</td>
+                            <td><span class="highlight-green">GBP 2.5-5.5M/year</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>7.3 Return on Investment Analysis</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">GBP 24M</div>
+                    <div class="label">Average CAPEX</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">GBP 4M</div>
+                    <div class="label">Average Annual Revenue</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">6</div>
+                    <div class="label">Years Simple Payback</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">12-18%</div>
+                    <div class="label">Project IRR (Est.)</div>
+                </div>
+            </div>
+
+            <div class="callout callout-warning">
+                <h4>Financial Viability for Sand Mine Application</h4>
+                <p>If deployed solely for sand mine backup power, the financial case is <strong>extremely weak</strong>:</p>
+                <ul>
+                    <li>Avoided electricity cost: ~5 MWh/day x GBP 0.15/kWh x 250 days = <strong>GBP 187,500/year</strong></li>
+                    <li>Avoided demand charges: Minimal for this load size</li>
+                    <li>Payback period on GBP 24M investment: <strong>128+ years</strong></li>
+                </ul>
+                <p>The only way to justify this investment is through <strong>grid services revenue</strong>, not backup power.</p>
+            </div>
+
+            <h3>7.4 Cost Comparison: Right-Sized vs Your Configuration</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Right-Sized (2 batteries)</th>
+                            <th>Your Config (40 batteries)</th>
+                            <th>Difference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CAPEX</td>
+                            <td>GBP 800k-1.2M</td>
+                            <td>GBP 19-29M</td>
+                            <td>20-24x higher</td>
+                        </tr>
+                        <tr>
+                            <td>Backup Capability</td>
+                            <td>8-10 hours</td>
+                            <td>8-9 days</td>
+                            <td>20x more</td>
+                        </tr>
+                        <tr>
+                            <td>Grid Services Revenue</td>
+                            <td>GBP 50-150k/year</td>
+                            <td>GBP 2.5-5.5M/year</td>
+                            <td>30-50x higher</td>
+                        </tr>
+                        <tr>
+                            <td>Payback (grid services)</td>
+                            <td>6-10 years</td>
+                            <td>5-8 years</td>
+                            <td>Similar</td>
+                        </tr>
+                        <tr>
+                            <td>Land Requirement</td>
+                            <td>~200 m2</td>
+                            <td>~3,000 m2</td>
+                            <td>15x larger</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 8: Technical Calculations -->
+        <section class="section" id="calculations">
+            <h2>8. Technical Calculations</h2>
+
+            <h3>8.1 Energy Storage Calculations</h3>
+            <div class="formula-block">
+<strong>Total Nameplate Energy:</strong>
+E_total = N_batteries x E_battery
+E_total = 40 x 2,236 kWh
+<span class="result">E_total = 89,440 kWh = 89.44 MWh</span>
+
+<strong>Usable Energy (90% Depth of Discharge):</strong>
+E_usable = E_total x DoD
+E_usable = 89.44 MWh x 0.90
+<span class="result">E_usable = 80.496 MWh (approx. 80.5 MWh)</span>
+
+<strong>Energy After Round-Trip Efficiency (95%):</strong>
+E_delivered = E_usable x eta_roundtrip
+E_delivered = 80.5 MWh x 0.95
+<span class="result">E_delivered = 76.475 MWh (approx. 76.5 MWh)</span>
+            </div>
+
+            <h3>8.2 Power Output Calculations</h3>
+            <div class="formula-block">
+<strong>Total Inverter Power:</strong>
+P_total = N_inverters x P_inverter
+P_total = 5 x 4,000 kW
+<span class="result">P_total = 20,000 kW = 20 MW</span>
+
+<strong>AC Output After Conversion Efficiency (99%):</strong>
+P_ac = P_total x eta_inverter
+P_ac = 20 MW x 0.99
+<span class="result">P_ac = 19.8 MW</span>
+
+<strong>Maximum Battery Discharge Rate Check:</strong>
+Battery max discharge = 0.5C = 1,118 kW per unit
+Total battery discharge = 40 x 1,118 kW = 44,720 kW
+Inverter demand = 20,000 kW
+<span class="result">Battery can supply inverter demand (44.7 MW > 20 MW) - PASS</span>
+            </div>
+
+            <h3>8.3 Duration Calculations</h3>
+            <div class="formula-block">
+<strong>Duration at Full Inverter Power:</strong>
+t_full = E_total / P_total
+t_full = 89.44 MWh / 20 MW
+<span class="result">t_full = 4.472 hours</span>
+
+<strong>Duration at Sand Mine Load (420 kW peak):</strong>
+t_mine = E_total / P_mine
+t_mine = 89,440 kWh / 420 kW
+<span class="result">t_mine = 212.95 hours = 8.87 days</span>
+
+<strong>Duration at Average Load (250 kW):</strong>
+t_avg = E_total / P_avg
+t_avg = 89,440 kWh / 250 kW
+<span class="result">t_avg = 357.76 hours = 14.9 days</span>
+            </div>
+
+            <h3>8.4 Energy-to-Power Ratio</h3>
+            <div class="formula-block">
+<strong>E/P Ratio (System Duration):</strong>
+E/P = E_total / P_total
+E/P = 89.44 MWh / 20 MW
+<span class="result">E/P = 4.472 hours</span>
+
+Classification: "4-hour" or "medium duration" BESS
+
+<strong>Comparison with SC2400UD-MV (5 units):</strong>
+P_alt = 5 x 2.4 MW = 12 MW
+E/P_alt = 89.44 MWh / 12 MW
+<span class="result">E/P_alt = 7.453 hours (longer duration)</span>
+            </div>
+
+            <h3>8.5 Cycle Life and Degradation</h3>
+            <div class="formula-block">
+<strong>Annual Cycles (1 cycle/day for grid services):</strong>
+Cycles_year = 365 cycles
+
+<strong>Expected Cycle Life:</strong>
+Rated cycles at 90% DoD: 6,000 cycles
+Years of operation = 6,000 / 365
+<span class="result">Expected life = 16.4 years</span>
+
+<strong>Throughput Capacity:</strong>
+Total throughput = E_total x Cycles_total x 2 (charge + discharge)
+Total throughput = 89.44 MWh x 6,000 x 2
+<span class="result">Total throughput = 1,073,280 MWh = 1.07 TWh lifetime</span>
+            </div>
+
+            <h3>8.6 Sizing Validation</h3>
+            <div class="formula-block">
+<strong>Battery-to-Inverter Power Ratio Check:</strong>
+Battery discharge capacity = 40 x 1,118 kW = 44,720 kW
+Inverter capacity = 5 x 4,000 kW = 20,000 kW
+Ratio = 44,720 / 20,000
+<span class="result">Ratio = 2.24 (batteries can supply 2.24x inverter demand)</span>
+
+<strong>This confirms adequate headroom for:</strong>
+- Battery degradation over lifetime
+- Temperature derating
+- Efficiency losses
+- Auxiliary loads
+            </div>
+        </section>
+
+        <!-- Section 9: Appendices -->
+        <section class="section" id="appendices">
+            <h2>9. Appendices</h2>
+
+            <h3>A. Research Log</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Phase</th>
+                            <th>Activity</th>
+                            <th>Outcome</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Equipment specification review</td>
+                            <td>Confirmed ST2236UX (2.236 MWh) and SC4000UD-MV (4 MW) specs</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Configuration analysis</td>
+                            <td>Calculated 89.44 MWh / 20 MW system totals</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Small sand mine load profiling</td>
+                            <td>Estimated 420 kW peak, 5 MWh/day consumption</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Mismatch analysis</td>
+                            <td>Identified 48x power oversizing for stated application</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>Alternative use case identification</td>
+                            <td>Grid services as primary revenue driver</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>Financial modeling</td>
+                            <td>GBP 19-29M CAPEX, GBP 2.5-5.5M annual grid revenue potential</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>Right-sizing recommendations</td>
+                            <td>2-3 batteries adequate for small sand mine backup</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>B. Glossary</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>BESS</td>
+                            <td>Battery Energy Storage System</td>
+                        </tr>
+                        <tr>
+                            <td>PCS</td>
+                            <td>Power Conversion System (inverter/converter)</td>
+                        </tr>
+                        <tr>
+                            <td>DoD</td>
+                            <td>Depth of Discharge - percentage of battery capacity used</td>
+                        </tr>
+                        <tr>
+                            <td>E/P Ratio</td>
+                            <td>Energy-to-Power ratio, indicating system duration in hours</td>
+                        </tr>
+                        <tr>
+                            <td>C-rate</td>
+                            <td>Charge/discharge rate relative to capacity (1C = full in 1 hour)</td>
+                        </tr>
+                        <tr>
+                            <td>LFP</td>
+                            <td>Lithium Iron Phosphate battery chemistry (LiFePO4)</td>
+                        </tr>
+                        <tr>
+                            <td>BOP</td>
+                            <td>Balance of Plant - auxiliary equipment and systems</td>
+                        </tr>
+                        <tr>
+                            <td>DC (Dynamic Containment)</td>
+                            <td>UK frequency response service product</td>
+                        </tr>
+                        <tr>
+                            <td>T-4</td>
+                            <td>Capacity Market auction held 4 years ahead of delivery</td>
+                        </tr>
+                        <tr>
+                            <td>MV</td>
+                            <td>Medium Voltage (typically 10-35 kV)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>C. Data Sources</h3>
+            <ul>
+                <li><strong>Sungrow:</strong> Official product datasheets for ST2236UX and SC4000UD-MV</li>
+                <li><strong>National Grid ESO:</strong> Grid services rates and capacity market data</li>
+                <li><strong>BloombergNEF:</strong> BESS pricing benchmarks 2024-2025</li>
+                <li><strong>Mineral Products Association:</strong> UK quarrying industry energy consumption data</li>
+                <li><strong>Energy-Storage.news:</strong> UK BESS project database and market analysis</li>
+            </ul>
+
+            <h3>D. Document Information</h3>
+            <div class="callout callout-info">
+                <ul>
+                    <li><strong>Document Type:</strong> Technical Case Study</li>
+                    <li><strong>Version:</strong> 2.0 (SC4000UD-MV Configuration)</li>
+                    <li><strong>Generated:</strong> January 2026</li>
+                    <li><strong>Platform:</strong> Regno AI</li>
+                    <li><strong>Purpose:</strong> BESS sizing and feasibility analysis</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Summary Recommendation -->
+        <section class="section">
+            <h2>Final Recommendation</h2>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-red);">For Sand Mine Backup Only</h4>
+                    <p>Your proposed system is <strong>not recommended</strong>.</p>
+                    <ul>
+                        <li>48x more power than needed</li>
+                        <li>18x more energy than daily use</li>
+                        <li>GBP 19-29M for GBP 187k/year savings</li>
+                        <li>128+ year payback</li>
+                    </ul>
+                    <p><strong>Recommended:</strong> 2-3 ST2236UX batteries with 1 MW inverter (GBP 0.8-1.5M)</p>
+                </div>
+                <div class="comparison-card">
+                    <h4 style="color: var(--accent-green);">For Grid Services + Backup</h4>
+                    <p>Your proposed system is <strong>well-suited</strong>.</p>
+                    <ul>
+                        <li>20 MW qualifies for all UK services</li>
+                        <li>4.47h duration meets T-4 requirements</li>
+                        <li>GBP 2.5-5.5M annual revenue potential</li>
+                        <li>5-8 year payback with grid services</li>
+                    </ul>
+                    <p><strong>Bonus:</strong> Sand mine gets unlimited backup as a side benefit</p>
+                </div>
+            </div>
+
+            <div class="callout callout-success" style="margin-top: 2rem;">
+                <h4>Bottom Line</h4>
+                <p>If your goal is solely to power a small sand mine, this system is massively overbuilt. However, if you're developing a <strong>grid-scale energy storage asset</strong> that happens to be located at a sand mine, this is a viable commercial project with strong revenue potential in the UK market.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Generated by Regno AI | Comprehensive BESS Analysis Platform</p>
+            <p>SC4000UD-MV Configuration Analysis | January 2026</p>
+            <p style="margin-top: 1rem; font-size: 0.75rem;">
+                This document is provided for informational purposes. All specifications should be verified with manufacturer documentation. Financial projections are estimates and actual results may vary.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

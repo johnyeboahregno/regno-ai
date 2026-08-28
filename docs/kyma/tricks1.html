@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KymaGrid BMS - Battery Management System | Powered by Regno</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --border-color: #30363d;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .header .tagline {
+            color: var(--accent-orange);
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .header .meta {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .section p.summary {
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-cyan);
+            line-height: 1.9;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .stat-card.blue .value { color: var(--accent-blue); }
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.purple .value { color: var(--accent-purple); }
+        .stat-card.cyan .value { color: var(--accent-cyan); }
+
+        /* Tricks Grid */
+        .tricks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .trick-card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .trick-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-cyan);
+        }
+
+        .trick-card .trick-icon {
+            font-size: 2.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .trick-card h3 {
+            font-size: 1.1rem;
+            color: var(--accent-orange);
+            margin-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .trick-card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Callout boxes */
+        .callout {
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .callout-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .callout-cyan {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: var(--accent-cyan);
+        }
+
+        .callout h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-cyan { color: var(--accent-cyan); }
+        .highlight-green { color: var(--accent-green); }
+        .highlight-blue { color: var(--accent-blue); }
+
+        /* Architecture Diagram */
+        .architecture-diagram {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .diagram-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .diagram-box {
+            padding: 0.875rem 1.25rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 140px;
+        }
+
+        .diagram-box.regno { background: linear-gradient(135deg, var(--accent-orange), #ea580c); color: white; }
+        .diagram-box.dashboard { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); color: white; }
+        .diagram-box.model { background: linear-gradient(135deg, var(--accent-blue), #1d4ed8); color: white; }
+        .diagram-box.pcs-on { background: linear-gradient(135deg, var(--accent-cyan), #0891b2); color: white; }
+        .diagram-box.pcs-off { background: linear-gradient(135deg, var(--accent-green), #16a34a); color: white; }
+        .diagram-box.battery { background: linear-gradient(135deg, #eab308, #ca8a04); color: white; }
+        .diagram-box.load { background: linear-gradient(135deg, #64748b, #475569); color: white; }
+
+        .diagram-arrow {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+        }
+
+        .diagram-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+            }
+
+            .tricks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .diagram-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>KymaGrid Battery Management System</h1>
+            <p class="subtitle">Software-Defined Energy Control for Industrial BESS</p>
+            <p class="tagline">Powered by Regno - "Your Data Empowered"</p>
+            <div class="meta">
+                <span class="badge badge-cyan">Dual-Inverter Topology</span>
+                <span class="badge badge-green">Hardware-Agnostic</span>
+                <span class="badge badge-purple">Real-Time Telemetry</span>
+                <span class="badge badge-orange">Remote Access</span>
+                <span class="badge badge-blue">AI-Ready</span>
+            </div>
+            <p class="meta" style="margin-top: 1rem;">
+                Technical Summary | Regno Platform Integration | January 2026
+            </p>
+        </header>
+
+        <!-- BMS Summary Section -->
+        <section class="section">
+            <h2>Battery Management System Overview</h2>
+            <p class="summary">
+                The <span class="highlight-cyan">KymaGrid Battery Management System (BMS)</span> is a software-defined energy control platform built on the <span class="highlight">Regno telemetry infrastructure</span> that orchestrates industrial battery energy storage systems through a dual-inverter topology separating charging (OnGrid PCS) and discharging (OffGrid PCS) paths. The system features a sophisticated <span class="highlight-cyan">Model layer</span> responsible for stateflow management, decision logic, and safety enforcement while generating real-time setpoints for power conversion equipment, combined with a <span class="highlight-green">Dashboard platform</span> that serves as the supervisory "brain" providing fault tolerance orchestration, real-time data streaming to Regno databases, and remote monitoring capabilities&mdash;enabling hardware-independent deployment across diverse sites while handling demanding operational scenarios including overnight trickle charging at 10 kW continuous, inrush events up to 230 kW, and seamless transitions between grid-connected and fully islanded operation modes that have been proven to sustain real plant loads for extended periods without grid connection.
+            </p>
+        </section>
+
+        <!-- Key Metrics -->
+        <section class="section">
+            <h2>Proven Performance at ZnT Site</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">230 kW</div>
+                    <div class="label">Peak Inrush Handling</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">10 kW</div>
+                    <div class="label">Overnight Trickle Charge</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">~39 kW</div>
+                    <div class="label">Average Discharge Power</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">330 kWh</div>
+                    <div class="label">Daily Energy Cycled</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">8.5 hrs</div>
+                    <div class="label">Daily Discharge Window</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">2+ Days</div>
+                    <div class="label">Stable Integrated Testing</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section class="section">
+            <h2>System Architecture</h2>
+            <div class="architecture-diagram">
+                <h4 style="text-align: center; color: var(--accent-orange); margin-bottom: 1.5rem;">KymaGrid Control Stack - Powered by Regno</h4>
+
+                <div class="diagram-row">
+                    <div class="diagram-box regno">
+                        Regno Cloud<br/>
+                        <span class="diagram-label">Telemetry Platform</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box dashboard">
+                        Dashboard<br/>
+                        <span class="diagram-label">Supervisory Brain</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box model">
+                        Model<br/>
+                        <span class="diagram-label">State Machine</span>
+                    </div>
+                </div>
+
+                <div class="diagram-row" style="margin-top: 1.5rem;">
+                    <div class="diagram-box pcs-on">
+                        OnGrid PCS<br/>
+                        <span class="diagram-label">Charging Path</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box battery">
+                        Battery Bank<br/>
+                        <span class="diagram-label">Energy Storage</span>
+                    </div>
+                    <span class="diagram-arrow">&harr;</span>
+                    <div class="diagram-box pcs-off">
+                        OffGrid PCS<br/>
+                        <span class="diagram-label">Discharge Path</span>
+                    </div>
+                    <span class="diagram-arrow">&rarr;</span>
+                    <div class="diagram-box load">
+                        Plant Load<br/>
+                        <span class="diagram-label">Consumer</span>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                    <strong>Key:</strong> Dashboard acts as "brain" coordinating subsystems | Model is the "organ" for operational decisions
+                </p>
+            </div>
+
+            <div class="callout callout-cyan">
+                <h4>Regno Platform Integration</h4>
+                <p>The KymaGrid BMS leverages Regno's universal telemetry standard for real-time data streaming, historical analysis, and AI-ready data storage. All system data flows through the Regno Standard JSON format, enabling seamless integration with the INSIGHT visualization platform and advanced analytics capabilities.</p>
+            </div>
+        </section>
+
+        <!-- The Tricks Section -->
+        <section class="section">
+            <h2>The Tricks</h2>
+            <p>Key capabilities that make the KymaGrid BMS a sophisticated, field-proven energy management system:</p>
+
+            <div class="tricks-grid">
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F50C;</div>
+                    <h3>Hardware-Independent Deployment</h3>
+                    <p>The communication layer was re-architected to decouple from physical hardware requirements. The Model can now run as a standalone service integrated into any site's software stack, making deployments faster, more repeatable, and hardware-agnostic across different battery chemistries and PCS configurations.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F504;</div>
+                    <h3>Independent OnGrid/OffGrid Operation</h3>
+                    <p>OnGrid and OffGrid PCS operate completely independently. When the generator is turned off, the OnGrid PCS enters standby while the OffGrid PCS continues discharging to the plant without interruption. This enables simultaneous charging and discharging, or complete grid isolation during outages.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x26A1;</div>
+                    <h3>230 kW Inrush Event Handling</h3>
+                    <p>The system handles occasional inrush events up to 230 kW while maintaining stability. Short power bursts (~0.06 kWh each) are absorbed without failure, demonstrating the system's ability to manage both steady operational loads and sudden high-demand transients.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F319;</div>
+                    <h3>Overnight Trickle Charging</h3>
+                    <p>Intelligent overnight charging at 10 kW continuous from ~18:00 to 09:30, maintaining battery SOC at optimal levels (68% by morning). This gentle charging approach extends battery life while ensuring full capacity for peak demand periods during daytime operations.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F4F1;</div>
+                    <h3>Remote Access & Control</h3>
+                    <p>Full supervisory control established via Starlink connectivity for the Brain, battery, and PCS. Enables secure remote monitoring, deployment of software updates, and remote command issuance&mdash;reducing on-site intervention needs and enabling centralized management across multiple sites.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F6E1;</div>
+                    <h3>Fault Tolerance Orchestration</h3>
+                    <p>The Dashboard monitors subsystem health and automatically manages recovery procedures. It handles fault tolerance by coordinating interactions between core systems, battery, PCS, and Model to ensure safe and optimized operation even during unexpected conditions.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F4CA;</div>
+                    <h3>Real-Time Setpoint Generation</h3>
+                    <p>The Model layer continuously generates real-time setpoints (charge/discharge commands) and propagates them to the PCS. This stateflow management ensures optimal power flow decisions based on current system state, load demands, and safety constraints.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F5C4;</div>
+                    <h3>Regno Data Streaming</h3>
+                    <p>All system data is collected and streamed into Regno databases for detailed diagnostics, historical analysis, and fault tracing. The INSIGHT platform provides visualization of system status, error diagnostics, and allows engineers to monitor or intervene as needed.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F3ED;</div>
+                    <h3>Proven Off-Grid Plant Operation</h3>
+                    <p>Successfully demonstrated fully off-grid operation at ZnT&mdash;plant ran for 2+ continuous hours powered solely by battery with no grid connection. The system sustained real plant loads (35-45 kW steady, 230 kW peaks) validating industrial-scale islanded operation.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F527;</div>
+                    <h3>PCS Frequency Stabilization Tuning</h3>
+                    <p>PCS firmware upgraded to allow fine-grained control over synchronization parameters. After tuning startup timing to accommodate generator frequency overshoot, the system achieved stable operation and successful battery charging from generator sources.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F4E6;</div>
+                    <h3>Blackbox "Brain" Architecture</h3>
+                    <p>The control system runs on OnLogic hardware (the "Brain") containing the database and software stack with UPS backup. This self-contained unit eliminates external laptop dependencies and provides a scalable foundation for managing deployments across multiple sites.</p>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F500;</div>
+                    <h3>Flexible Integration Topologies</h3>
+                    <p>KymaGrid supports multiple integration options: Parallel Integration (common DC/AC rails), Split Integration (separate charging/discharge AC rails), and HV Group Integration (DC groups to single PCS). This architectural flexibility adapts to diverse site requirements.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Integration Options -->
+        <section class="section">
+            <h2>Integration Topologies</h2>
+            <p>KymaGrid offers flexible integration architectures to match site requirements:</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Topology</th>
+                            <th>DC Rail</th>
+                            <th>AC Rail</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="highlight-cyan">Parallel Integration</span></td>
+                            <td>Common DC Rail</td>
+                            <td>Common AC Rail</td>
+                            <td>Standard grid-tied applications</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-green">Split Integration</span></td>
+                            <td>Common DC Rail</td>
+                            <td>Separate Charge/Discharge Rails</td>
+                            <td>Independent OnGrid/OffGrid operation (ZnT)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="highlight-purple">HV Group Integration</span></td>
+                            <td>DC Groups to Single PCS</td>
+                            <td>All PCS in Parallel</td>
+                            <td>Large-scale multi-MW deployments</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-success">
+                <h4>Z&T Deployment Configuration</h4>
+                <p>The ZnT site uses <strong>Split Integration</strong> with a common DC rail for all BESS and PCS units, plus 2 separate AC rails (charging and discharge). This enables the "jump start" capability where BESS 101-104 and PCS-1 initialize with an external source, then PCS-1 generates AUX power for all remaining units.</p>
+            </div>
+        </section>
+
+        <!-- Software Components -->
+        <section class="section">
+            <h2>Software Stack Components</h2>
+
+            <div class="tricks-grid">
+                <div class="trick-card">
+                    <div class="trick-icon">&#x1F9E0;</div>
+                    <h3>Dashboard Platform (The "Brain")</h3>
+                    <p><strong>Core Functions:</strong></p>
+                    <ul style="color: var(--text-secondary); margin-top: 0.5rem; padding-left: 1.25rem;">
+                        <li>Communicates with battery and PCS in real time</li>
+                        <li>Streams system data to Regno databases</li>
+                        <li>Handles fault tolerance and recovery procedures</li>
+                        <li>Orchestrates subsystem interactions</li>
+                        <li>Provides visualization and direct control inputs</li>
+                    </ul>
+                </div>
+
+                <div class="trick-card">
+                    <div class="trick-icon">&#x2699;</div>
+                    <h3>Model Layer (The "Organ")</h3>
+                    <p><strong>Responsibilities:</strong></p>
+                    <ul style="color: var(--text-secondary); margin-top: 0.5rem; padding-left: 1.25rem;">
+                        <li>Stateflow management and state transitions</li>
+                        <li>Decision logic and operational flow control</li>
+                        <li>Safety enforcement and constraint validation</li>
+                        <li>Real-time setpoint generation</li>
+                        <li>Charge/discharge command propagation to PCS</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout callout-info">
+                <h4>Regno Platform Benefits</h4>
+                <p>By integrating with Regno's universal telemetry standard, KymaGrid gains access to:</p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
+                    <li><strong>INSIGHT Platform:</strong> Advanced visualization with multi-source data overlay</li>
+                    <li><strong>Historical Analysis:</strong> Full data capture for diagnostics and fault tracing</li>
+                    <li><strong>AI/ML Ready:</strong> Vector storage for predictive analytics and pattern recognition</li>
+                    <li><strong>Cloud-Agnostic:</strong> Deploy on AWS, Azure, or on-premises infrastructure</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>KymaGrid Battery Management System | Powered by <a href="https://regno.uk/">Regno Platform</a></p>
+            <p>Technical Summary | ZnT Site Deployment Reference | January 2026</p>
+            <p style="margin-top: 1rem; font-size: 0.75rem;">
+                Regno and Regno Standard are trademarks of Regno Software.<br>
+                This document summarizes the BMS capabilities deployed at the ZnT industrial site.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

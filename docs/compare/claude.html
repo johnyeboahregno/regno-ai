@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battery Energy Storage System Analysis | Sand Mine Application</title>
+    <style>
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --bg-surface: #21262d;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --error: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        .report-header {
+            text-align: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+
+        .report-header .logo {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        .report-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .report-header .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 24px;
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .report-meta span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Executive Summary */
+        .executive-summary {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .executive-summary h2 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .executive-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .executive-summary li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(249, 115, 22, 0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .executive-summary li:last-child {
+            border-bottom: none;
+        }
+
+        .executive-summary .bullet {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Key Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .metric-card .label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .metric-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-card .unit {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        .metric-card .note {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section h3 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin: 24px 0 16px;
+        }
+
+        .section h3:first-of-type {
+            margin-top: 0;
+        }
+
+        .section p {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-surface);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .highlight-row {
+            background: rgba(249, 115, 22, 0.1);
+        }
+
+        .highlight-row td {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Callout boxes */
+        .callout {
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .callout.info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .callout.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .callout.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .callout.danger {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid rgba(248, 81, 73, 0.3);
+        }
+
+        .callout h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .callout.info h4 { color: var(--info); }
+        .callout.success h4 { color: var(--success); }
+        .callout.warning h4 { color: var(--warning); }
+        .callout.danger h4 { color: var(--error); }
+
+        .callout p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Formulas */
+        .formula {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        .formula .result {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Recommendation Cards */
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .recommendation-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .recommendation-card.recommended {
+            border-color: var(--primary);
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .recommendation-card h4 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recommendation-card.recommended h4 {
+            color: var(--primary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .badge.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge.info {
+            background: var(--info);
+            color: white;
+        }
+
+        /* Footer */
+        .report-footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        .report-footer .brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .report-footer p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .report-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .recommendation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .section, .metric-card, .executive-summary {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="report-header">
+        <div class="logo">Regno.AI</div>
+        <h1>Battery Energy Storage System Analysis</h1>
+        <p class="subtitle">Comprehensive Technical Assessment for Sand Mine Application with Sungrow PowerTitan Battery & Inverter Configuration</p>
+        <div class="report-meta">
+            <span>Generated: January 18, 2026</span>
+            <span>Application: Small Sand Mine (Local Construction Supply)</span>
+            <span>Analysis Type: Investigative Report</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Executive Summary -->
+        <div class="executive-summary">
+            <h2>Executive Summary</h2>
+            <ul>
+                <li>
+                    <span class="bullet">&#9679;</span>
+                    <span><strong>Total Energy Storage:</strong> 89.44 MWh from 40x Sungrow ST2236UX batteries (2,236 kWh each)</span>
+                </li>
+                <li>
+                    <span class="bullet">&#9679;</span>
+                    <span><strong>Maximum Power Output:</strong> 20 MW from 5x SC4000UD-MV inverters (4 MW each)</span>
+                </li>
+                <li>
+                    <span class="bullet">&#9679;</span>
+                    <span><strong>Runtime at Full Capacity:</strong> 4.5 hours at maximum 20 MW discharge</span>
+                </li>
+                <li>
+                    <span class="bullet">&#9679;</span>
+                    <span><strong>Small Sand Mine Runtime:</strong> 44-60 hours at typical 1.5-2 MW operational load</span>
+                </li>
+                <li>
+                    <span class="bullet">&#9679;</span>
+                    <span><strong>Configuration Status:</strong> Significantly oversized for small sand mine - consider 8-12 batteries with 1-2 inverters</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">Total Energy Capacity</div>
+                <div class="value">89.44<span class="unit">MWh</span></div>
+                <div class="note">40 batteries x 2,236 kWh</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Maximum Power Output</div>
+                <div class="value">20<span class="unit">MW</span></div>
+                <div class="note">5 inverters x 4 MW</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Runtime (Small Mine)</div>
+                <div class="value">~53<span class="unit">hrs</span></div>
+                <div class="note">At 1.5 MW typical load</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Battery:Inverter Ratio</div>
+                <div class="value">8:1</div>
+                <div class="note">40 batteries / 5 inverters</div>
+            </div>
+        </div>
+
+        <!-- Equipment Specifications -->
+        <section class="section">
+            <h2>1. Equipment Technical Specifications</h2>
+
+            <h3>Sungrow PowerTitan ST2236UX Battery System</h3>
+            <table>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Specification</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>Battery Capacity (BOL)</td>
+                    <td><strong>2,236 kWh</strong></td>
+                    <td>Beginning of Life capacity</td>
+                </tr>
+                <tr>
+                    <td>System Voltage Range</td>
+                    <td>1,123.2 - 1,497.6 V</td>
+                    <td>DC output voltage range</td>
+                </tr>
+                <tr>
+                    <td>DC Voltage</td>
+                    <td>1,500 V</td>
+                    <td>Nominal DC voltage</td>
+                </tr>
+                <tr>
+                    <td>Dimensions (W x H x D)</td>
+                    <td>9,340 x 2,600 x 1,730 mm</td>
+                    <td>Per unit footprint</td>
+                </tr>
+                <tr>
+                    <td>Weight</td>
+                    <td>24,000 kg</td>
+                    <td>Per battery unit</td>
+                </tr>
+                <tr>
+                    <td>Operating Temperature</td>
+                    <td>-30&deg;C to +50&deg;C</td>
+                    <td>Liquid cooling system</td>
+                </tr>
+                <tr>
+                    <td>Compatible PCS</td>
+                    <td>SC4000UD-MV</td>
+                    <td>Designed pairing</td>
+                </tr>
+                <tr>
+                    <td>Cooling System</td>
+                    <td>Liquid Cooling</td>
+                    <td>Enhanced thermal management</td>
+                </tr>
+            </table>
+
+            <h3>Sungrow SC4000UD-MV Power Conversion System</h3>
+            <table>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Specification</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>Rated Power</td>
+                    <td><strong>4,000 kVA (4 MW)</strong></td>
+                    <td>Per inverter unit</td>
+                </tr>
+                <tr>
+                    <td>System Type</td>
+                    <td>Medium Voltage PCS</td>
+                    <td>MV Power Converter</td>
+                </tr>
+                <tr>
+                    <td>Efficiency</td>
+                    <td>&gt;99%</td>
+                    <td>Industry-leading efficiency</td>
+                </tr>
+                <tr>
+                    <td>Model Series</td>
+                    <td>SC-UD-MV Series</td>
+                    <td>Part of 2.75-5 MW range</td>
+                </tr>
+            </table>
+
+            <div class="callout info">
+                <h4>Source Verification</h4>
+                <p>Specifications verified from official Sungrow product documentation and ENF Solar database. The ST2236UX and SC4000UD-MV are a designed pairing for utility-scale energy storage applications.</p>
+            </div>
+        </section>
+
+        <!-- Energy Calculations -->
+        <section class="section">
+            <h2>2. Energy Production & Storage Calculations</h2>
+
+            <h3>Total System Energy Capacity</h3>
+            <div class="formula">
+                Total Energy = Number of Batteries &times; Battery Capacity<br>
+                Total Energy = 40 &times; 2,236 kWh = <span class="result">89,440 kWh = 89.44 MWh</span>
+            </div>
+
+            <h3>Usable Energy (Accounting for Depth of Discharge)</h3>
+            <p>Battery systems typically operate at 85-95% Depth of Discharge (DoD) to preserve battery longevity:</p>
+            <div class="formula">
+                Usable Energy (90% DoD) = 89.44 MWh &times; 0.90 = <span class="result">80.5 MWh</span><br>
+                Usable Energy (85% DoD) = 89.44 MWh &times; 0.85 = <span class="result">76.0 MWh</span>
+            </div>
+
+            <h3>Maximum Power Output</h3>
+            <div class="formula">
+                Max Power = Number of Inverters &times; Inverter Rating<br>
+                Max Power = 5 &times; 4 MW = <span class="result">20 MW</span>
+            </div>
+
+            <div class="callout success">
+                <h4>Power-to-Energy Ratio</h4>
+                <p>With 20 MW power and 89.44 MWh storage, this system provides a 4.47-hour discharge duration at maximum power. This is considered a "short-duration" storage configuration suitable for peak shaving and backup power applications.</p>
+            </div>
+        </section>
+
+        <!-- Runtime Analysis -->
+        <section class="section">
+            <h2>3. Battery Runtime Analysis</h2>
+
+            <h3>Runtime Formula</h3>
+            <div class="formula">
+                Runtime (hours) = Usable Energy (MWh) &divide; Load (MW)
+            </div>
+
+            <h3>Runtime at Various Load Levels</h3>
+            <table>
+                <tr>
+                    <th>Load Level</th>
+                    <th>Power Draw</th>
+                    <th>Runtime (90% DoD)</th>
+                    <th>Application</th>
+                </tr>
+                <tr>
+                    <td>Maximum Output</td>
+                    <td>20 MW</td>
+                    <td>4.0 hours</td>
+                    <td>Emergency backup / Peak demand</td>
+                </tr>
+                <tr>
+                    <td>High Load</td>
+                    <td>10 MW</td>
+                    <td>8.1 hours</td>
+                    <td>Large industrial operation</td>
+                </tr>
+                <tr>
+                    <td>Medium Load</td>
+                    <td>5 MW</td>
+                    <td>16.1 hours</td>
+                    <td>Medium mine with processing</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td>Small Sand Mine (Typical)</td>
+                    <td>1.5 MW</td>
+                    <td>53.7 hours</td>
+                    <td>Your application</td>
+                </tr>
+                <tr>
+                    <td>Minimal Operations</td>
+                    <td>500 kW</td>
+                    <td>161 hours</td>
+                    <td>Essential systems only</td>
+                </tr>
+            </table>
+
+            <div class="callout warning">
+                <h4>Important Consideration</h4>
+                <p>The proposed 40-battery, 5-inverter configuration is significantly oversized for a small sand mine application. A typical small sand mine consuming 1.5 MW would have over 53 hours of backup power - far exceeding typical requirements of 4-8 hours for emergency backup.</p>
+            </div>
+        </section>
+
+        <!-- Plant Sizing -->
+        <section class="section">
+            <h2>4. Plant Size Capability Analysis</h2>
+
+            <h3>Sand Mine Power Requirements by Scale</h3>
+            <table>
+                <tr>
+                    <th>Mine Category</th>
+                    <th>Typical Load</th>
+                    <th>Equipment</th>
+                    <th>Runtime with 80.5 MWh</th>
+                </tr>
+                <tr class="highlight-row">
+                    <td>Small (Local Supply)</td>
+                    <td>500 kW - 2 MW</td>
+                    <td>Wash plant, screens, conveyors, lighting</td>
+                    <td>40-161 hours</td>
+                </tr>
+                <tr>
+                    <td>Medium (Regional)</td>
+                    <td>2 - 5 MW</td>
+                    <td>+ Crushers, multiple wash plants, larger conveyors</td>
+                    <td>16-40 hours</td>
+                </tr>
+                <tr>
+                    <td>Large (Industrial/Frac Sand)</td>
+                    <td>5 - 15 MW</td>
+                    <td>+ Dryers, coaters, rail loading, extensive processing</td>
+                    <td>5-16 hours</td>
+                </tr>
+            </table>
+
+            <h3>Typical Small Sand Mine Equipment Power Breakdown</h3>
+            <table>
+                <tr>
+                    <th>Equipment</th>
+                    <th>Power (kW)</th>
+                    <th>Quantity</th>
+                    <th>Total (kW)</th>
+                </tr>
+                <tr>
+                    <td>Sand Wash Plant</td>
+                    <td>75-150</td>
+                    <td>1</td>
+                    <td>150</td>
+                </tr>
+                <tr>
+                    <td>Vibrating Screens</td>
+                    <td>30-50</td>
+                    <td>2</td>
+                    <td>100</td>
+                </tr>
+                <tr>
+                    <td>Conveyor Systems</td>
+                    <td>15-30</td>
+                    <td>4</td>
+                    <td>120</td>
+                </tr>
+                <tr>
+                    <td>Pump Systems</td>
+                    <td>50-100</td>
+                    <td>3</td>
+                    <td>300</td>
+                </tr>
+                <tr>
+                    <td>Excavator/Loader (Electric)</td>
+                    <td>200-400</td>
+                    <td>2</td>
+                    <td>600</td>
+                </tr>
+                <tr>
+                    <td>Site Lighting</td>
+                    <td>20-50</td>
+                    <td>1</td>
+                    <td>50</td>
+                </tr>
+                <tr>
+                    <td>Office/Control Building</td>
+                    <td>30-50</td>
+                    <td>1</td>
+                    <td>50</td>
+                </tr>
+                <tr>
+                    <td>Ancillary Systems</td>
+                    <td>50-100</td>
+                    <td>1</td>
+                    <td>100</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td colspan="3"><strong>TOTAL ESTIMATED LOAD</strong></td>
+                    <td><strong>1,470 kW (~1.5 MW)</strong></td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Recommendations -->
+        <section class="section">
+            <h2>5. Recommended Configurations by Site Size</h2>
+
+            <p>Based on the analysis, here are optimal battery and inverter combinations for different sand mine scales:</p>
+
+            <div class="recommendation-grid">
+                <div class="recommendation-card recommended">
+                    <h4>
+                        <span class="badge primary">Recommended</span>
+                        Small Sand Mine (Your Application)
+                    </h4>
+                    <table>
+                        <tr><td>Site Load</td><td>1-2 MW</td></tr>
+                        <tr><td>Batteries</td><td><strong>8-12x ST2236UX</strong></td></tr>
+                        <tr><td>Inverters</td><td><strong>1-2x SC4000UD-MV</strong></td></tr>
+                        <tr><td>Total Capacity</td><td>17.9-26.8 MWh</td></tr>
+                        <tr><td>Power Output</td><td>4-8 MW</td></tr>
+                        <tr><td>Runtime @ 1.5 MW</td><td>10-16 hours</td></tr>
+                    </table>
+                    <p style="margin-top: 12px; color: var(--text-muted); font-size: 13px;">
+                        Provides adequate backup for extended outages while optimizing capital investment.
+                    </p>
+                </div>
+
+                <div class="recommendation-card">
+                    <h4>
+                        <span class="badge info">Medium</span>
+                        Medium Regional Mine
+                    </h4>
+                    <table>
+                        <tr><td>Site Load</td><td>3-5 MW</td></tr>
+                        <tr><td>Batteries</td><td><strong>16-24x ST2236UX</strong></td></tr>
+                        <tr><td>Inverters</td><td><strong>2-3x SC4000UD-MV</strong></td></tr>
+                        <tr><td>Total Capacity</td><td>35.8-53.7 MWh</td></tr>
+                        <tr><td>Power Output</td><td>8-12 MW</td></tr>
+                        <tr><td>Runtime @ 4 MW</td><td>8-12 hours</td></tr>
+                    </table>
+                </div>
+
+                <div class="recommendation-card">
+                    <h4>
+                        <span class="badge success">Full Config</span>
+                        Large Industrial / Frac Sand
+                    </h4>
+                    <table>
+                        <tr><td>Site Load</td><td>10-15 MW</td></tr>
+                        <tr><td>Batteries</td><td><strong>40x ST2236UX</strong></td></tr>
+                        <tr><td>Inverters</td><td><strong>4-5x SC4000UD-MV</strong></td></tr>
+                        <tr><td>Total Capacity</td><td>89.4 MWh</td></tr>
+                        <tr><td>Power Output</td><td>16-20 MW</td></tr>
+                        <tr><td>Runtime @ 12 MW</td><td>6-7 hours</td></tr>
+                    </table>
+                    <p style="margin-top: 12px; color: var(--text-muted); font-size: 13px;">
+                        Your proposed configuration - ideal for large-scale operations.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cost Analysis -->
+        <section class="section">
+            <h2>6. Sizing Comparison Summary</h2>
+
+            <table>
+                <tr>
+                    <th>Configuration</th>
+                    <th>Batteries</th>
+                    <th>Inverters</th>
+                    <th>Capacity (MWh)</th>
+                    <th>Power (MW)</th>
+                    <th>Best For</th>
+                </tr>
+                <tr>
+                    <td>Minimal</td>
+                    <td>4</td>
+                    <td>1</td>
+                    <td>8.9</td>
+                    <td>4</td>
+                    <td>4-6 hour backup</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td>Optimal for Small Mine</td>
+                    <td>10</td>
+                    <td>1</td>
+                    <td>22.4</td>
+                    <td>4</td>
+                    <td>12+ hour backup</td>
+                </tr>
+                <tr>
+                    <td>Medium Scale</td>
+                    <td>20</td>
+                    <td>2</td>
+                    <td>44.7</td>
+                    <td>8</td>
+                    <td>Regional operations</td>
+                </tr>
+                <tr>
+                    <td>Your Proposed</td>
+                    <td>40</td>
+                    <td>5</td>
+                    <td>89.4</td>
+                    <td>20</td>
+                    <td>Large industrial</td>
+                </tr>
+            </table>
+
+            <div class="callout danger">
+                <h4>Important Finding</h4>
+                <p>Your proposed configuration (40 batteries, 5 inverters) would provide approximately <strong>53+ hours of runtime</strong> for a small sand mine. Unless you are planning for:</p>
+                <ul style="margin-top: 8px; margin-left: 20px;">
+                    <li>Complete grid independence</li>
+                    <li>Significant future expansion</li>
+                    <li>Energy arbitrage / grid services revenue</li>
+                    <li>Multi-site backup capability</li>
+                </ul>
+                <p style="margin-top: 8px;">...a smaller configuration of <strong>8-12 batteries with 1-2 inverters</strong> would be more cost-effective.</p>
+            </div>
+        </section>
+
+        <!-- Summary Table -->
+        <section class="section">
+            <h2>7. Quick Reference: Your Configuration</h2>
+
+            <table>
+                <tr>
+                    <th>Question</th>
+                    <th>Answer</th>
+                </tr>
+                <tr>
+                    <td>How much energy can I store?</td>
+                    <td><strong>89.44 MWh</strong> (89,440 kWh)</td>
+                </tr>
+                <tr>
+                    <td>What is the maximum power output?</td>
+                    <td><strong>20 MW</strong></td>
+                </tr>
+                <tr>
+                    <td>How long at full power (20 MW)?</td>
+                    <td><strong>~4.5 hours</strong></td>
+                </tr>
+                <tr>
+                    <td>How long for small sand mine (1.5 MW)?</td>
+                    <td><strong>~53 hours</strong> (over 2 days)</td>
+                </tr>
+                <tr>
+                    <td>What size plant can I run?</td>
+                    <td>Up to <strong>20 MW</strong> (enough for large industrial mine)</td>
+                </tr>
+                <tr>
+                    <td>Is this configuration appropriate?</td>
+                    <td><strong>Oversized</strong> for small sand mine; consider 25% of this size</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Sources -->
+        <section class="section">
+            <h2>8. Sources & References</h2>
+            <ul style="list-style: disc; margin-left: 20px;">
+                <li><a href="https://en.sungrowpower.com/productDetail/2294/energy-storage-system-powertitan-series-st2236ux-st2752ux" style="color: var(--info);">Sungrow PowerTitan ST2236UX Product Page</a></li>
+                <li><a href="https://www.enfsolar.com/pv/storage-system-datasheet/7310" style="color: var(--info);">ENF Solar - ST2236UX Datasheet</a></li>
+                <li><a href="https://en.sungrowpower.com/productDetail/3223/mv-power-converter-hybrid-inverter-sc2750ud-mv-sc3150ud-mv-sc3450ud-mv-sc4000ud-mv-sc5000ud-mv" style="color: var(--info);">Sungrow SC4000UD-MV Power Conversion System</a></li>
+                <li><a href="https://www.e-mj.com/features/mine-power-options/" style="color: var(--info);">Engineering & Mining Journal - Mine Power Options</a></li>
+                <li><a href="https://pubs.usgs.gov/of/2011/1253/report/OF11-1253.pdf" style="color: var(--info);">USGS - Electricity Requirements for Mining Operations</a></li>
+            </ul>
+        </section>
+    </div>
+
+    <footer class="report-footer">
+        <div class="brand">Regno.AI</div>
+        <p>Transforming data into actionable intelligence</p>
+        <p style="margin-top: 8px;">Report generated January 18, 2026 | Specifications verified via web search</p>
+    </footer>
+</body>
+</html>

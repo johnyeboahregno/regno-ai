@@ -1,0 +1,12 @@
+# Caddy reverse proxy — TLS + routing (mirrors docs/references/deploy.md)
+# Route: realtime SSE under /events*, everything else to the SvelteKit app.
+
+{$DOMAIN} {
+    encode gzip zstd
+
+    # Realtime SSE stream
+    reverse_proxy /events* realtime:3002
+
+    # SvelteKit app + API
+    reverse_proxy /* web:3000
+}

@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =====================================================================
+# Regno Architect Me — SYS-GAME-1 bootstrap
+#
+# Run as root on a fresh Ubuntu 22.04/24.04 server:
+#   git clone <this repo> /opt/regno
+#   cd /opt/regno && bash deploy.sh
+# =====================================================================
+
+APP_DIR="${APP_DIR:-/opt/regno}"
+REPO_URL="${REPO_URL:-}"
+NODE_VERSION="${NODE_VERSION:-22}"
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "[deploy] please run as root (or with sudo)"
+  exit 1
+fi
+
+if [ -z "$REPO_URL" ] && [ ! -d "$APP_DIR/.git" ]; then
+  echo "[deploy] REPO_URL is required on first run, e.g. REPO_URL=https://github.com/you/regno-ai.git bash deploy.sh"
+  exit 1
+fi
+
+step() { echo; echo "==> $*"; }
+
+step "1/7 — installing Docker"
+if ! command -v docker >/dev/null 2>&1; then
+  curl -fsSL https://get.docker.com | sh
+fi
+systemctl enable --now docker || true
+
+step "2/7 — installing git + Node.js $NODE_VERSION"
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get install -y git curl ca-certificates gnupg openssl
+if ! command -v node >/dev/null 2>&1; then
+  curl -fsSL "https://deb.nodesource.com/setup_${NODE_VERSION}.x" | bash -
+  apt-get install -y nodejs
+fi
+
+step "3/7 — fetching the repo"
+if [ ! -d "$APP_DIR/.git" ]; then
+  git clone "$REPO_URL" "$APP_DIR"
+fi
+cd "$APP_DIR"
+
+step "4/7 — installing node deps (for the seed scripts)"
+npm install --no-audit --no-fund
+
+step "5/7 — writing .env.prod"
+if [ ! -f .env.prod ]; then
+  JWT_SECRET="$(openssl rand -hex 32)"
+  DOMAIN="${DOMAIN:-}"
+  while [ -z "$DOMAIN" ]; do read -r -p "Domain (e.g. app.example.com): " DOMAIN; done
+  read -r -p "TLS/ACME email (for Caddy): " TLS_EMAIL
+  read -r -p "OpenAI API key (blank to skip): " OPENAI_KEY
+  read -r -p "Anthropic API key (blank to skip): " ANTHROPIC_KEY
+  read -r -p "Google AI API key (blank to skip): " GOOGLE_KEY
+  SMTP_HOST="${SMTP_HOST:-mail.postale.io}"
+  SMTP_PORT="${SMTP_PORT:-587}"
+  SMTP_USERNAME="${SMTP_USERNAME:-admin@regnocloud.com}"
+  SMTP_ENCRYPTION="${SMTP_ENCRYPTION:-tls}"
+  SMTP_FROM_EMAIL="${SMTP_FROM_EMAIL:-admin@regnocloud.com}"
+  SMTP_FROM_NAME="${SMTP_FROM_NAME:-Regno Cloud Admin}"
+  read -r -p "SMTP host [${SMTP_HOST}]: " _sh && [ -n "$_sh" ] && SMTP_HOST="$_sh"
+  read -r -p "SMTP port [${SMTP_PORT}]: " _sp && [ -n "$_sp" ] && SMTP_PORT="$_sp"
+  read -r -p "SMTP username [${SMTP_USERNAME}]: " _su && [ -n "$_su" ] && SMTP_USERNAME="$_su"
+  read -r -s -p "SMTP password (input hidden): " SMTP_PASSWORD; echo
+
+  cat > .env.prod <<EOF
+DOMAIN=$DOMAIN
+TLS_EMAIL=$TLS_EMAIL
+MONGO_URI=mongodb://mongo:27017/regno
+MONGO_POOL_SIZE=50
+NEO4J_URI=bolt://neo4j:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=changeme
+QDRANT_URL=http://qdrant:6333
+REDIS_URL=redis://redis:6379
+ANTHROPIC_API_KEY=$ANTHROPIC_KEY
+OPENAI_API_KEY=$OPENAI_KEY
+GOOGLE_AI_API_KEY=$GOOGLE_KEY
+JWT_SECRET=$JWT_SECRET
+ALLOWED_ORIGINS=https://$DOMAIN
+SMTP_HOST=$SMTP_HOST
+SMTP_PORT=$SMTP_PORT
+SMTP_USERNAME=$SMTP_USERNAME
+SMTP_PASSWORD=$SMTP_PASSWORD
+SMTP_ENCRYPTION=$SMTP_ENCRYPTION
+SMTP_FROM_EMAIL=$SMTP_FROM_EMAIL
+SMTP_FROM_NAME=$SMTP_FROM_NAME
+GITHUB_ORG=$GITHUB_ORG
+GITHUB_TOKEN=$GITHUB_TOKEN
+EOF
+  chmod 600 .env.prod
+  echo "[deploy] wrote .env.prod"
+fi
+
+step "6/7 — building + starting the stack"
+docker compose --env-file .env.prod up -d --build
+
+step "7/7 — initializing + seeding (host → localhost DB ports)"
+# Load API keys from .env.prod, then point host scripts at the published DB ports.
+set -a
+# shellcheck disable=SC1091
+source .env.prod
+set +a
+export MONGO_URI="mongodb://localhost:27017/regno"
+export QDRANT_URL="http://localhost:6333"
+export NEO4J_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="changeme"
+export REDIS_URL="redis://localhost:6379"
+
+echo "[deploy] waiting for databases to be ready…"
+sleep 20
+
+node scripts/init-db.mjs
+node scripts/seed-agents.mjs
+node scripts/seed-profile.mjs
+if [ -n "${OPENAI_API_KEY:-}" ]; then
+  node scripts/seed-brain.mjs
+  node scripts/seed-history.mjs
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    node scripts/seed-github.mjs
+  fi
+else
+  echo "[deploy] no OPENAI_API_KEY — skipped embedding steps. Run 'npm run db:seed-brain' and 'npm run db:seed-history' after adding a key."
+fi
+
+echo
+echo "[deploy] done ✅  Regno Architect Me is up at https://$DOMAIN"
+docker compose ps

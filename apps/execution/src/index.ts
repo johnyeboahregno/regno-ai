@@ -1,0 +1,33 @@
+/**
+ * Execution server entry — starts the BullMQ workers.
+ * Architecture mirrors docs/references/deploy.md (execution :3003).
+ *
+ * Phase 3 will wire PlanEngine → (agent, topology) → AgentExecutor loop,
+ * QualityAuditor refine loop, and AgentMemoryService wisdom persistence.
+ */
+import { getRedis } from '@regno/db';
+import { startOrchestratorWorker } from './workers/orchestrator.js';
+import { startNotificationsWorker } from './workers/notifications.js';
+
+async function main() {
+  const connection = getRedis();
+  await connection.ping();
+
+  const orchestrator = startOrchestratorWorker(connection);
+  const notifications = startNotificationsWorker(connection);
+  console.log('[execution] workers online — orchestrator + notifications');
+
+  const shutdown = async () => {
+    console.log('[execution] shutting down…');
+    await orchestrator.close();
+    await notifications.close();
+    process.exit(0);
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+main().catch((err) => {
+  console.error('[execution] fatal', err);
+  process.exit(1);
+});

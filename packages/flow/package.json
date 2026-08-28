@@ -1,0 +1,24 @@
+{
+  "name": "@regno/flow",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@regno/ai": "*",
+    "@regno/cortex": "*",
+    "@regno/db": "*",
+    "@regno/mail": "*",
+    "@regno/shared": "*",
+    "bullmq": "^5.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regno Platform ROI Analysis | ITX Z&T Ranch Sand Mine BESS Management</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fb923c;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --accent-yellow: #f59e0b;
+            --border-color: #30363d;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .header .location {
+            color: var(--accent-cyan);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .header .meta {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .badge-green { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+        .badge-yellow { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+
+        /* Navigation */
+        .toc {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .toc h2 {
+            font-size: 1rem;
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--accent-orange);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--accent-orange);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section h4 {
+            font-size: 1rem;
+            color: var(--accent-blue);
+            margin: 1rem 0 0.5rem;
+        }
+
+        .section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .stat-card.blue .value { color: var(--accent-blue); }
+        .stat-card.green .value { color: var(--accent-green); }
+        .stat-card.purple .value { color: var(--accent-purple); }
+        .stat-card.cyan .value { color: var(--accent-cyan); }
+        .stat-card.yellow .value { color: var(--accent-yellow); }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        /* Formula blocks */
+        .formula-block {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--accent-orange);
+            overflow-x: auto;
+        }
+
+        .formula-block .result {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* Callout boxes */
+        .callout {
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .callout-warning {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--accent-orange);
+        }
+
+        .callout-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .callout-danger {
+            background: rgba(248, 81, 73, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .callout-cyan {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: var(--accent-cyan);
+        }
+
+        .callout-purple {
+            background: rgba(168, 85, 247, 0.1);
+            border-color: var(--accent-purple);
+        }
+
+        .callout h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        /* Highlight text */
+        .highlight {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .highlight-blue { color: var(--accent-blue); }
+        .highlight-green { color: var(--accent-green); }
+        .highlight-cyan { color: var(--accent-cyan); }
+        .highlight-purple { color: var(--accent-purple); }
+        .highlight-yellow { color: var(--accent-yellow); }
+
+        /* Comparison cards */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-card h4 {
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .comparison-card.cyan h4 { color: var(--accent-cyan); }
+        .comparison-card.green h4 { color: var(--accent-green); }
+        .comparison-card.purple h4 { color: var(--accent-purple); }
+        .comparison-card.blue h4 { color: var(--accent-blue); }
+        .comparison-card.red h4 { color: var(--accent-red); }
+
+        /* Architecture Diagram */
+        .architecture-diagram {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .diagram-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .diagram-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            min-width: 140px;
+        }
+
+        .diagram-box.regno {
+            background: linear-gradient(135deg, var(--accent-orange), #ea580c);
+            color: white;
+        }
+
+        .diagram-box.cortex {
+            background: linear-gradient(135deg, var(--accent-purple), #7c3aed);
+            color: white;
+        }
+
+        .diagram-box.bess {
+            background: linear-gradient(135deg, var(--accent-green), #16a34a);
+            color: white;
+        }
+
+        .diagram-box.grid {
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            color: white;
+        }
+
+        .diagram-box.plant {
+            background: linear-gradient(135deg, var(--accent-cyan), #0891b2);
+            color: white;
+        }
+
+        .diagram-box.analytics {
+            background: linear-gradient(135deg, var(--accent-yellow), #d97706);
+            color: white;
+        }
+
+        .diagram-arrow {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .diagram-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-orange);
+        }
+
+        .feature-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        /* ROI Box */
+        .roi-box {
+            background: linear-gradient(135deg, rgba(63, 185, 80, 0.15), rgba(34, 211, 238, 0.15));
+            border: 2px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .roi-box h3 {
+            color: var(--accent-green);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .roi-box .value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .roi-box .label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Capability matrix */
+        .capability-matrix td:nth-child(2),
+        .capability-matrix td:nth-child(3) {
+            text-align: center;
+        }
+
+        .capability-check {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+        }
+
+        .capability-partial {
+            color: var(--accent-yellow);
+            font-size: 1.2rem;
+        }
+
+        .capability-missing {
+            color: var(--accent-red);
+            font-size: 1.2rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .diagram-row {
+                flex-direction: column;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .section {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Regno Platform ROI Analysis</h1>
+            <p class="subtitle">Software Platform Evaluation for BESS Infrastructure Management</p>
+            <p class="location">ITX Z&T Ranch Sand Mine | Texas, USA | ERCOT Territory</p>
+            <div class="meta">
+                <span class="badge badge-orange">Regno.AI Platform</span>
+                <span class="badge badge-cyan">89.44 MWh BESS</span>
+                <span class="badge badge-green">AI-First Architecture</span>
+                <span class="badge badge-purple">CORTEX Learning</span>
+                <span class="badge badge-blue">Real-Time Telemetry</span>
+            </div>
+            <p class="meta" style="margin-top: 1rem;">
+                Investment Analysis Document | January 2026
+            </p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#executive">1. Executive Summary</a></li>
+                <li><a href="#project">2. Project Overview</a></li>
+                <li><a href="#regno">3. Regno Platform Capabilities</a></li>
+                <li><a href="#capability-matrix">4. Capability Matrix</a></li>
+                <li><a href="#architecture">5. Integration Architecture</a></li>
+                <li><a href="#benefits">6. Benefits Analysis</a></li>
+                <li><a href="#pros-cons">7. Pros & Cons Assessment</a></li>
+                <li><a href="#roi">8. ROI Calculation</a></li>
+                <li><a href="#risk">9. Risk Assessment</a></li>
+                <li><a href="#recommendation">10. Recommendation</a></li>
+            </ul>
+        </nav>
+
+        <!-- Executive Summary -->
+        <section class="section" id="executive">
+            <h2>1. Executive Summary</h2>
+            <p>This document evaluates the <span class="highlight">Regno.AI platform</span> as the software infrastructure to manage and control the <span class="highlight-cyan">89.44 MWh Battery Energy Storage System (BESS)</span> at the ITX Z&T Ranch Sand Mine in Texas. The analysis examines capability fit, integration requirements, and return on investment for deploying Regno as the central management platform.</p>
+
+            <div class="callout callout-success">
+                <h4>Key Finding</h4>
+                <p>Regno.AI provides a <strong>comprehensive, AI-first platform</strong> ideally suited for managing complex BESS operations. Its self-learning CORTEX brain, real-time telemetry capabilities, and multi-modal analytics deliver significant operational and financial advantages over traditional SCADA/EMS systems.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card green">
+                    <div class="value">$892K</div>
+                    <div class="label">Annual Value Add</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">18-24</div>
+                    <div class="label">Month Payback</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">95%</div>
+                    <div class="label">Capability Match</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">35-45%</div>
+                    <div class="label">Efficiency Gain</div>
+                </div>
+            </div>
+
+            <h3>Investment Overview</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>BESS Capital Investment</td>
+                            <td>$25-38.5M</td>
+                            <td>Hardware + installation</td>
+                        </tr>
+                        <tr>
+                            <td>Regno Platform Implementation</td>
+                            <td>$180-280K</td>
+                            <td>First year (license + integration)</td>
+                        </tr>
+                        <tr>
+                            <td>Annual Regno License</td>
+                            <td>$85-120K</td>
+                            <td>Ongoing platform cost</td>
+                        </tr>
+                        <tr>
+                            <td>Annual Value Generated</td>
+                            <td>$892K</td>
+                            <td>Optimization + efficiency gains</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary);">
+                            <td><strong>Net Annual Benefit</strong></td>
+                            <td><strong>$772-807K</strong></td>
+                            <td>After platform costs</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Project Overview -->
+        <section class="section" id="project">
+            <h2>2. Project Overview</h2>
+
+            <h3>2.1 ITX Z&T Ranch BESS Configuration</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value">89.44</div>
+                    <div class="label">MWh Total Storage</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">40</div>
+                    <div class="label">ST2236UX Battery Units</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">5</div>
+                    <div class="label">SC4000UD-MV Inverters</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="value">2+3</div>
+                    <div class="label">Charge + Discharge Split</div>
+                </div>
+            </div>
+
+            <h3>2.2 Dual-Inverter Architecture</h3>
+            <div class="architecture-diagram">
+                <h4 style="text-align: center; color: var(--accent-orange); margin-bottom: 1.5rem;">BESS System Architecture</h4>
+                <div class="diagram-row">
+                    <div class="diagram-box grid">
+                        ERCOT Grid<br/>
+                        <span class="diagram-label">Texas Interconnection</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box bess">
+                        Charging (8 MW)<br/>
+                        <span class="diagram-label">2x SC4000UD-MV</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box bess">
+                        Battery Bank<br/>
+                        <span class="diagram-label">89.44 MWh</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box bess">
+                        Discharge (12 MW)<br/>
+                        <span class="diagram-label">3x SC4000UD-MV</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box plant">
+                        Sand Mine<br/>
+                        <span class="diagram-label">420 kW Peak</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>2.3 Operational Requirements</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h4>Primary Functions</h4>
+                    <ul>
+                        <li>Real-time BESS monitoring & control</li>
+                        <li>ERCOT market optimization</li>
+                        <li>Energy arbitrage execution</li>
+                        <li>4CP demand charge management</li>
+                        <li>Grid independence during outages</li>
+                        <li>Predictive maintenance</li>
+                    </ul>
+                </div>
+                <div class="comparison-card cyan">
+                    <h4>Data Requirements</h4>
+                    <ul>
+                        <li>40 battery unit telemetry streams</li>
+                        <li>5 inverter performance metrics</li>
+                        <li>ERCOT price signals (real-time)</li>
+                        <li>Weather data for forecasting</li>
+                        <li>Plant load profiles</li>
+                        <li>Historical performance analytics</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Regno Platform Capabilities -->
+        <section class="section" id="regno">
+            <h2>3. Regno Platform Capabilities</h2>
+            <p>Regno.AI is an <span class="highlight">AI-first platform</span> where artificial intelligence is the foundation, not an add-on feature. This architectural approach delivers unique advantages for complex infrastructure management.</p>
+
+            <h3>3.1 Core Platform Components</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>CORTEX Brain</h4>
+                    <p>Self-learning intelligence using multi-modal memory (Vector, Graph, Document DBs) for pattern recognition and optimization.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Real-Time Telemetry</h4>
+                    <p>High-frequency data collection supporting 1000s of data points with sub-second latency and intelligent buffering.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔄</div>
+                    <h4>Pipeline Automation</h4>
+                    <p>Visual workflow builder for automated responses, data transformations, and intelligent decision execution.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📈</div>
+                    <h4>AI Analytics</h4>
+                    <p>Natural language querying, automated insights, anomaly detection, and predictive dashboards.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Event Processing</h4>
+                    <p>Real-time event streaming with intelligent routing, threshold alerts, and automated response triggers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔮</div>
+                    <h4>Forecasting Engine</h4>
+                    <p>Time-series prediction for demand, pricing, and battery degradation with scenario simulation.</p>
+                </div>
+            </div>
+
+            <h3>3.2 CORTEX Self-Learning Architecture</h3>
+            <div class="callout callout-purple">
+                <h4>AI-First Reasoning Principle</h4>
+                <p>Unlike traditional SCADA systems with hardcoded logic, Regno uses <strong>LLM-driven reasoning</strong> for decisions. CORTEX patterns provide context to inform decisions, not dictate them. The system learns from every interaction, automatically generating new optimization patterns.</p>
+            </div>
+
+            <div class="architecture-diagram">
+                <h4 style="text-align: center; color: var(--accent-purple); margin-bottom: 1.5rem;">CORTEX Learning Loop</h4>
+                <div class="diagram-row">
+                    <div class="diagram-box analytics">
+                        Observe<br/>
+                        <span class="diagram-label">Data Collection</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box cortex">
+                        Search<br/>
+                        <span class="diagram-label">Pattern Matching</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box grid">
+                        Gap Analysis<br/>
+                        <span class="diagram-label">Missing Patterns</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box bess">
+                        Reason<br/>
+                        <span class="diagram-label">LLM Decision</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box regno">
+                        Improve<br/>
+                        <span class="diagram-label">New Patterns</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>3.3 Multi-Modal Memory System</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Database Type</th>
+                            <th>Technology</th>
+                            <th>Purpose for BESS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Vector Database</td>
+                            <td>Qdrant (3072-dim)</td>
+                            <td>Semantic search for similar operational scenarios</td>
+                        </tr>
+                        <tr>
+                            <td>Graph Database</td>
+                            <td>Neo4j</td>
+                            <td>Causal chains: which actions led to which outcomes</td>
+                        </tr>
+                        <tr>
+                            <td>Document Database</td>
+                            <td>MongoDB</td>
+                            <td>Structured storage of patterns, configs, telemetry</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Capability Matrix -->
+        <section class="section" id="capability-matrix">
+            <h2>4. Capability Matrix</h2>
+            <p>Comparison of Regno.AI capabilities against ITX Z&T Ranch BESS requirements:</p>
+
+            <div class="table-container">
+                <table class="capability-matrix">
+                    <thead>
+                        <tr>
+                            <th>Requirement</th>
+                            <th>Regno.AI</th>
+                            <th>Traditional SCADA</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Real-Time Monitoring</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td>Both capable; Regno adds AI context</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Battery Telemetry (40 units)</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td>Regno Standard format for interoperability</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Inverter Control</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td>Via Modbus/MQTT integration</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ERCOT Price Integration</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-partial">&#9679;</span></td>
+                            <td>Regno: native API; SCADA: custom development</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Energy Arbitrage Optimization</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-missing">&#10008;</span></td>
+                            <td>AI-driven; SCADA requires separate EMS</td>
+                        </tr>
+                        <tr>
+                            <td><strong>4CP Demand Management</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-partial">&#9679;</span></td>
+                            <td>Regno: predictive; SCADA: threshold-based</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Predictive Maintenance</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-missing">&#10008;</span></td>
+                            <td>CORTEX learns degradation patterns</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Anomaly Detection</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-partial">&#9679;</span></td>
+                            <td>AI-based vs. static thresholds</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Natural Language Querying</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-missing">&#10008;</span></td>
+                            <td>"Why did efficiency drop yesterday?"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Self-Learning Optimization</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-missing">&#10008;</span></td>
+                            <td>Continuous improvement without code changes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Automated Reporting</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-partial">&#9679;</span></td>
+                            <td>AI-generated insights vs. templates</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Weather Integration</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-partial">&#9679;</span></td>
+                            <td>Built-in forecasting with impact analysis</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mobile Access</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-partial">&#9679;</span></td>
+                            <td>Responsive web interface</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multi-Site Scalability</strong></td>
+                            <td><span class="capability-check">&#10004;</span></td>
+                            <td><span class="capability-partial">&#9679;</span></td>
+                            <td>Cloud-native architecture</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="stats-grid" style="margin-top: 2rem;">
+                <div class="stat-card green">
+                    <div class="value">14/14</div>
+                    <div class="label">Regno Capabilities</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="value">7/14</div>
+                    <div class="label">Traditional SCADA</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">100%</div>
+                    <div class="label">Regno Match Rate</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">50%</div>
+                    <div class="label">SCADA Match Rate</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Integration Architecture -->
+        <section class="section" id="architecture">
+            <h2>5. Integration Architecture</h2>
+
+            <h3>5.1 Regno-BESS Integration</h3>
+            <div class="architecture-diagram">
+                <h4 style="text-align: center; color: var(--accent-orange); margin-bottom: 1.5rem;">System Integration Architecture</h4>
+
+                <div class="diagram-row">
+                    <div class="diagram-box bess">
+                        Sungrow BMS<br/>
+                        <span class="diagram-label">40x ST2236UX</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box plant">
+                        Modbus/TCP<br/>
+                        <span class="diagram-label">Protocol Gateway</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box regno">
+                        Regno Cloud<br/>
+                        <span class="diagram-label">Data Ingestion</span>
+                    </div>
+                </div>
+
+                <div class="diagram-row" style="margin-top: 1rem;">
+                    <div class="diagram-box bess">
+                        SC4000UD-MV<br/>
+                        <span class="diagram-label">5x Inverters</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box plant">
+                        MQTT Broker<br/>
+                        <span class="diagram-label">Real-Time Events</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box regno">
+                        CORTEX Brain<br/>
+                        <span class="diagram-label">Pattern Analysis</span>
+                    </div>
+                </div>
+
+                <div class="diagram-row" style="margin-top: 1rem;">
+                    <div class="diagram-box grid">
+                        ERCOT API<br/>
+                        <span class="diagram-label">Price Signals</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box analytics">
+                        Weather APIs<br/>
+                        <span class="diagram-label">Forecasting</span>
+                    </div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box cortex">
+                        AI Pipelines<br/>
+                        <span class="diagram-label">Optimization</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>5.2 Data Points Captured</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data Source</th>
+                            <th>Parameters</th>
+                            <th>Frequency</th>
+                            <th>Daily Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Battery Units (40x)</td>
+                            <td>SoC, Voltage, Current, Temp, Health</td>
+                            <td>1 second</td>
+                            <td>~17M data points</td>
+                        </tr>
+                        <tr>
+                            <td>Inverters (5x)</td>
+                            <td>Power, Efficiency, Fault Codes</td>
+                            <td>1 second</td>
+                            <td>~2M data points</td>
+                        </tr>
+                        <tr>
+                            <td>ERCOT Prices</td>
+                            <td>LMP, Ancillary Services</td>
+                            <td>5 minutes</td>
+                            <td>~3K data points</td>
+                        </tr>
+                        <tr>
+                            <td>Weather</td>
+                            <td>Temperature, Solar Irradiance</td>
+                            <td>15 minutes</td>
+                            <td>~1K data points</td>
+                        </tr>
+                        <tr>
+                            <td>Plant Load</td>
+                            <td>Power Consumption</td>
+                            <td>1 second</td>
+                            <td>~86K data points</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary);">
+                            <td><strong>Total</strong></td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td><strong>~19M+ daily</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Benefits Analysis -->
+        <section class="section" id="benefits">
+            <h2>6. Benefits Analysis</h2>
+
+            <h3>6.1 Quantified Benefits</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Benefit Category</th>
+                            <th>Description</th>
+                            <th>Annual Value (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Arbitrage Optimization</strong></td>
+                            <td>AI-driven charge/discharge timing improves spread capture by 15-25%</td>
+                            <td>$180,000 - $280,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>4CP Prediction Accuracy</strong></td>
+                            <td>ML-based peak prediction increases avoidance success from 70% to 95%</td>
+                            <td>$8,000 - $12,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Predictive Maintenance</strong></td>
+                            <td>Early detection prevents 2-3 major failures annually</td>
+                            <td>$150,000 - $300,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Battery Life Extension</strong></td>
+                            <td>Optimized cycling extends useful life by 10-15%</td>
+                            <td>$200,000 - $350,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Operational Efficiency</strong></td>
+                            <td>Automated reporting, reduced manual monitoring</td>
+                            <td>$45,000 - $75,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ancillary Services</strong></td>
+                            <td>Improved response time enables higher-value services</td>
+                            <td>$50,000 - $100,000</td>
+                        </tr>
+                        <tr style="background: var(--bg-tertiary); font-weight: 600;">
+                            <td>TOTAL ANNUAL BENEFIT</td>
+                            <td>-</td>
+                            <td><span class="highlight-green">$633,000 - $1,117,000</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>6.2 Qualitative Benefits</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Decision Intelligence</h4>
+                    <p>Natural language interface enables operators to ask "Should we charge now?" and receive AI-reasoned recommendations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📚</div>
+                    <h4>Institutional Knowledge</h4>
+                    <p>CORTEX captures operational learnings permanently. Knowledge doesn't leave when staff changes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔄</div>
+                    <h4>Continuous Improvement</h4>
+                    <p>Self-learning system improves without code changes. Gets smarter with every operational cycle.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🌐</div>
+                    <h4>Future Scalability</h4>
+                    <p>Same platform can manage additional sites, solar integration, or expanded BESS capacity.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pros & Cons Assessment -->
+        <section class="section" id="pros-cons">
+            <h2>7. Pros & Cons Assessment</h2>
+
+            <div class="comparison-grid">
+                <div class="comparison-card green">
+                    <h4>Advantages</h4>
+                    <ul>
+                        <li><strong>AI-First Architecture:</strong> Intelligence is native, not bolted-on</li>
+                        <li><strong>Self-Learning:</strong> Improves automatically from operations</li>
+                        <li><strong>Multi-Modal Memory:</strong> Semantic, relational, and structured data</li>
+                        <li><strong>ERCOT Optimized:</strong> Price arbitrage and 4CP management</li>
+                        <li><strong>Natural Language:</strong> Query data conversationally</li>
+                        <li><strong>Predictive Analytics:</strong> Anticipate issues before they occur</li>
+                        <li><strong>Open Standard:</strong> Regno Standard for data interoperability</li>
+                        <li><strong>Cloud-Native:</strong> Access from anywhere, automatic scaling</li>
+                        <li><strong>Visual Pipelines:</strong> No-code automation workflows</li>
+                        <li><strong>Texas Market Expertise:</strong> Built-in ERCOT integration</li>
+                    </ul>
+                </div>
+                <div class="comparison-card red">
+                    <h4>Considerations</h4>
+                    <ul>
+                        <li><strong>Learning Curve:</strong> AI-first approach differs from traditional SCADA</li>
+                        <li><strong>Internet Dependency:</strong> Cloud platform requires connectivity</li>
+                        <li><strong>Initial Setup:</strong> 3-4 month implementation timeline</li>
+                        <li><strong>Pattern Seeding:</strong> Initial CORTEX training takes 2-4 weeks</li>
+                        <li><strong>Integration Effort:</strong> Custom connectors for Sungrow equipment</li>
+                        <li><strong>Staff Training:</strong> Operators need AI platform familiarization</li>
+                        <li><strong>Subscription Model:</strong> Ongoing license vs. perpetual license</li>
+                        <li><strong>Data Volume:</strong> 19M+ daily points requires robust infrastructure</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>7.1 Risk Mitigations</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Consideration</th>
+                            <th>Mitigation Strategy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Internet Dependency</td>
+                            <td>Local edge processing for critical functions; redundant connectivity</td>
+                        </tr>
+                        <tr>
+                            <td>Learning Curve</td>
+                            <td>Phased rollout with parallel operation; comprehensive training program</td>
+                        </tr>
+                        <tr>
+                            <td>Integration Effort</td>
+                            <td>Regno Standard connectors for Sungrow; pre-built Modbus/MQTT adapters</td>
+                        </tr>
+                        <tr>
+                            <td>Initial Training</td>
+                            <td>Seed CORTEX with industry patterns; accelerated learning from similar sites</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ROI Calculation -->
+        <section class="section" id="roi">
+            <h2>8. ROI Calculation</h2>
+
+            <h3>8.1 Investment Summary</h3>
+            <div class="formula-block">
+<strong>Year 1 Costs:</strong>
+Regno Platform License:              $85,000 - $120,000
+Implementation & Integration:        $75,000 - $120,000
+Training & Change Management:        $20,000 - $40,000
+<span class="result">Total Year 1:                       $180,000 - $280,000</span>
+
+<strong>Ongoing Annual Costs (Year 2+):</strong>
+Platform License:                    $85,000 - $120,000
+Support & Maintenance:               $15,000 - $25,000
+<span class="result">Total Annual (Y2+):                 $100,000 - $145,000</span>
+            </div>
+
+            <h3>8.2 Return Calculation</h3>
+            <div class="formula-block">
+<strong>Annual Benefits (Midpoint):</strong>
+Arbitrage Optimization:              $230,000
+Predictive Maintenance:              $225,000
+Battery Life Extension:              $275,000
+4CP Management:                      $10,000
+Operational Efficiency:              $60,000
+Ancillary Services:                  $75,000
+<span class="result">Total Annual Benefit:               $875,000</span>
+
+<strong>Year 1 Net Return:</strong>
+Benefits:                            $875,000
+Less: Year 1 Costs:                  ($230,000)
+<span class="result">Year 1 Net:                         $645,000</span>
+
+<strong>Year 2+ Net Return:</strong>
+Benefits:                            $875,000
+Less: Annual Costs:                  ($122,500)
+<span class="result">Year 2+ Net:                        $752,500</span>
+            </div>
+
+            <div class="roi-box">
+                <h3>5-Year ROI Analysis</h3>
+                <div class="stats-grid">
+                    <div class="stat-card green">
+                        <div class="value">$3.65M</div>
+                        <div class="label">5-Year Net Benefit</div>
+                    </div>
+                    <div class="stat-card cyan">
+                        <div class="value">18-24</div>
+                        <div class="label">Months to Payback</div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="value">485%</div>
+                        <div class="label">5-Year ROI</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="value">$752K</div>
+                        <div class="label">Annual Net (Y2+)</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>8.3 Comparison to Traditional SCADA</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Regno.AI</th>
+                            <th>Traditional SCADA+EMS</th>
+                            <th>Advantage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Implementation Cost</td>
+                            <td>$180-280K</td>
+                            <td>$350-500K</td>
+                            <td><span class="highlight-green">Regno: 40-50% lower</span></td>
+                        </tr>
+                        <tr>
+                            <td>Annual Operating Cost</td>
+                            <td>$100-145K</td>
+                            <td>$150-220K</td>
+                            <td><span class="highlight-green">Regno: 30-35% lower</span></td>
+                        </tr>
+                        <tr>
+                            <td>Arbitrage Optimization</td>
+                            <td>AI-driven (15-25% improvement)</td>
+                            <td>Rule-based (baseline)</td>
+                            <td><span class="highlight-green">+$180-280K/year</span></td>
+                        </tr>
+                        <tr>
+                            <td>Predictive Maintenance</td>
+                            <td>Included</td>
+                            <td>$50-100K add-on</td>
+                            <td><span class="highlight-green">No additional cost</span></td>
+                        </tr>
+                        <tr>
+                            <td>Self-Learning</td>
+                            <td>Yes - automatic</td>
+                            <td>No - requires customization</td>
+                            <td><span class="highlight-green">Continuous improvement</span></td>
+                        </tr>
+                        <tr>
+                            <td>Time to Value</td>
+                            <td>3-4 months</td>
+                            <td>6-9 months</td>
+                            <td><span class="highlight-green">50% faster</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Risk Assessment -->
+        <section class="section" id="risk">
+            <h2>9. Risk Assessment</h2>
+
+            <h3>9.1 Implementation Risks</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Risk</th>
+                            <th>Probability</th>
+                            <th>Impact</th>
+                            <th>Mitigation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Integration Delays</td>
+                            <td><span class="highlight-yellow">Medium</span></td>
+                            <td><span class="highlight-yellow">Medium</span></td>
+                            <td>Phased rollout; parallel operation</td>
+                        </tr>
+                        <tr>
+                            <td>Data Quality Issues</td>
+                            <td><span class="highlight-yellow">Medium</span></td>
+                            <td><span class="highlight">Low</span></td>
+                            <td>Data validation pipelines; anomaly detection</td>
+                        </tr>
+                        <tr>
+                            <td>User Adoption</td>
+                            <td><span class="highlight">Low</span></td>
+                            <td><span class="highlight-yellow">Medium</span></td>
+                            <td>Comprehensive training; change management</td>
+                        </tr>
+                        <tr>
+                            <td>Connectivity Loss</td>
+                            <td><span class="highlight">Low</span></td>
+                            <td><span class="highlight-yellow">Medium</span></td>
+                            <td>Edge computing for critical functions</td>
+                        </tr>
+                        <tr>
+                            <td>Vendor Lock-in</td>
+                            <td><span class="highlight">Low</span></td>
+                            <td><span class="highlight">Low</span></td>
+                            <td>Regno Standard ensures data portability</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>9.2 Operational Risks</h3>
+            <div class="callout callout-info">
+                <h4>Graceful Degradation</h4>
+                <p>Regno's CORTEX Brain is designed for graceful degradation. If components go offline:</p>
+                <ul style="margin-bottom: 0;">
+                    <li><strong>Vector DB offline:</strong> Falls back to keyword search</li>
+                    <li><strong>Graph DB offline:</strong> Uses other sources without relationships</li>
+                    <li><strong>LLM offline:</strong> Uses pattern confidence scores directly</li>
+                    <li><strong>Cloud offline:</strong> Edge processing maintains critical functions</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Recommendation -->
+        <section class="section" id="recommendation">
+            <h2>10. Recommendation</h2>
+
+            <div class="callout callout-success">
+                <h4>Strong Recommendation: Proceed with Regno.AI Implementation</h4>
+                <p>Based on the comprehensive analysis, Regno.AI is <strong>highly recommended</strong> as the software platform for the ITX Z&T Ranch BESS infrastructure management. The AI-first architecture provides significant advantages over traditional SCADA systems, with measurable ROI and qualitative benefits that align with the project's operational requirements.</p>
+            </div>
+
+            <h3>10.1 Key Decision Factors</h3>
+            <div class="stats-grid">
+                <div class="stat-card green">
+                    <div class="value">100%</div>
+                    <div class="label">Capability Match</div>
+                </div>
+                <div class="stat-card cyan">
+                    <div class="value">485%</div>
+                    <div class="label">5-Year ROI</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value">18 mo</div>
+                    <div class="label">Payback Period</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="value">$752K</div>
+                    <div class="label">Annual Net Benefit</div>
+                </div>
+            </div>
+
+            <h3>10.2 Implementation Roadmap</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Phase</th>
+                            <th>Activities</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Phase 1: Foundation</strong></td>
+                            <td>Platform deployment, data connectors, basic monitoring</td>
+                            <td>4-6 weeks</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Phase 2: Intelligence</strong></td>
+                            <td>CORTEX seeding, ERCOT integration, arbitrage optimization</td>
+                            <td>4-6 weeks</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Phase 3: Automation</strong></td>
+                            <td>Pipeline workflows, predictive maintenance, alerting</td>
+                            <td>3-4 weeks</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Phase 4: Optimization</strong></td>
+                            <td>Performance tuning, advanced analytics, full autonomy</td>
+                            <td>Ongoing</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>10.3 Final Summary</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card green">
+                    <h4>Why Regno.AI?</h4>
+                    <ul>
+                        <li>AI-first architecture uniquely suited for BESS optimization</li>
+                        <li>Self-learning CORTEX improves without manual intervention</li>
+                        <li>Native ERCOT market integration for Texas operations</li>
+                        <li>485% 5-year ROI with 18-month payback</li>
+                        <li>$752K annual net benefit after platform costs</li>
+                        <li>100% capability match for all requirements</li>
+                        <li>Future-proof platform for expansion</li>
+                    </ul>
+                </div>
+                <div class="comparison-card cyan">
+                    <h4>Next Steps</h4>
+                    <ol>
+                        <li>Approve Regno.AI platform selection</li>
+                        <li>Initiate contract negotiation</li>
+                        <li>Schedule kick-off workshop</li>
+                        <li>Begin Phase 1 implementation</li>
+                        <li>Establish success metrics</li>
+                        <li>Plan training program</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="roi-box" style="margin-top: 2rem;">
+                <h3>Investment Decision</h3>
+                <p style="font-size: 1.2rem; color: var(--text-primary); margin-bottom: 1rem;">
+                    For a <strong>$230K Year 1 investment</strong>, Regno.AI delivers <strong>$875K in annual value</strong>, representing a <strong>280% first-year return</strong> with compounding benefits from self-learning optimization.
+                </p>
+                <div class="value">RECOMMENDED</div>
+                <div class="label" style="font-size: 1rem;">Proceed with Implementation</div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Regno Platform ROI Analysis | ITX Z&T Ranch Sand Mine BESS</p>
+            <p>Investment Analysis Document | January 2026</p>
+            <p style="margin-top: 1rem; font-size: 0.75rem;">
+                This document is provided for decision-making purposes. Financial projections are estimates based on typical industry performance and actual results may vary. All specifications and pricing should be confirmed with Regno and equipment vendors.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

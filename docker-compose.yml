@@ -1,0 +1,173 @@
+# Regno Architect Me — full stack (mirrors docs/references/deploy.md)
+# Databases + Redis are first-class services here for a single-host deploy.
+# Caddy terminates TLS and routes to the three app services.
+
+name: regno-architect
+
+services:
+  # ── Reverse proxy / TLS ─────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - realtime
+      - execution
+    networks: [regno]
+
+  # ── App + API (SvelteKit) ───────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports: ["3000:3000"]
+    environment:
+      - DOMAIN=${DOMAIN}
+      - MONGO_URI=${MONGO_URI}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - QDRANT_URL=${QDRANT_URL}
+      - REDIS_URL=${REDIS_URL}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_ENCRYPTION=${SMTP_ENCRYPTION}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME}
+    depends_on:
+      - mongo
+      - qdrant
+      - neo4j
+      - redis
+    networks: [regno]
+
+  # ── Execution server (BullMQ workers) ───────────────────────
+  execution:
+    build:
+      context: .
+      dockerfile: apps/execution/Dockerfile
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - QDRANT_URL=${QDRANT_URL}
+      - REDIS_URL=${REDIS_URL}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_ENCRYPTION=${SMTP_ENCRYPTION}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME}
+    depends_on:
+      - mongo
+      - qdrant
+      - neo4j
+      - redis
+    networks: [regno]
+
+  # ── Realtime server (SSE streaming) ─────────────────────────
+  realtime:
+    build:
+      context: .
+      dockerfile: apps/realtime/Dockerfile
+    restart: unless-stopped
+    ports: ["3002:3002"]
+    environment:
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - redis
+    networks: [regno]
+
+  # ── Databases / queues ──────────────────────────────────────
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    command: ["--bind_ip_all"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: regno
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet -u regno -p \"$${MONGO_INITDB_ROOT_PASSWORD}\" --authenticationDatabase admin --eval 'db.adminCommand(\"ping\").ok' | grep 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks: [regno]
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    networks: [regno]
+
+  neo4j:
+    image: neo4j:5
+    restart: unless-stopped
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-changeme}
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_server_memory_heap_initial__size=4G
+      - NEO4J_server_memory_heap_max__size=4G
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    networks: [regno]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks: [regno]
+
+volumes:
+  caddy_data:
+  caddy_config:
+  mongo_data:
+  qdrant_data:
+  neo4j_data:
+  neo4j_logs:
+  redis_data:
+
+networks:
+  regno:
+    driver: bridge

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cortex Flow — Design, Tools, and the "Tool-on-top-of-an-Engine" Pattern</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-alt: #161b22;
+    --bg-code: #0a0e14;
+    --border: #21262d;
+    --border-soft: #30363d;
+    --fg: #c9d1d9;
+    --fg-dim: #8b949e;
+    --fg-bright: #f0f6fc;
+    --accent: #58a6ff;
+    --accent-dim: #1f6feb;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --green: #3fb950;
+    --amber: #d29922;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout { display: flex; align-items: flex-start; }
+
+  /* ---- Sidebar nav ---- */
+  nav.toc {
+    position: sticky;
+    top: 0;
+    width: 280px;
+    min-width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 1.75rem 1.25rem;
+    background: var(--bg-alt);
+    border-right: 1px solid var(--border);
+    font-size: 13px;
+  }
+  nav.toc .brand {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+  }
+  nav.toc .brand-sub {
+    color: var(--fg-dim);
+    font-size: 11px;
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: sec; }
+  nav.toc > ol > li { margin: 0.15rem 0; }
+  nav.toc a {
+    display: block;
+    color: var(--fg-dim);
+    text-decoration: none;
+    padding: 0.3rem 0.55rem;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+    transition: background 0.12s, color 0.12s;
+  }
+  nav.toc a:hover { color: var(--fg-bright); background: rgba(88,166,255,0.08); }
+  nav.toc a.num::before {
+    content: counter(sec) ". ";
+    color: var(--accent-dim);
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+  nav.toc > ol > li > a.num { counter-increment: sec; }
+  nav.toc .sub { list-style: none; margin: 0 0 0.35rem 0.55rem; padding: 0; }
+  nav.toc .sub a { font-size: 12px; color: #6e7681; padding: 0.18rem 0.55rem; }
+
+  /* ---- Main content ---- */
+  main {
+    flex: 1;
+    max-width: 920px;
+    padding: 2.5rem 3rem 6rem;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.85rem;
+    line-height: 1.25;
+    color: var(--fg-bright);
+    margin: 0 0 1rem;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 1.4rem;
+    color: var(--fg-bright);
+    margin: 3rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-soft);
+    scroll-margin-top: 1rem;
+  }
+  h2 .secnum { color: var(--accent-dim); font-family: var(--mono); font-size: 1.1rem; }
+  h3 {
+    font-size: 1.1rem;
+    color: var(--fg-bright);
+    margin: 2rem 0 0.75rem;
+    scroll-margin-top: 1rem;
+  }
+  p { margin: 0.85rem 0; }
+  a { color: var(--accent); }
+  .anchor {
+    opacity: 0;
+    margin-left: 0.4rem;
+    font-size: 0.8em;
+    text-decoration: none;
+    color: var(--fg-dim);
+  }
+  h2:hover .anchor, h3:hover .anchor { opacity: 1; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    color: #e6edf3;
+  }
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #d4d9e0;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; color: inherit; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.1rem 0;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--border-soft);
+    vertical-align: top;
+  }
+  th { background: var(--bg-alt); color: var(--fg-bright); font-weight: 600; }
+  td:first-child code { white-space: nowrap; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+
+  blockquote {
+    margin: 1.2rem 0;
+    padding: 0.8rem 1.1rem;
+    border-left: 3px solid var(--accent-dim);
+    background: rgba(88,166,255,0.06);
+    border-radius: 0 6px 6px 0;
+    color: var(--fg);
+  }
+  blockquote p:first-child { margin-top: 0; }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  ol.body, ul.body { margin: 0.85rem 0; padding-left: 1.5rem; }
+  ol.body li, ul.body li { margin: 0.45rem 0; }
+
+  .lead {
+    font-size: 1.05rem;
+    color: var(--fg);
+    border-left: 3px solid var(--green);
+    padding-left: 1rem;
+    margin: 1.25rem 0;
+  }
+  .meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-dim);
+    margin-bottom: 1.5rem;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 0.08rem 0.45rem;
+    border-radius: 4px;
+    vertical-align: middle;
+    text-transform: uppercase;
+  }
+  .badge.built { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.4); }
+  .badge.designed { background: rgba(210,153,34,0.15); color: var(--amber); border: 1px solid rgba(210,153,34,0.4); }
+  .ws { font-family: var(--mono); font-size: 0.85em; color: var(--purple); }
+
+  .sector { color: var(--accent); font-size: 1.02rem; margin: 1.75rem 0 0.5rem; font-weight: 600; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--fg-dim); font-size: 12.5px; font-family: var(--mono); }
+
+  @media (max-width: 900px) {
+    nav.toc { display: none; }
+    main { padding: 1.5rem 1.25rem 4rem; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <div class="brand">Cortex Flow</div>
+  <div class="brand-sub">Design &amp; Toolkit reference<br />Regno.ai · updated 2026-06-04</div>
+  <ol>
+    <li><a class="num" href="#s1">The Core Idea — <code>(agent, topology)</code></a></li>
+    <li><a class="num" href="#s2">Full Flow Through the System</a></li>
+    <li>
+      <a class="num" href="#s3">The Toolkit</a>
+      <ul class="sub">
+        <li><a href="#s3a">3a · Filesystem &amp; shell</a></li>
+        <li><a href="#s3b">3b · Web &amp; ingestion</a></li>
+        <li><a href="#s3c">3c · Regno superpowers</a></li>
+        <li><a href="#s3d">3d · Documents &amp; media</a></li>
+        <li><a href="#s3e">3e · Advanced tools</a></li>
+        <li><a href="#s3f">3f · Robustness at scale</a></li>
+      </ul>
+    </li>
+    <li><a class="num" href="#s4">A Worked Example</a></li>
+    <li><a class="num" href="#s5">Studio "Script"</a></li>
+    <li><a class="num" href="#s6">Twenty-Five Tools</a></li>
+    <li><a class="num" href="#s7">Governance &amp; Assurance</a></li>
+    <li><a class="num" href="#s8">Where the Code Lives</a></li>
+  </ol>
+</nav>
+
+<main>
+  <h1>Cortex Flow — Design, Tools, and the "Tool-on-top-of-an-Engine" Pattern</h1>
+  <div class="meta">Audience: engineers working on Regno.ai. Codebase reference, not an external brief. Updated 2026-06-04.</div>
+
+  <p class="lead">Cortex Flow is Regno.ai's agentic execution engine. The north star: behave like a single, highly capable agent session — one strong reasoning pass with a full toolkit, deciding turn by turn what to reach for — but backed by Regno's superpowers: the wisdom system, cortex patterns, the local <code>/doc</code> corpus, and live access to MongoDB, Qdrant, and Neo4j.</p>
+
+  <p>This document covers the questions the team keeps asking about:</p>
+  <ol class="body">
+    <li>The full flow of a request through the system.</li>
+    <li>Every tool an execution can use, and what it's for.</li>
+    <li>How the engine <strong>scales and stays robust</strong> under a growing toolkit and long tool loops — discovery, in-sandbox tool calling, context compaction, structured output, and prompt presets.</li>
+    <li>How <strong>Studio "Script"</strong> is not a separate product — it's an <em>elevated, focused tool</em> built on top of Cortex Flow, optimised for one job (authoring documents).</li>
+    <li>Twenty-five more tools we could build the same way, across sectors.</li>
+    <li>How every execution runs <strong>inside the governance substrate</strong> — identity-bounded, audit-chained, replayable — so capability and assurance grow together rather than as bolt-ons.</li>
+  </ol>
+
+  <p>Two threads run through all of it. <strong>Robustness</strong> (section 3f) is what keeps a single strong pass viable as the toolkit and the conversation grow. <strong>Governance</strong> (section 7) is what makes every one of those passes attributable and reconstructable. Where a capability is built it says so; where it is designed-but-not-yet-built it is marked <span class="badge designed">designed</span>.</p>
+
+  <hr />
+
+  <h2 id="s1"><span class="secnum">1.</span> The Core Idea — <code>(agent, topology)</code> <a class="anchor" href="#s1">#</a></h2>
+  <p>Every execution resolves to two choices:</p>
+  <ul class="body">
+    <li><strong>Which agent?</strong> An <em>agent</em> is a thin, declarative config (<code>scripts/agents/*.cjs</code> → <code>cortex_agents</code> Mongo collection): a name, trigger keywords, a tool manifest (<code>capabilities.tools</code>), and a <code>planTemplate</code> of phases. The agent carries <em>domain</em> behaviour in its phase prompts — nothing more.</li>
+    <li><strong>Which topology?</strong> How many phases actually run, decided by <code>analysisDepth</code> (<code>quick</code> | <code>standard</code> | <code>deep</code>). Each phase declares <code>depths?: AnalysisDepth[]</code>; at conversion time (<code>AgentExecutor.convertAgentPhases</code>) phases not matching the chosen depth are dropped. Omit <code>depths</code> → the phase always runs.</li>
+  </ul>
+  <p>This is <strong>compose-first</strong>:</p>
+  <ul class="body">
+    <li>Default to a <strong>single strong reasoning pass</strong> with the whole toolkit in hand.</li>
+    <li>Gather facts only when the agent hits a gap — and from the <em>cheapest sufficient</em> source first (local knowledge before the web).</li>
+    <li>Use the <strong>refine loop</strong> as the escalation signal: grade the output, and if a weakness traces to a missing fact, fetch it and rewrite.</li>
+  </ul>
+  <p>There is no upfront 3-way "complexity classifier." The only upfront signal is a <strong>binary gap hint</strong>: does the remit name external/current material (<code>latest</code>, <code>market</code>, <code>pricing</code>, <code>2027</code>, …)? If yes, start at research-first (<code>deep</code>); otherwise start at <code>quick</code> and let the loop pull in what it needs. See <code>PlanEngine.selectComposeFirstDepth()</code>.</p>
+
+  <h3 id="s1-default">Default-path-as-agent <a class="anchor" href="#s1-default">#</a></h3>
+  <p>There is no "non-agent" path any more. When no specialised agent matches the request, <code>PlanEngine</code> routes to the <strong><code>general-assistant</code></strong> agent — the default, carrying the full toolkit. So <em>every</em> execution is <code>(agent, topology)</code>, uniformly.</p>
+
+  <hr />
+
+  <h2 id="s2"><span class="secnum">2.</span> Full Flow Through the System <a class="anchor" href="#s2">#</a></h2>
+<pre><code>  Browser / API caller
+        │  POST (prompt | remit, settings{analysisDepth, llm, advanced})
+        ▼
+  SvelteKit route  (src/routes/api/…)         ── NO INFERENCE HERE (rule 05) ──
+        │  enqueue job on BullMQ (getCortexFlowV2Queue().add('orchestrate', …))
+        ▼
+  BullMQ (Redis)  ── priority queue, jobId = executionId ──
+        │
+        ▼
+  Execution server  (npm run execution → worker-entry → Orchestrator)
+        │
+        ├─ 1. PlanEngine.generate(prompt, settings, context)
+        │       • forceAgent?  → that agent (bypasses confidence)
+        │       • else route:  agentRouter.routePrompt → confidence ≥ 0.7? → that agent
+        │       •                else → general-assistant (default-path-as-agent)
+        │       • selectComposeFirstDepth(prompt, depth) picks topology
+        │       • AgentExecutor.createPlanFromAgent → Plan{ phases[] }
+        │
+        ├─ 2. For each phase:
+        │       • ToolRegistry.configureFromSettings()  → core tools on,
+        │         enableAgentTools(agent.capabilities.tools) elevates advanced ones
+        │       • ContextBuilder injects only the `needs` the phase declares
+        │         (knowledgeFacts / priorDocuments / agentMemory / userMemories / …)
+        │       • Executor runs the turn-loop: the agent calls tools
+        │         (Read, Grep, KnowledgeBase, DataSourceQuery, PythonExec, …),
+        │         observes results, continues until it emits its phase output
+        │       • In-loop context compaction keeps a long tool loop inside the
+        │         model's window (see 3f) — the append-only history is
+        │         deterministically trimmed in the middle, never the task
+        │         message or the most recent turns
+        │
+        ├─ 3. If final phase → Orchestrator.runRefineLoop:
+        │       • QualityAuditor grades output against the rubric
+        │       • below target & weakness is fact-shaped → critique tells the
+        │         re-run to fetch via KnowledgeBase/WebSearch/WebFetch FIRST
+        │       • regenerate with critique as refineFeedback; repeat until
+        │         targetScore or maxPasses/costCeiling
+        │
+        ├─ 4. Persist artifacts (DocumentRender output, files, finalScore)
+        │       and [WISDOM] insights → AgentMemoryService (compounds over time)
+        │
+        ▼
+  Realtime server  (services/realtime/ SSE)
+        │  streams v2_agent_routing, phase progress, tokens, final result
+        ▼
+  Browser follows /api/cortex-flow/{executionId}/events</code></pre>
+
+  <p>Key invariants:</p>
+  <ul class="body">
+    <li><strong>No inference in the SvelteKit process</strong> (rule 05). Routes only enqueue.</li>
+    <li><strong>Server-side everything</strong> — the client renders; it never computes.</li>
+    <li><strong>Wisdom flywheel</strong> — every execution can read shared agent memories on the way in and write <code>[WISDOM]</code> insights on the way out, so quality compounds across runs.</li>
+    <li><strong>Governed by construction</strong> <span class="badge designed">designed — see §7</span> — the same job carries an identity (a <code>Principal</code>) from the enqueue through every phase and every tool call; each step appends to an HMAC-chained audit log and snapshots a replayable trace. Nothing the engine does is meant to be off the record.</li>
+  </ul>
+
+  <hr />
+
+  <h2 id="s3"><span class="secnum">3.</span> The Toolkit — Everything an Execution Can Use <a class="anchor" href="#s3">#</a></h2>
+  <p>Tools come in two tiers (<code>src/lib/server/cortex-flow/ToolRegistry.ts</code>):</p>
+  <ul class="body">
+    <li><strong>Core tools</strong> — always enabled by default (Pillar 1: trust the agent to decide <em>when</em> to use them).</li>
+    <li><strong>Advanced tools</strong> (<code>src/lib/types/advancedTools.ts</code>) — gated/off by default; auto-elevated for an agent when listed in its <code>capabilities.tools</code> (<code>enableAgentTools</code>). Some require credentials.</li>
+  </ul>
+
+  <h3 id="s3a">3a. Filesystem &amp; shell primitives <span class="badge built">core</span> <a class="anchor" href="#s3a">#</a></h3>
+  <table>
+    <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>Read</code></td><td>Read a file (line ranges; resolves WebFetch-archived URLs).</td></tr>
+      <tr><td><code>Write</code></td><td>Create/overwrite a file.</td></tr>
+      <tr><td><code>Edit</code></td><td>Exact-string replace within a file.</td></tr>
+      <tr><td><code>Glob</code></td><td>Find files by glob pattern.</td></tr>
+      <tr><td><code>Grep</code></td><td>Regex search across files (content/files/count modes, context lines).</td></tr>
+      <tr><td><code>Bash</code></td><td>Run a shell command.</td></tr>
+      <tr><td><code>TodoWrite</code></td><td><strong>(new)</strong> In-turn multi-step planning — the agent lays out and keeps a live checklist; exactly one step <code>in_progress</code>. The in-turn planning primitive.</td></tr>
+      <tr><td><code>Task</code> / <code>TaskOutput</code> / <code>ParallelTask</code></td><td>Spawn sub-agent work; read its output; fan out parallel sub-tasks.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="s3b">3b. Web &amp; ingestion <span class="badge built">core</span> <a class="anchor" href="#s3b">#</a></h3>
+  <table>
+    <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>WebSearch</code></td><td>Search the web, returns snippets.</td></tr>
+      <tr><td><code>WebFetch</code></td><td>Fetch a URL → readable text, archived to disk.</td></tr>
+      <tr><td><code>SitemapDiscovery</code></td><td>Enumerate a site's real URLs from robots.txt/sitemap.xml before crawling.</td></tr>
+      <tr><td><code>SiteCrawler</code></td><td>Crawl a site (no arbitrary page cap — rule 06.4).</td></tr>
+      <tr><td><code>KnowledgeIngest</code></td><td>Ingest content into the knowledge base (relevance-filtered, contextual chunking).</td></tr>
+      <tr><td><code>DocumentRouter</code></td><td>Classify/route an incoming document to the right bucket.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="s3c">3c. Regno superpowers <span class="badge built">core</span> <a class="anchor" href="#s3c">#</a></h3>
+  <table>
+    <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>KnowledgeBase</code></td><td>Query Regno's indexed knowledge — Qdrant vector + Neo4j graph across all 16 collections. The semantic memory of the platform.</td></tr>
+      <tr><td><code>DocLibrary</code></td><td>Read the local <code>/doc</code> corpus (engineering docs, references).</td></tr>
+      <tr><td><code>CortexPattern</code></td><td>Retrieve a proven approach/preset (declarative, avoids reinventing).</td></tr>
+      <tr><td><code>Cortex</code></td><td>Lower-level cortex pattern/config access.</td></tr>
+      <tr><td><code>DataSourceQuery</code></td><td>Read-only <code>find</code>/<code>aggregate</code> against a connected external MongoDB data source.</td></tr>
+      <tr><td><code>AssetRetrieve</code></td><td>Find images/diagrams/layouts in the asset store → embeddable URLs.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="s3d">3d. Documents &amp; media <span class="badge built">core</span> <a class="anchor" href="#s3d">#</a></h3>
+  <table>
+    <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>DocumentRender</code></td><td>Save a complete self-contained HTML doc as-is (Pillar 3: the engine is the template).</td></tr>
+      <tr><td><code>PdfRead</code></td><td>Extract text from a PDF.</td></tr>
+      <tr><td><code>VideoFetch</code></td><td>Fetch/transcode a video.</td></tr>
+      <tr><td><code>AudioTranscribe</code></td><td>Speech-to-text.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="s3e">3e. Advanced tools <span class="badge designed">gated; elevated per-agent</span> <a class="anchor" href="#s3e">#</a></h3>
+  <p><code>python-exec</code> (PythonExec — calc/data crunching), <code>sql-query</code>, <code>dataframe-analyze</code>, <code>chart-generate</code>, <code>image-generate</code>, <code>image-analyze</code>, <code>pdf-read</code>, <code>ocr</code>, <code>embeddings</code>, <code>pdf-parse</code>, <code>pdf-generate</code>, <code>excel-process</code>, <code>arxiv-search</code>, <code>wikipedia-query</code>, <code>news-aggregate</code>, <code>email-send</code>, <code>slack-post</code>, plus credentialed <code>regno-*</code> variants.</p>
+  <blockquote>
+    <p>An agent gets exactly the tools its job needs by listing them in <code>capabilities.tools</code>. The <code>general-assistant</code> default agent advertises an 18-tool kit spanning every group above so the fallback path is as capable as a fresh agent session with everything turned on.</p>
+  </blockquote>
+
+  <h3 id="s3f">3f. How the engine stays robust as it scales <a class="anchor" href="#s3f">#</a></h3>
+  <p>The "single strong pass with the whole toolkit" north star only holds if the pass survives a big toolkit and a long loop. Five mechanisms keep it viable — the same patterns a mature agent harness relies on, expressed in Regno's own surfaces.</p>
+
+  <p><strong>Context compaction</strong> <span class="badge built">built</span>. A long tool loop grows the append-only history past the model's window; without compaction the run dies on a context-overflow instead of finishing. The executor deterministically trims the <em>oldest middle</em> of the conversation — preserving the original task message and the last <code>keepRecent</code> turns — and never splits a <code>tool_use</code>/<code>tool_result</code> pair, a thinking block, or an image. This is the turn-loop's survival mechanism, not a quality knob: the agent keeps the context it is actively reasoning over and sheds the stale middle.</p>
+
+  <p><strong>Tool discovery</strong> <span class="badge designed">designed — AGENT-TOOL-DISCOVERY</span>. Today the full tool-definition set ships flat on every request (<code>getToolDefinitions</code>). As the registry grows this burns cache-prefix tokens and dilutes selection. The plan is a retrieval step keyed off the request + the agent's kit that surfaces only the relevant subset — or defers a tool's full schema until first use — mirroring the deferred-tool pattern. The manifest (<code>capabilities.tools</code>) stays the outer bound; discovery narrows <em>within</em> it per request.</p>
+
+  <p><strong>Programmatic tool calling</strong> <span class="badge designed">designed — AGENT-PTC</span>. <code>PythonExec</code> runs in a stateless sandbox today. PTC lets that sandbox call registry tools in-process, so the agent can orchestrate a multi-tool computation in one code block (fetch → filter → aggregate) instead of a chatty per-call round-trip. It cuts tokens and latency on data-heavy agents (Deep-Dive, Data-Analyst), and the bridge honours the <em>same</em> availability and budget rules as a direct tool call — a tool the agent can't reach directly it can't reach through Python either.</p>
+
+  <p><strong>Structured output</strong> <span class="badge designed">designed — AGENT-STRUCTURED-OUT</span>. Some callers need a machine-parseable result, not prose. Rather than hand-rolling JSON parsing at each call site, the plan is one contract — schema-constrained output (tool-as-schema) — so an agent can return a validated payload. This is also the natural seam for the governance egress check (section 7): a declared output schema is something <code>assertContract</code> can fail closed on.</p>
+
+  <p><strong>Prompt presets</strong> <span class="badge designed">designed — AGENT-PROMPT-PRESETS</span>. Phase prompts carry all domain behaviour today, hand-written per agent. The preset library turns prefills, few-shot exemplars, and reusable instruction blocks into cortex presets, so a phase prompt <em>composes</em> from a curated, versioned library instead of being authored from scratch. It pairs with the existing cortex pattern store — the same declarative substrate that already stores proven approaches.</p>
+
+  <blockquote>
+    <p>The throughline: a request brings in only the tools it needs (discovery), a long loop stays inside the window (compaction), heavy multi-tool work collapses into one sandboxed block (PTC), results come back validated (structured output), and the prompts that drive it are composed, not copy-pasted (presets). Capability scales without the single-pass model falling over.</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="s4"><span class="secnum">4.</span> A Worked Example — One Request, Many Tools <a class="anchor" href="#s4">#</a></h2>
+  <p><strong>Request:</strong> <em>"Why did our largest tenant's onboarding stall last month, and draft a one-page remediation note for the account team."</em></p>
+  <p>No specialised agent matches → routes to <code>general-assistant</code>. The remit names "last month" → still <code>quick</code> (internal data, not external), single compose-first pass. Inside that pass the agent:</p>
+  <ol class="body">
+    <li><code>TodoWrite</code> — lays out: (a) find the tenant, (b) pull onboarding events, (c) find the stall, (d) draft the note.</li>
+    <li><code>DataSourceQuery</code> — <code>aggregate</code> over the onboarding collection to find the largest tenant and its event timeline.</li>
+    <li><code>KnowledgeBase</code> — semantic lookup: "onboarding stall causes" surfaces a prior incident write-up and the SLA spec from <code>/doc</code>.</li>
+    <li><code>Grep</code> + <code>Read</code> — confirm the actual gate logic in the snapshot service so the note's claim about <em>why</em> it stalled is accurate.</li>
+    <li><code>PythonExec</code> — compute the exact business-day delay against the SLA.</li>
+    <li>Drafts the note; <code>DocumentRender</code> saves a clean one-pager.</li>
+    <li>The refine loop grades it; "specificity" is weak because a date was vague → critique says <em>fetch the exact timestamp first</em> → re-run pulls it via <code>DataSourceQuery</code>, rewrites, clears target.</li>
+    <li>Emits a <code>[WISDOM]</code> line ("onboarding stalls cluster at the IA gate when reviewer list is empty") → stored for future runs.</li>
+  </ol>
+  <p>One agent, one strong pass, six tools, a self-correcting loop — no fixed pipeline was hardcoded for "onboarding analysis."</p>
+
+  <hr />
+
+  <h2 id="s5"><span class="secnum">5.</span> Studio "Script" — An Elevated, Focused Tool on the Engine <a class="anchor" href="#s5">#</a></h2>
+  <p>Studio's <strong>Script</strong> tab (the <code>/admin</code> document author) is the clearest example of the pattern this whole system enables: <strong>a focused product surface that is really just one agent + a tuned topology on top of Cortex Flow.</strong></p>
+  <p>It is the <em>same engine</em> as the worked example above — but narrowed and tuned for exactly one job: <strong>authoring high-quality HTML documents.</strong></p>
+  <p>What makes it "elevated/focused" rather than a new system:</p>
+  <ul class="body">
+    <li><strong>One forced agent.</strong> <code>POST /api/admin/studio/generate</code> enqueues a normal Cortex Flow job with <code>forceAgent: 'html-author'</code> (<code>scripts/agents/html-author.cjs</code>). No router guesswork — the surface <em>knows</em> its job.</li>
+    <li><strong>A purpose-built topology.</strong> <code>html-author</code>'s three phases are depth-tagged so the three depths are distinct authoring strategies:
+      <ul class="body">
+        <li><code>quick</code> → <strong>Compose only</strong> (a single pass writes the whole doc).</li>
+        <li><code>standard</code> → Internal Knowledge + Compose.</li>
+        <li><code>deep</code> → Web Research + Internal Knowledge + Compose.</li>
+      </ul>
+      Compose-first means Studio defaults to <code>quick</code> and only escalates when the remit names external/current material.</li>
+    <li><strong>A domain rubric baked into the loop.</strong> The compose phase is the final phase, so <code>Orchestrator.runRefineLoop</code> grades it against the <strong>rule-09</strong> 10-criterion quality rubric (<code>settings.advanced.refineLoop</code> <code>{targetScore, maxPasses}</code>) and iterates to the target band (93–95+). "Script" exposes the target as the only knob — 95 is definitive, pass count is irrelevant.</li>
+    <li><strong>A tuned tool subset.</strong> It advertises only what authoring needs: <code>WebSearch</code>, <code>WebFetch</code>, <code>KnowledgeBase</code>, <code>DocumentRender</code>, <code>AssetRetrieve</code>. Same registry, narrower manifest.</li>
+    <li><strong>A dedicated UI + persistence.</strong> A tracking record in <code>authored_docs</code>, an SSE stream for live progress, an optional audit tab, a <code>/doc</code> template library, a refine endpoint (<code>…/docs/[id]/refine</code>).</li>
+  </ul>
+  <p>So "Script" = <strong>Cortex Flow engine</strong> + <strong>one agent config</strong> + <strong>one rubric</strong> + <strong>one tuned UI</strong>. Nothing about the engine is special-cased for it. That is exactly why we can stamp out more such tools cheaply.</p>
+
+  <p><strong>The recipe to build one:</strong></p>
+  <ol class="body">
+    <li>Write <code>scripts/agents/&lt;slug&gt;.cjs</code> — phases (depth-tagged for topology), prompts (all domain behaviour lives here), <code>capabilities.tools</code> manifest. Seed it (<code>node scripts/seed-system-agents.cjs</code>).</li>
+    <li>(Optional) Define a rubric / <code>refineLoop</code> config if output quality should iterate to a target.</li>
+    <li>Add a thin SvelteKit route that enqueues an <code>orchestrate</code> job with <code>forceAgent: '&lt;slug&gt;'</code> and the right <code>settings</code>. No inference in the route.</li>
+    <li>(Optional) A focused UI surface + a persistence collection + SSE.</li>
+  </ol>
+
+  <hr />
+
+  <h2 id="s6"><span class="secnum">6.</span> Twenty-Five Tools We Could Build the Same Way <a class="anchor" href="#s6">#</a></h2>
+  <p>Each is "an agent + tuned topology + thin surface" — the Studio recipe. Grouped by sector. (Status: all are proposals; none built yet.)</p>
+
+  <div class="sector">Sales &amp; Marketing</div>
+  <ol class="body">
+    <li><strong>Proposal/RFP Responder</strong> — ingests an RFP (PdfRead), pulls win-themes from KnowledgeBase, drafts a scored response; rubric = compliance + persuasion.</li>
+    <li><strong>Battlecard Builder</strong> — WebSearch/news-aggregate on a competitor + internal KnowledgeBase → one-page battlecard, refreshed on a schedule.</li>
+    <li><strong>Outbound Sequence Writer</strong> — persona-targeted email sequence (audience-first like rule-09), A/B variants, email-send to a sandbox.</li>
+    <li><strong>Landing-Page Copy Generator</strong> — DocumentRender HTML, brand assets via AssetRetrieve, scored on conversion-copy rubric.</li>
+  </ol>
+
+  <div class="sector">Finance &amp; Operations</div>
+  <ol class="body" start="5">
+    <li><strong>Board-Pack Compiler</strong> — DataSourceQuery over finance Mongo + PythonExec for variance analysis → DocumentRender deck-style HTML.</li>
+    <li><strong>Invoice/Expense Auditor</strong> — OCR + excel-process on receipts, policy-check against KnowledgeBase, flags anomalies (never deletes — rule 06.2).</li>
+    <li><strong>Cash-Flow Forecaster</strong> — sql-query/DataSourceQuery historicals + PythonExec forecast → chart-generate + narrative.</li>
+    <li><strong>Procurement Spend Analyser</strong> — aggregate spend by vendor, KnowledgeBase contract terms, surfaces consolidation savings.</li>
+  </ol>
+
+  <div class="sector">Legal &amp; Compliance</div>
+  <ol class="body" start="9">
+    <li><strong>Contract Clause Reviewer</strong> — PdfParse the contract, KnowledgeBase the playbook, flags off-standard clauses with rationale.</li>
+    <li><strong>Regulatory Change Monitor</strong> — scheduled WebFetch of regulator sites, diffs against last snapshot, emails a digest of what changed.</li>
+    <li><strong>Policy Drafting Assistant</strong> — composes a policy doc, rubric = clarity + coverage + enforceability; cites the source regs (cross-links).</li>
+    <li><strong>DPA / Privacy Mapper</strong> — maps a data flow against GDPR articles from KnowledgeBase, gap report.</li>
+  </ol>
+
+  <div class="sector">HR &amp; People</div>
+  <ol class="body" start="13">
+    <li><strong>JD → Interview Kit</strong> — from a job description, generate scorecards, structured questions, and a rubric per competency.</li>
+    <li><strong>Onboarding Plan Generator</strong> — role + team context → a 30/60/90 plan, pulling team docs from DocLibrary.</li>
+    <li><strong>Policy Q&amp;A Agent</strong> — answers employee policy questions strictly from the HR KnowledgeBase, refuses when unsupported (discipline rubric).</li>
+  </ol>
+
+  <div class="sector">Engineering &amp; Data (internal dogfood)</div>
+  <ol class="body" start="16">
+    <li><strong>Incident Post-Mortem Author</strong> — pulls timeline from logs (DataSourceQuery) + Grep the offending code → blameless RCA doc.</li>
+    <li><strong>Codebase Explainer</strong> — Grep/Glob/Read a module → an architecture brief for new joiners (this is <code>code-explorer</code> territory).</li>
+    <li><strong>Migration Planner</strong> — reads schema + usages, drafts a phased, reversible migration plan with rollback steps.</li>
+    <li><strong>Test-Gap Reporter</strong> — Grep for untested exports, ranks by blast radius, proposes a test backlog.</li>
+    <li><strong>Data-Dictionary Generator</strong> — introspects a connected DB, documents every collection/field with sample values.</li>
+  </ol>
+
+  <div class="sector">Customer &amp; Support</div>
+  <ol class="body" start="21">
+    <li><strong>KB Article Writer</strong> — turns resolved tickets into polished help-center articles; rubric = findability + completeness.</li>
+    <li><strong>Churn-Risk Briefer</strong> — DataSourceQuery usage signals + PythonExec scoring → per-account risk note for the CSM.</li>
+    <li><strong>Voice-of-Customer Synthesiser</strong> — AudioTranscribe support calls → themed insight report with quote evidence.</li>
+  </ol>
+
+  <div class="sector">Research &amp; Strategy</div>
+  <ol class="body" start="24">
+    <li><strong>Market-Landscape Report</strong> — deep topology: WebSearch + arxiv-search + KnowledgeBase → a sourced, scored landscape doc (close to <code>market-research-agent</code>/<code>deep-research-agent</code>).</li>
+    <li><strong>Competitive Pricing Tracker</strong> — scheduled crawl of competitor pricing pages (SiteCrawler), diff + chart-generate trend, alert on change.</li>
+  </ol>
+
+  <blockquote>
+    <p>Each reuses the engine wholesale. The build cost is a <code>.cjs</code> agent config, an optional rubric, and a thin enqueue route — the same shape as Studio "Script."</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="s7"><span class="secnum">7.</span> Governance &amp; Assurance — the substrate the engine runs inside <a class="anchor" href="#s7">#</a></h2>
+  <p>Cortex Flow does not sit on top of a governance layer; it runs <em>inside</em> one. Regno's governance substrate is a platform-wide, module-agnostic infrastructure for identity-bounded execution, append-only HMAC-chained audit logging, and fully-replayable execution traces. The CMS test suite is its first consumer (Phase 1, built); Cortex Flow is the next adopter (Phase 2, designed). The point of folding it into <em>this</em> doc is that the governance hooks land on exactly the seams described above — they are not a separate pipeline.</p>
+
+  <p><strong>What is built (Phase 1).</strong> <span class="badge built">built</span> Every governed event appends to an HMAC-chained store (<code>audit_events</code>), sealed daily with a signed Merkle root, and any past execution is reconstructable from a frozen <code>execution_traces</code> snapshot. There is a generalised Assurance API (test-suites → runs → findings → fixes) and a Replay endpoint. Adding a module as a consumer is one adapter file.</p>
+
+  <p><strong>How it threads through Cortex Flow</strong> <span class="badge designed">designed — Phase 2/3</span>. The hooks map onto the flow in section 2, one per seam:</p>
+  <ul class="body">
+    <li><strong>Identity travels with intent</strong> <span class="ws">(WS7)</span>. A <code>Principal</code> is attached to the BullMQ job and threaded Orchestrator → phase → tool call → audit event. Anything above the credential boundary takes the <code>Principal</code> as its first argument. An agent invoked without the scope a piece of data requires <em>refuses</em> it, and the refusal itself lands in the audit chain.</li>
+    <li><strong>Scope at the tool boundary</strong> <span class="ws">(WS8)</span>. Each tool declares its upstream and required scope; a token-exchange step mints a short-lived, scope-intersected assertion (the agent is the actor, the user the subject). This is the enforcement layer under the per-agent tool manifest — the manifest says <em>what an agent may reach</em>, the exchange proves <em>this caller may reach it now</em>.</li>
+    <li><strong>Model cards bound the agent</strong> <span class="ws">(WS10)</span>. A versioned card on each agent (<code>allowedTools</code>, <code>deniedBehaviours</code>, <code>costCeiling</code>, <code>maxTokens</code>, <code>regulatoryClass</code>) is the declarative ceiling a phase cannot exceed at runtime, and a new card version cannot promote without diff approval. This is the governable form of the <code>(agent, topology)</code> config.</li>
+    <li><strong>Cost &amp; quota gates</strong> <span class="ws">(WS12)</span>. A pre-execution check compares projected + month-to-date cost against the tenant quota and prefers a <em>degrade-mode swap</em> — a cheaper model tier, or <code>deep</code>→<code>standard</code> topology — over a hard fail. It reuses the depth machinery from section 1.</li>
+    <li><strong>Egress is contract-checked</strong> <span class="ws">(WS14)</span>. Tool and phase outputs are wrapped in a fail-closed <code>assertContract</code> — which is exactly why the structured-output work in 3f matters: a declared output schema is the thing egress can verify, alongside grounding (every claim traces to a retrieved chunk's content hash).</li>
+    <li><strong>Kill switch</strong> <span class="ws">(WS16)</span>. Workers poll for a <code>cortex.kill</code> signal at phase boundaries; every kill is an audit row.</li>
+  </ul>
+
+  <p>The wisdom flywheel and the red-team battery close the loop: adversarial findings <span class="ws">(WS11)</span> flow into the shared wisdom store as anti-patterns, so the same memory that compounds quality also compounds safety. Evaluators are rotated across vendors <span class="ws">(WS20)</span> so no single model both generates and unilaterally clears a promotion.</p>
+
+  <blockquote>
+    <p>The shape to remember: <strong>capability and assurance grow on the same seams.</strong> Every robustness mechanism in 3f has a governance counterpart here — discovery narrows the tool surface that scope-exchange then guards; structured output is what egress verifies; the agent config is what the model card bounds. Building one does not bolt the other on later; they are the same construction.</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="s8"><span class="secnum">8.</span> Where the Code Lives <a class="anchor" href="#s8">#</a></h2>
+  <table>
+    <thead><tr><th>Concern</th><th>File</th></tr></thead>
+    <tbody>
+      <tr><td>Routing / topology selection</td><td><code>src/lib/server/cortex-flow/v2/PlanEngine.ts</code></td></tr>
+      <tr><td>Agent → plan conversion, depth filtering</td><td><code>src/lib/server/cortex-flow/services/AgentExecutor.ts</code></td></tr>
+      <tr><td>Confidence routing</td><td><code>src/lib/server/cortex-flow/services/AgentRouter.ts</code></td></tr>
+      <tr><td>Agent registry (Mongo)</td><td><code>src/lib/server/cortex-flow/services/AgentRegistryService.ts</code></td></tr>
+      <tr><td>Orchestration + refine loop</td><td><code>src/lib/server/cortex-flow/v2/Orchestrator.ts</code></td></tr>
+      <tr><td>Tool registry (core + advanced)</td><td><code>src/lib/server/cortex-flow/ToolRegistry.ts</code></td></tr>
+      <tr><td>Advanced tool catalog</td><td><code>src/lib/types/advancedTools.ts</code></td></tr>
+      <tr><td>Agent configs</td><td><code>scripts/agents/*.cjs</code> (seed: <code>scripts/seed-system-agents.cjs</code>)</td></tr>
+      <tr><td>Studio surface</td><td><code>src/routes/api/admin/studio/**</code>, <code>scripts/agents/html-author.cjs</code></td></tr>
+      <tr><td>Quality rubric (docs)</td><td><code>rule-09</code> — <code>09-html-doc-quality.md</code> in the project rules dir</td></tr>
+      <tr><td>Governance public surface</td><td><code>src/lib/server/services/governance/index.ts</code></td></tr>
+      <tr><td>Audit chain / execution trace</td><td><code>src/lib/server/services/governance/auditChain.ts</code>, <code>executionTrace.ts</code></td></tr>
+      <tr><td>Assurance runner + adapters</td><td><code>src/lib/server/services/governance/assurance.ts</code>, <code>adapters/</code></td></tr>
+      <tr><td>Governance design + roadmap</td><td><code>doc/governance/governance-platform.md</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer">Cortex Flow design reference · Regno.ai · generated from doc/cortex-flow-design.md · 2026-06-04</div>
+</main>
+
+</div>
+</body>
+</html>
