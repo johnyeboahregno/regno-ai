@@ -40,6 +40,8 @@ async function main() {
   for (const k of ['namespace', 'uid', 'resourceVersion', 'creationTimestamp', 'managedFields', 'selfLink']) {
     delete secret.metadata[k];
   }
+  // Give the architect read-only access to the base knowledge (cross-namespace Qdrant).
+  secret.data.BASE_QDRANT_URL = Buffer.from('http://qdrant.default.svc.cluster.local:6333').toString('base64');
   writeFileSync('/tmp/secret.json', JSON.stringify(secret));
   execSync(`kubectl apply -n ${ns} -f /tmp/secret.json`, { stdio: 'ignore' });
 

@@ -6,7 +6,7 @@
     slug: string; name: string; technologies: string[]; namespace: string; port: number; status: string; createdAt: string;
   }
 
-  let step = 1;
+  let step = 0;
   let name = '';
   let description = '';
   let technologies: Tech[] = [];
@@ -51,7 +51,7 @@
       const d = await r.json();
       if (d.ok) {
         message = `Agent "${d.name}" is spawning in namespace ${d.namespace} (web on :${d.port})`;
-        name = ''; description = ''; selected = []; reposText = ''; datasourceType = ''; datasourceConn = ''; step = 1;
+        name = ''; description = ''; selected = []; reposText = ''; datasourceType = ''; datasourceConn = ''; step = 0;
         load();
       } else error = d.error ?? 'Failed';
     } catch {
@@ -65,13 +65,21 @@
 </script>
 
 <div class="page-head">
-  <div class="eyebrow blue">Admin · Agents</div>
-  <h1>Architect agents</h1>
-  <p>Create a specialist architect. Each agent gets its own stack (namespace) and its technology standards.</p>
+  <div class="eyebrow blue">Admin · Regno Architects</div>
+  <h1>Regno Architects</h1>
+  <p>Each architect is a <strong>complete new stack with its own brain</strong> — its own context, docs, and knowledge — that can also read the shared base knowledge.</p>
 </div>
 
 {#if message}<p class="ok mb">{message}</p>{/if}
 {#if error}<p class="error mb">{error}</p>{/if}
+
+<div class="card mb" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+  <div>
+    <div class="eyebrow blue">Create a new stack</div>
+    <p class="muted small mt">Provisions a fresh namespace with the full platform + its own brain.</p>
+  </div>
+  <button class="btn solid" on:click={() => (step = 1)}>Create new Architect</button>
+</div>
 
 {#if step === 1}
   <div class="card mb">
