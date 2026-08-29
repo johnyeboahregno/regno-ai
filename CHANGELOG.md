@@ -15,6 +15,9 @@
 - **Per-agent tech standards**: `AgentDef.technologies` → `buildContext` injects matching standards.
 - **RBAC** (`k8s/rbac.yaml`): web pod can spawn namespaces; `scripts/spawn-agent.mjs` + kubectl in image.
 - **Documentation pipeline**: every artifact auto-documented (`documentExecution` → `artifacts`).
+- **System health grids** (`/app/docs`): Builds / Tests / Deployments history as Git-style 10px
+  squares (green = success, red = failed) with hover details. New `GET /api/system-health`
+  aggregates `cortex_executions`, `maestro_validations`, and `audit` deploy actions.
 
 ## 2026-08-28 — Personalisation & persona foundation
 
