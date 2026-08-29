@@ -27,7 +27,8 @@ jobs:
       - name: "Build, deploy & validate (namespace: default)"
         run: |
           bash scripts/k8s-deploy.sh \
-            --namespace default --port 3000
+            --namespace default --port 3000 \
+            --tag "sha-${GITHUB_SHA:0:12}"
 
       - name: Show rollout result
         if: always()

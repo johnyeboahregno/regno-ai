@@ -138,12 +138,12 @@ if [ "$SKIP_SECRET" -eq 0 ]; then
   fi
 fi
 
-# --- 3. apply manifests (unique host ports per namespace) ---------------
-step "applying manifests (web :$PORT, realtime :$RTPORT)"
-SED_EXPR="s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/"
-if [ -n "$IMAGE_REPO" ]; then
-  SED_EXPR="$SED_EXPR; s|image: regno-architect-web:latest|image: $WEB_IMG|; s|image: regno-architect-execution:latest|image: $EXEC_IMG|; s|image: regno-architect-realtime:latest|image: $RT_IMG|"
-fi
+# --- 3. apply manifests (unique host ports + image tag per namespace) ---
+step "applying manifests (web :$PORT, realtime :$RTPORT, tag $TAG)"
+# Always substitute the image references so a new --tag changes the pod spec
+# and triggers a rolling update. With the default tag (latest) this is a no-op,
+# so manual runs behave exactly as before.
+SED_EXPR="s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/; s|image: regno-architect-web:latest|image: $WEB_IMG|; s|image: regno-architect-execution:latest|image: $EXEC_IMG|; s|image: regno-architect-realtime:latest|image: $RT_IMG|"
 sed "$SED_EXPR" k8s/app.yaml | "$KUBECTL" apply -n "$NAMESPACE" -f -
 
 # --- 4. wait for rollouts ----------------------------------------------

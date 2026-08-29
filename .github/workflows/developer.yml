@@ -64,7 +64,8 @@ jobs:
         run: |
           bash scripts/k8s-deploy.sh \
             --namespace "${{ steps.resolve.outputs.namespace }}" \
-            --port "${{ steps.resolve.outputs.port }}"
+            --port "${{ steps.resolve.outputs.port }}" \
+            --tag "sha-${GITHUB_SHA:0:12}"
 
       - name: Summary
         run: |
