@@ -41,10 +41,10 @@ git remote add origin git@github.com:<owner>/regno-ai.git
 git push -u origin master
 ```
 
-### 2. GitHub Secrets
+### 2. No secrets required
 
-- `DOCKERHUB_USERNAME`
-- `DOCKERHUB_TOKEN` (a Docker Hub access token)
+Images are **built locally on the self-hosted runner** (same box as the Docker-runtime k3s
+cluster), so no registry / Docker Hub credentials are needed. GitHub Secrets are not required.
 
 ### 3. Self-hosted runner (on the SYS-GAME-1)
 
