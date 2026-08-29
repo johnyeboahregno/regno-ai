@@ -34,7 +34,7 @@ jobs:
         run: |
           bash scripts/k8s-deploy.sh \
             --namespace default --port 3000 \
-            --image-repo "${{ secrets.DOCKERHUB_USERNAME }}/regno" \
+            --image-repo "${{ secrets.DOCKERHUB_USERNAME }}/regnocr" \
             --tag "sha-${GITHUB_SHA:0:12}" \
             --push
         env:

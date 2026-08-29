@@ -71,7 +71,7 @@ jobs:
           bash scripts/k8s-deploy.sh \
             --namespace "${{ steps.resolve.outputs.namespace }}" \
             --port "${{ steps.resolve.outputs.port }}" \
-            --image-repo "${{ secrets.DOCKERHUB_USERNAME }}/regno" \
+            --image-repo "${{ secrets.DOCKERHUB_USERNAME }}/regnocr" \
             --tag "sha-${GITHUB_SHA:0:12}" \
             --push
         env:

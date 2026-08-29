@@ -93,9 +93,11 @@ cd "$REPO_DIR"
 
 # --- 1. resolve names + build (and optionally push) app images ---------
 if [ -n "$IMAGE_REPO" ]; then
-  WEB_IMG="$IMAGE_REPO-web:$TAG"
-  EXEC_IMG="$IMAGE_REPO-execution:$TAG"
-  RT_IMG="$IMAGE_REPO-realtime:$TAG"
+  # Single-registry-repo mode: one repo with one tag per service, e.g.
+  #   <repo>:web-<tag>, <repo>:execution-<tag>, <repo>:realtime-<tag>
+  WEB_IMG="$IMAGE_REPO:web-$TAG"
+  EXEC_IMG="$IMAGE_REPO:execution-$TAG"
+  RT_IMG="$IMAGE_REPO:realtime-$TAG"
 else
   WEB_IMG="$IMAGE_PREFIX-web:$TAG"
   EXEC_IMG="$IMAGE_PREFIX-execution:$TAG"
