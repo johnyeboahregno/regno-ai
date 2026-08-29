@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import PasswordInput from '$lib/PasswordInput.svelte';
 
   let items: Array<{ id: string; name: string; type: string; provider: string }> = [];
   let name = '';
@@ -74,7 +75,7 @@
     </div>
     <div class="mt">
       <label for="csecret">Secret</label>
-      <input class="input" id="csecret" type="password" bind:value={secret} required />
+      <PasswordInput bind:value={secret} id="csecret" label="Secret" autocomplete="new-password" />
     </div>
     <button class="btn solid mt" type="submit">Store credential</button>
   </form>

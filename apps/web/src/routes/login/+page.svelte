@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import Brand from '$lib/Brand.svelte';
+  import PasswordInput from '$lib/PasswordInput.svelte';
   let email = '';
   let password = '';
   let error = '';
@@ -45,7 +46,9 @@
       <label for="email">Email</label>
       <input class="input mb" id="email" type="email" bind:value={email} required autocomplete="email" />
       <label for="password">Password</label>
-      <input class="input mb" id="password" type="password" bind:value={password} required autocomplete="current-password" />
+      <div class="mb">
+        <PasswordInput bind:value={password} autocomplete="current-password" />
+      </div>
       <button class="btn solid" type="submit" disabled={busy} style="width:100%; justify-content:center;">
         {busy ? 'Signing in…' : 'Sign in'}
       </button>
