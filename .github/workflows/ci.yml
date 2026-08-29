@@ -1,0 +1,10 @@
+name: CI
+
+# Gate every pull request: the same verify step the deploy pipeline uses.
+on:
+  pull_request:
+
+jobs:
+  verify:
+    name: Verify (PR gate)
+    uses: ./.github/workflows/_verify.yml

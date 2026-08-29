@@ -1,0 +1,76 @@
+name: Deploy (developer preview)
+
+# Isolated per-developer environments. Each developer gets their own k3s
+# namespace (dev-<slug>) with a unique web/realtime host port, so multiple
+# developers can deploy and test at the same time without stepping on each
+# other or on production.
+#
+# Two ways to trigger:
+#   1. Manually (Actions → "Deploy (developer preview)" → Run workflow)
+#   2. Push to a branch named `dev-<slug>` or `developer/<slug>`.
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "Developer slug (namespace will be dev-<slug>)"
+        required: true
+      port:
+        description: "Web host port (leave 0 to auto-assign)"
+        required: false
+        default: "0"
+  push:
+    branches: ["dev-*", "developer/*"]
+
+concurrency:
+  group: deploy-dev-${{ inputs.slug || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify
+    uses: ./.github/workflows/_verify.yml
+
+  deploy:
+    name: Deploy developer preview
+    needs: verify
+    runs-on: [self-hosted, linux, k3s]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve slug, namespace & port
+        id: resolve
+        shell: bash
+        run: |
+          slug="${SLUG:-${GITHUB_REF_NAME#dev-}}"
+          slug="${slug#developer/}"
+          slug="${slug//[^a-zA-Z0-9-]/-}"
+          slug="${slug#-}"; slug="${slug%-}"
+          [ -n "$slug" ] || { echo "could not derive a slug from '$GITHUB_REF_NAME'" >&2; exit 1; }
+
+          port="${PORT:-0}"
+          if [ "$port" = "0" ]; then
+            # Deterministic, collision-unlikely port in the 3000-3999 range.
+            port=$(( 3000 + ( $(printf '%s' "$slug" | cksum | awk '{print $1}') % 1000 ) ))
+          fi
+
+          echo "slug=$slug" >> "$GITHUB_OUTPUT"
+          echo "port=$port" >> "$GITHUB_OUTPUT"
+          echo "namespace=dev-$slug" >> "$GITHUB_OUTPUT"
+        env:
+          SLUG: ${{ inputs.slug }}
+          PORT: ${{ inputs.port }}
+
+      - name: Build, deploy & validate
+        run: |
+          bash scripts/k8s-deploy.sh \
+            --namespace "${{ steps.resolve.outputs.namespace }}" \
+            --port "${{ steps.resolve.outputs.port }}"
+        env:
+          KUBECTL: ${{ vars.KUBECTL || 'kubectl' }}
+
+      - name: Summary
+        run: |
+          echo "Developer : ${{ steps.resolve.outputs.slug }}"
+          echo "Namespace : ${{ steps.resolve.outputs.namespace }}"
+          echo "Web       : http://<server>:${{ steps.resolve.outputs.port }}"
+          echo "Realtime  : http://<server>:$(( ${{ steps.resolve.outputs.port }} + 2 ))"

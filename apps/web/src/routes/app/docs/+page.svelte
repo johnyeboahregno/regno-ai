@@ -139,15 +139,18 @@
 <style>
   .split {
     display: grid;
-    grid-template-columns: minmax(300px, 420px) 1fr;
+    grid-template-columns: minmax(280px, 400px) 1fr;
     gap: 20px;
-    align-items: start;
+    align-items: stretch;
+    height: calc(100vh - 210px);
+    min-height: 480px;
   }
-  .list { min-width: 0; }
+  .list {
+    min-width: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
   .preview {
-    position: sticky;
-    top: 60px;
-    max-height: calc(100vh - 80px);
     overflow-y: auto;
   }
   .doc {
@@ -211,8 +214,9 @@
   .content :global(blockquote) { border-left: 2px solid var(--signal); padding-left: 12px; margin: 12px 0; }
   .content :global(hr) { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
   .content :global(table) { border-collapse: collapse; margin: 12px 0; }
-  .content :global(th), .content :global(td) { border: 1px solid var(--line); padding: 6px 10px; font-size: 13px; }
-  .content :global(th) { color: var(--ink); background: var(--bg-alt); }
+  .content :global(th), .content :global(height: auto; }
+    .list { overflow: visible; }
+    .preview { overflow: visiblground: var(--bg-alt); }
   @media (max-width: 900px) {
     .split { grid-template-columns: 1fr; }
     .preview { position: static; max-height: none; }

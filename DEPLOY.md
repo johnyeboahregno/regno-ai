@@ -5,6 +5,11 @@
 
 ---
 
+> ⚙️ **CI/CD:** pushes to `master` are tested, built, deployed to k3s and validated automatically via
+> GitHub Actions, and developers get isolated preview namespaces. See [`docs/ci-cd.md`](./docs/ci-cd.md).
+
+---
+
 ## 0. Before the server arrives
 
 1. **Order SYS-GAME-1** (OVHcloud eco, "Configure") — choose Ubuntu 24.04, 64GB RAM.
