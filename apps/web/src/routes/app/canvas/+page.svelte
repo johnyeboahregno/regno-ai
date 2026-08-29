@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { uuid } from '$lib/uuid';
 
   type NodeType = 'input' | 'llm' | 'datasource' | 'transform' | 'email';
   interface Node {
@@ -24,7 +25,7 @@
   ];
 
   function addNode(type: NodeType) {
-    nodes = [...nodes, { id: crypto.randomUUID(), type, label: type, config: {} }];
+    nodes = [...nodes, { id: uuid(), type, label: type, config: {} }];
   }
 
   function removeNode(id: string) {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { uuid } from '$lib/uuid';
   import {
     CATALOG,
     CATEGORIES,
@@ -133,7 +134,7 @@
         y: center.y - 30 + (Math.random() * 40 - 20),
       };
     })();
-    const id = crypto.randomUUID();
+    const id = uuid();
     const config: Record<string, unknown> = {};
     for (const f of def.fields) config[f.key] = f.default ?? '';
     nodes = [
@@ -165,7 +166,7 @@
     }
     groups = [
       ...groups,
-      { id: crypto.randomUUID(), name: `Group ${groups.length + 1}`, nodeIds: ids, locked: false, color: GROUP_COLORS[groups.length % GROUP_COLORS.length] },
+      { id: uuid(), name: `Group ${groups.length + 1}`, nodeIds: ids, locked: false, color: GROUP_COLORS[groups.length % GROUP_COLORS.length] },
     ];
     pushLog('ok', `Group created with ${ids.length} node${ids.length > 1 ? 's' : ''}`);
     dirty = true;
@@ -242,7 +243,7 @@
       return;
     }
     // one edge per input port
-    edges = [...edges.filter((e) => !(e.to === to && e.toPort === toPort)), { id: crypto.randomUUID(), from, fromPort, to, toPort }];
+    edges = [...edges.filter((e) => !(e.to === to && e.toPort === toPort)), { id: uuid(), from, fromPort, to, toPort }];
     pending = null;
     dirty = true;
   }
@@ -446,15 +447,15 @@
       { title: 'Composability', content: 'Any platform capability can be composed into a pipeline.' },
       { title: 'Determinism', content: 'The tenth run behaves exactly like the first.' },
     ]);
-    const ds = { id: crypto.randomUUID(), type: 'datasource', label: 'Data Source', x: 40, y: 40, config: { sample }, status: 'idle' as const };
-    const tr = { id: crypto.randomUUID(), type: 'transform', label: 'Transform', x: 330, y: 40, config: { expression: 'item => ({ ...item, length: item.content?.length ?? 0 })' }, status: 'idle' as const };
-    const llm = { id: crypto.randomUUID(), type: 'llm', label: 'LLM', x: 620, y: 40, config: { prompt: 'Summarize these knowledge items in 3 bullets:\n\n{input}' }, status: 'idle' as const };
-    const disp = { id: crypto.randomUUID(), type: 'display', label: 'Display', x: 910, y: 40, config: {}, status: 'idle' as const };
+    const ds = { id: uuid(), type: 'datasource', label: 'Data Source', x: 40, y: 40, config: { sample }, status: 'idle' as const };
+    const tr = { id: uuid(), type: 'transform', label: 'Transform', x: 330, y: 40, config: { expression: 'item => ({ ...item, length: item.content?.length ?? 0 })' }, status: 'idle' as const };
+    const llm = { id: uuid(), type: 'llm', label: 'LLM', x: 620, y: 40, config: { prompt: 'Summarize these knowledge items in 3 bullets:\n\n{input}' }, status: 'idle' as const };
+    const disp = { id: uuid(), type: 'display', label: 'Display', x: 910, y: 40, config: {}, status: 'idle' as const };
     nodes = [ds, tr, llm, disp];
     edges = [
-      { id: crypto.randomUUID(), from: ds.id, fromPort: 'o0', to: tr.id, toPort: 'i0' },
-      { id: crypto.randomUUID(), from: tr.id, fromPort: 'o0', to: llm.id, toPort: 'i0' },
-      { id: crypto.randomUUID(), from: llm.id, fromPort: 'o0', to: disp.id, toPort: 'i0' },
+      { id: uuid(), from: ds.id, fromPort: 'o0', to: tr.id, toPort: 'i0' },
+      { id: uuid(), from: tr.id, fromPort: 'o0', to: llm.id, toPort: 'i0' },
+      { id: uuid(), from: llm.id, fromPort: 'o0', to: disp.id, toPort: 'i0' },
     ];
     dirty = true;
   }

@@ -87,6 +87,25 @@
     } catch {
       /* ignore */
     }
+    // Restore past Q&A pairs from execution history (newest-first → oldest first).
+    try {
+      const r = await fetch('/api/executions?limit=50');
+      const d = await r.json();
+      if (d.ok && Array.isArray(d.executions)) {
+        const past: Msg[] = [];
+        for (const e of [...d.executions].reverse()) {
+          if (!e?.prompt) continue;
+          past.push({ role: 'user', text: e.prompt });
+          past.push({
+            role: 'assistant',
+            text: e.output || (e.status === 'failed' ? '⚠️ ' + (e.error || 'Execution failed') : '(done — no output)'),
+          });
+        }
+        if (past.length) messages = [...messages, ...past];
+      }
+    } catch {
+      /* ignore */
+    }
   });
 </script>
 

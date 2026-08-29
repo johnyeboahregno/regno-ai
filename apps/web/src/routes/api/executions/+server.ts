@@ -25,13 +25,15 @@ export async function POST({ request, cookies }) {
   return json({ ok: true, jobId: job.id });
 }
 
-export async function GET() {
+export async function GET({ url }) {
   const db = await getDb();
+  const raw = Number(url.searchParams.get('limit'));
+  const limit = Number.isFinite(raw) && raw > 0 ? Math.min(Math.floor(raw), 200) : 20;
   const items = await db
     .collection(Collections.CORTEX_EXECUTIONS)
     .find({})
     .sort({ createdAt: -1 })
-    .limit(20)
+    .limit(limit)
     .toArray();
   const executions = items.map((e) => ({
     taskId: e.taskId,
@@ -40,6 +42,8 @@ export async function GET() {
     depth: e.depth,
     finalScore: e.finalScore,
     status: e.status,
+    output: e.output ?? '',
+    error: e.error ?? '',
     createdAt: e.createdAt,
   }));
   return json({ ok: true, executions });
