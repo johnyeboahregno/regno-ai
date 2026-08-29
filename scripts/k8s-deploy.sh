@@ -107,10 +107,6 @@ if [ "$SKIP_BUILD" -eq 0 ]; then
   docker build -t "$WEB_IMG"  -f apps/web/Dockerfile .
   docker build -t "$EXEC_IMG" -f apps/execution/Dockerfile .
   docker build -t "$RT_IMG"   -f apps/realtime/Dockerfile .
-  # Rebuilding the same `latest` tag leaves the previous image dangling —
-  # sweep it up so the node doesn't accumulate one image per deploy.
-  step "cleaning up superseded images"
-  docker image prune -f >/dev/null 2>&1 || true
 fi
 
 if [ "$PUSH" -eq 1 ]; then
@@ -118,6 +114,15 @@ if [ "$PUSH" -eq 1 ]; then
   docker push "$WEB_IMG"
   docker push "$EXEC_IMG"
   docker push "$RT_IMG"
+  # The cluster pulls from the registry, so drop the local copies to keep the
+  # node's disk flat — only the registry holds the image versions.
+  step "removing local image copies"
+  docker image rm "$WEB_IMG" "$EXEC_IMG" "$RT_IMG" >/dev/null 2>&1 || true
+elif [ "$SKIP_BUILD" -eq 0 ]; then
+  # Local mode: rebuilding the same `latest` tag leaves the previous image
+  # dangling — sweep it up so the node doesn't accumulate old versions.
+  step "cleaning up superseded images"
+  docker image prune -f >/dev/null 2>&1 || true
 fi
 
 # --- 2. namespace + secret ---------------------------------------------
@@ -142,6 +147,16 @@ if [ "$SKIP_SECRET" -eq 0 ]; then
   fi
 fi
 
+# Image pull secret for the private Docker Hub repos. Created in every
+# namespace so the app pods can authenticate; local `latest` deploys fall back
+# to an empty auth so the reference always resolves.
+step "ensuring image pull secret regcred in $NAMESPACE"
+"$KUBECTL" -n "$NAMESPACE" delete secret regcred --ignore-not-found >/dev/null 2>&1 || true
+"$KUBECTL" -n "$NAMESPACE" create secret docker-registry regcred \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username="${DOCKERHUB_USERNAME:-x}" \
+  --docker-password="${DOCKERHUB_TOKEN:-x}"
+
 # --- 3. apply manifests (unique host ports per namespace) ---------------
 step "applying manifests (web :$PORT, realtime :$RTPORT)"
 SED_EXPR="s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/"
@@ -150,11 +165,13 @@ if [ -n "$IMAGE_REPO" ]; then
 fi
 sed "$SED_EXPR" k8s/app.yaml | "$KUBECTL" apply -n "$NAMESPACE" -f -
 
-# The local image tag stays `latest`, so a plain `kubectl apply` sees no
-# pod-spec change and never rolls out the freshly built image. Force a
-# restart so web/execution/realtime pick up the new build.
-step "restarting web / execution / realtime to pick up the new image"
-"$KUBECTL" -n "$NAMESPACE" rollout restart deployment/web deployment/execution deployment/realtime
+# With a registry image (`--image-repo` + unique tag) `kubectl apply` triggers
+# the rollout on its own. For local `latest` builds there is no spec change,
+# so force a restart so web/execution/realtime pick up the new image.
+if [ -z "$IMAGE_REPO" ]; then
+  step "restarting web / execution / realtime to pick up the new image"
+  "$KUBECTL" -n "$NAMESPACE" rollout restart deployment/web deployment/execution deployment/realtime
+fi
 
 # --- 4. wait for rollouts ----------------------------------------------
 step "waiting for deployments to roll out"

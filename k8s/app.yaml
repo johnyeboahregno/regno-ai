@@ -224,6 +224,7 @@ spec:
     metadata:
       labels: { app: web }
     spec:
+      imagePullSecrets: [{ name: regcred }]
       containers:
         - name: web
           image: regno-architect-web:latest
@@ -254,6 +255,7 @@ spec:
     metadata:
       labels: { app: execution }
     spec:
+      imagePullSecrets: [{ name: regcred }]
       containers:
         - name: execution
           image: regno-architect-execution:latest
@@ -276,6 +278,7 @@ spec:
     metadata:
       labels: { app: realtime }
     spec:
+      imagePullSecrets: [{ name: regcred }]
       containers:
         - name: realtime
           image: regno-architect-realtime:latest
