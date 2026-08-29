@@ -1,9 +1,6 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { marked } from 'marked';
-  import mermaid from 'mermaid';
-
-  mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
 
   function renderMarkdown(md: string): string {
     return marked.parse(md, { async: false }) as string;
@@ -15,12 +12,19 @@
 
   async function renderMermaidDiagrams() {
     const blocks = Array.from(document.querySelectorAll('.content code.language-mermaid'));
+    if (!blocks.length) return;
+    // Load mermaid lazily on the client only (its DOM code breaks SSR).
+    const mermaid = (await import('mermaid')).default;
+    mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
     for (const block of blocks) {
       const code = block.textContent ?? '';
       try {
         const { svg } = await mermaid.render('m' + Math.random().toString(36).slice(2), code);
         const wrapper = document.createElement('div');
         wrapper.innerHTML = svg;
+        wrapper.style.display = 'flex';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.overflowX = 'auto';
         block.parentElement?.replaceWith(wrapper);
       } catch (e) {
         console.warn('mermaid render failed', e);
