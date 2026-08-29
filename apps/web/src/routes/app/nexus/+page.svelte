@@ -143,7 +143,7 @@
 </div>
 
 <form class="searchbar" on:submit={search}>
-  <span class="search-icon">{searchIcon}</span>
+  <span class="search-icon">{@html searchIcon}</span>
   <input
     bind:value={query}
     placeholder="Search your docs, repos, code, tickets, conversations, and more..."
@@ -205,7 +205,7 @@
           <div class="src-name">{s.name}</div>
           <div class="src-sub">{s.sub}</div>
         </div>
-        <span class="sync" title="Synced">{syncIcon}</span>
+        <span class="sync" title="Synced">{@html syncIcon}</span>
       </div>
       <div class="src-foot">
         <span class="synced">{s.synced}</span>
@@ -225,7 +225,7 @@
       <line x1="50" y1="50" x2={n.x} y2={n.y} class="graph-line" />
     {/each}
   </svg>
-  <div class="cube">{cubeIcon}</div>
+  <div class="cube">{@html cubeIcon}</div>
   {#each graphNodes as n}
     <div class="gnode" style="left:{n.x}%; top:{n.y}%;">
       <span class="gdot" style="background:{n.color}; box-shadow:0 0 0 5px {n.color}22;"></span>
@@ -244,7 +244,7 @@
     <div class="card list">
       {#each ingestions as it}
         <div class="row">
-          <div class="icon-tile sm" style="background:{it.color}22; color:{it.color};">{fileIcon}</div>
+          <div class="icon-tile sm" style="background:{it.color}22; color:{it.color};">{@html fileIcon}</div>
           <div class="row-main">
             <div class="row-title">{it.file}</div>
             <div class="row-sub">{it.desc}</div>
@@ -263,7 +263,7 @@
     <div class="card list">
       {#each activity as a}
         <div class="row">
-          <div class="icon-tile sm" style="background:{a.color}22; color:{a.color};">{activityIcon}</div>
+          <div class="icon-tile sm" style="background:{a.color}22; color:{a.color};">{@html activityIcon}</div>
           <div class="row-main">
             <div class="row-title">{a.action}</div>
             <div class="row-sub">{a.desc}</div>
@@ -282,7 +282,7 @@
     <div class="card list">
       {#each popular as p}
         <div class="row">
-          <div class="icon-tile sm" style="background:rgba(108,92,231,0.14); color:var(--signal);">{trendIcon}</div>
+          <div class="icon-tile sm" style="background:rgba(108,92,231,0.14); color:var(--signal);">{@html trendIcon}</div>
           <div class="row-main">
             <div class="row-title">{p.q}</div>
           </div>
