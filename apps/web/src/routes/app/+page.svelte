@@ -9,6 +9,8 @@
       const r = await fetch('/api/cortex/overview');
       const d = await r.json();
       if (d.ok) overview = d;
+    } catch {
+      // Backend unreachable (e.g. mid-deploy) — keep the zeroed overview.
     } finally {
       loaded = true;
     }

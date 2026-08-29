@@ -166,7 +166,7 @@ tr:hover td { background: rgba(108, 92, 231, 0.05); }
 .sidebar .profile .p-name { font-size: 13px; font-weight: 600; color: var(--ink); }
 .sidebar .profile .p-role { font-size: 11.5px; color: var(--ink-faint); margin-top: 1px; }
 
-.content { padding: 40px 44px; min-width: 0; max-width: 1280px; margin: 0 auto; }
+.content { padding: 40px 44px; min-width: 0; width: 100%; }
 .page-head { margin-bottom: 28px; }
 .page-head h1 { font-size: 30px; }
 .page-head p { color: var(--ink-dim); margin-top: 8px; }
