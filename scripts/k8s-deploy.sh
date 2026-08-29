@@ -107,6 +107,10 @@ if [ "$SKIP_BUILD" -eq 0 ]; then
   docker build -t "$WEB_IMG"  -f apps/web/Dockerfile .
   docker build -t "$EXEC_IMG" -f apps/execution/Dockerfile .
   docker build -t "$RT_IMG"   -f apps/realtime/Dockerfile .
+  # Rebuilding the same `latest` tag leaves the previous image dangling —
+  # sweep it up so the node doesn't accumulate one image per deploy.
+  step "cleaning up superseded images"
+  docker image prune -f >/dev/null 2>&1 || true
 fi
 
 if [ "$PUSH" -eq 1 ]; then
@@ -138,13 +142,19 @@ if [ "$SKIP_SECRET" -eq 0 ]; then
   fi
 fi
 
-# --- 3. apply manifests (unique host ports + image tag per namespace) ---
-step "applying manifests (web :$PORT, realtime :$RTPORT, tag $TAG)"
-# Always substitute the image references so a new --tag changes the pod spec
-# and triggers a rolling update. With the default tag (latest) this is a no-op,
-# so manual runs behave exactly as before.
-SED_EXPR="s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/; s|image: regno-architect-web:latest|image: $WEB_IMG|; s|image: regno-architect-execution:latest|image: $EXEC_IMG|; s|image: regno-architect-realtime:latest|image: $RT_IMG|"
+# --- 3. apply manifests (unique host ports per namespace) ---------------
+step "applying manifests (web :$PORT, realtime :$RTPORT)"
+SED_EXPR="s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/"
+if [ -n "$IMAGE_REPO" ]; then
+  SED_EXPR="$SED_EXPR; s|image: regno-architect-web:latest|image: $WEB_IMG|; s|image: regno-architect-execution:latest|image: $EXEC_IMG|; s|image: regno-architect-realtime:latest|image: $RT_IMG|"
+fi
 sed "$SED_EXPR" k8s/app.yaml | "$KUBECTL" apply -n "$NAMESPACE" -f -
+
+# The local image tag stays `latest`, so a plain `kubectl apply` sees no
+# pod-spec change and never rolls out the freshly built image. Force a
+# restart so web/execution/realtime pick up the new build.
+step "restarting web / execution / realtime to pick up the new image"
+"$KUBECTL" -n "$NAMESPACE" rollout restart deployment/web deployment/execution deployment/realtime
 
 # --- 4. wait for rollouts ----------------------------------------------
 step "waiting for deployments to roll out"
