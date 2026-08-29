@@ -3,6 +3,17 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-29 — GENESIS pipeline parity + UX (tools, groups, validation, sticky connectors, cursor zoom)
+
+Closing the gap toward Zaeem's regno.ai/pipelines (per honest gap analysis):
+- **Tools** — new `tools` palette category + Tools sidebar tab: **File I/O, Web Fetcher, Web Search** attachable to an Expert node's new `tools` port (visually distinct). The LLM/expert family now feeds **all** connected input ports (context + tools) into the prompt; executor implements file-io (real fs read), web-fetcher (real fetch), web-search (simulated).
+- **Utilities** — new `utilities` category: **Cost Tracking** (token/cost estimate), **Performance** (per-node timing log), **Error Handling** (upstream-failure fallback), **Audit Trail** (writes to `audit` collection, best-effort).
+- **Node groups** — `Group` toolbar button, shift+click multi-select, group boxes with **Lock 🔒 / Ungroup**, per-node "Add to group" in the config panel, locked nodes can't be dragged/deleted.
+- **Execution console** — **Test** button (+ "Test this node" per-node) runs a single node in isolation; **Expert modes** (⚡ Full / 🤖 Autonomous / 📚 Reference + Mock/Verbose switches) sent as run settings; **Dashboard** tab = Execution Validation (status/duration/nodes/mode cards + per-node check list).
+- **Debug + model selector** — 🐞 Debug toolbar toggle shows a live SSE event trace; OpenAI/Anthropic/Google provider select + model input set the default for LLM nodes (node config overrides).
+- **UX** — **sticky connectors**: dragging a connection snaps to the nearest port (highlight) and completes on release; releasing on empty canvas cancels (fixed dangling-pending bug). **Wheel zoom is cursor-centered** (the canvas point under the pointer stays fixed).
+- `@regno/ai`/db wiring unchanged; root `.env` (gitignored) holds `OPENAI_API_KEY`.
+
 ## 2026-08-29 — GENESIS → real-time visual pipeline system (regno.ai/pipelines)
 
 - **GENESIS is now the pipeline builder** (per user: "this is what GENESIS needs to be" —

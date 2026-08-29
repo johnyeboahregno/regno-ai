@@ -11,6 +11,22 @@
   } from '$lib/pipeline/catalog';
   import type { PipelineNode, PipelineEdge, RunLog } from '$lib/pipeline/types';
 
+  interface PipelineGroup {
+    id: string;
+    name: string;
+    nodeIds: string[];
+    locked: boolean;
+    color: string;
+  }
+
+  interface SnapTarget {
+    nodeId: string;
+    kind: 'i' | 'o';
+    index: number;
+    x: number;
+    y: number;
+  }
+
   // ── canvas state ────────────────────────────────────────────────
   let nodes: PipelineNode[] = [];
   let edges: PipelineEdge[] = [];
@@ -46,7 +62,20 @@
   let logs: RunLog[] = [];
   let runOutputs: Record<string, unknown> = {};
   let statusText = '';
-  let consoleTab: 'logs' | 'outputs' = 'logs';
+  let consoleTab: 'logs' | 'outputs' | 'dashboard' = 'logs';
+  let testMode = false;
+  let lastRun: { status?: string; durationMs?: number; nodeCount?: number; mode?: string; errors?: number } | null = null;
+  let runSettings = { mode: 'full', mock: false, verbose: true, provider: 'openai', model: '' };
+  let groupChoice = '';
+
+  // groups / multi-select / debug / snap
+  let groups: PipelineGroup[] = [];
+  let multiSelect = new Set<string>();
+  let activeTab: 'nodes' | 'tools' = 'nodes';
+  let debug = false;
+  let debugEvents: Array<{ event: string; data: Record<string, unknown>; ts: string }> = [];
+  let snapTarget: SnapTarget | null = null;
+  const GROUP_COLORS = ['#6366f1', '#f472b6', '#22d3ee', '#fbbf24', '#34d399', '#fb7185'];
 
   const portId = (kind: 'i' | 'o', index: number) => `${kind}${index}`;
 
@@ -71,15 +100,18 @@
     return PORT_HEADER + Math.max(def.inputs.length, def.outputs.length, 1) * PORT_SPACING + 12;
   }
 
-  function edgePath(e: PipelineEdge): string {
-    const from = getNode(e.from);
-    const to = getNode(e.to);
+  function edgePath(e: PipelineEdge, nodeList: PipelineNode[] = nodes): string {
+    const from = nodeList.find((n) => n.id === e.from);
+    const to = nodeList.find((n) => n.id === e.to);
     if (!from || !to) return '';
     const a = portCanvas(from, 'o', portIndex('o', e.fromPort));
     const b = portCanvas(to, 'i', portIndex('i', e.toPort));
     const dx = Math.max(30, (b.x - a.x) / 2);
     return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
   }
+
+  // Recomputed whenever nodes or edges change, so connectors follow node drags.
+  $: edgePaths = edges.map((e) => edgePath(e, nodes));
 
   function toCanvas(clientX: number, clientY: number) {
     const r = containerEl?.getBoundingClientRect();
@@ -115,8 +147,53 @@
   function removeNode(id: string) {
     nodes = nodes.filter((n) => n.id !== id);
     edges = edges.filter((e) => e.from !== id && e.to !== id);
+    groups = groups
+      .map((g) => ({ ...g, nodeIds: g.nodeIds.filter((nid) => nid !== id) }))
+      .filter((g) => g.nodeIds.length > 0);
     if (selectedNodeId === id) selectedNodeId = null;
+    multiSelect = new Set(Array.from(multiSelect).filter((x) => x !== id));
     dirty = true;
+  }
+
+  // ── groups ─────────────────────────────────────────────────────
+  function addGroup() {
+    const ids = Array.from(multiSelect);
+    if (ids.length === 0 && selectedNodeId) ids.push(selectedNodeId);
+    if (ids.length === 0) {
+      pushLog('warn', 'Select nodes first (shift+click), then Add Group');
+      return;
+    }
+    groups = [
+      ...groups,
+      { id: crypto.randomUUID(), name: `Group ${groups.length + 1}`, nodeIds: ids, locked: false, color: GROUP_COLORS[groups.length % GROUP_COLORS.length] },
+    ];
+    pushLog('ok', `Group created with ${ids.length} node${ids.length > 1 ? 's' : ''}`);
+    dirty = true;
+  }
+
+  function removeGroup(id: string) {
+    groups = groups.filter((g) => g.id !== id);
+    dirty = true;
+  }
+
+  function toggleGroupLock(id: string) {
+    groups = groups.map((g) => (g.id === id ? { ...g, locked: !g.locked } : g));
+    dirty = true;
+  }
+
+  function addNodeToGroup(nodeId: string, groupId: string) {
+    groups = groups.map((g) => (g.id === groupId && !g.nodeIds.includes(nodeId) ? { ...g, nodeIds: [...g.nodeIds, nodeId] } : g));
+    dirty = true;
+  }
+
+  function groupBounds(g: PipelineGroup) {
+    const members = nodes.filter((n) => g.nodeIds.includes(n.id));
+    if (members.length === 0) return null;
+    const minX = Math.min(...members.map((n) => n.x)) - 12;
+    const minY = Math.min(...members.map((n) => n.y)) - 42;
+    const maxX = Math.max(...members.map((n) => n.x + NODE_WIDTH)) + 12;
+    const maxY = Math.max(...members.map((n) => n.y + nodeHeight(n))) + 12;
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
   }
 
   function removeEdge(id: string) {
@@ -181,12 +258,29 @@
     e.preventDefault();
   }
 
+  function nodeLocked(nodeId: string): boolean {
+    return groups.some((g) => g.locked && g.nodeIds.includes(nodeId));
+  }
+
   function onNodePointerDown(e: PointerEvent, node: PipelineNode) {
     e.stopPropagation();
     if (e.button !== 0) return;
+    if (nodeLocked(node.id)) {
+      selectedNodeId = node.id;
+      selectedEdgeId = null;
+      return;
+    }
     dragging = { id: node.id, startX: e.clientX, startY: e.clientY, nodeX: node.x, nodeY: node.y };
     selectedNodeId = node.id;
     selectedEdgeId = null;
+    if (e.shiftKey) {
+      const next = new Set(multiSelect);
+      if (next.has(node.id)) next.delete(node.id);
+      else next.add(node.id);
+      multiSelect = next;
+    } else {
+      multiSelect = new Set([node.id]);
+    }
     e.preventDefault();
   }
 
@@ -220,19 +314,64 @@
       panY = panning.panY + (e.clientY - panning.startY);
     }
     if (pending) {
-      pending = { ...pending, x: mouseCanvas.x, y: mouseCanvas.y };
+      snapTarget = findSnapTarget(mouseCanvas);
+      const end = snapTarget ?? mouseCanvas;
+      pending = { ...pending, x: end.x, y: end.y };
     }
   }
 
   function onWindowPointerUp() {
+    // Sticky connectors: if the pending line was snapped to a port, complete the
+    // edge; otherwise cancel the dangling connection.
+    if (pending) {
+      if (snapTarget) {
+        completeConnect(snapTarget.nodeId, snapTarget.kind, snapTarget.index);
+      }
+      pending = null;
+      snapTarget = null;
+    }
     dragging = null;
     panning = null;
   }
 
   function onWheel(e: WheelEvent) {
     e.preventDefault();
+    const r = containerEl?.getBoundingClientRect();
+    if (!r) return;
+    // Zoom around the cursor: keep the canvas point under the pointer fixed.
+    const mx = e.clientX - r.left;
+    const my = e.clientY - r.top;
     const factor = Math.exp(-e.deltaY * 0.0012);
-    zoom = Math.min(2.5, Math.max(0.3, zoom * factor));
+    const newZoom = Math.min(2.5, Math.max(0.3, zoom * factor));
+    const cx = (mx - panX) / zoom;
+    const cy = (my - panY) / zoom;
+    panX = mx - cx * newZoom;
+    panY = my - cy * newZoom;
+    zoom = newZoom;
+  }
+
+  const SNAP_DIST = 28; // canvas px — how close the cursor must be to a port to stick
+
+  /** Find the nearest port of the opposite kind to the mouse, for sticky connectors. */
+  function findSnapTarget(mouse: { x: number; y: number }): SnapTarget | null {
+    if (!pending) return null;
+    const wantInput = pending.fromPort.startsWith('o');
+    let best: SnapTarget | null = null;
+    let bestDist = SNAP_DIST;
+    for (const node of nodes) {
+      if (node.id === pending.from) continue;
+      const def = getCatalogNode(node.type);
+      const arr = wantInput ? def.inputs : def.outputs;
+      for (let i = 0; i < arr.length; i++) {
+        const p = portCanvas(node, wantInput ? 'i' : 'o', i);
+        const d = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+        if (d < bestDist) {
+          bestDist = d;
+          best = { nodeId: node.id, kind: wantInput ? 'i' : 'o', index: i, x: p.x, y: p.y };
+        }
+      }
+    }
+    return best;
   }
 
   function zoomAt(step: number) {
@@ -259,12 +398,14 @@
     if ((e.key === 'Delete' || e.key === 'Backspace') && !(e.target as HTMLElement)?.closest('input, textarea, select')) {
       e.preventDefault();
       if (selectedEdgeId) removeEdge(selectedEdgeId);
-      else if (selectedNodeId) removeNode(selectedNodeId);
+      else if (selectedNodeId && !nodeLocked(selectedNodeId)) removeNode(selectedNodeId);
     }
     if (e.key === 'Escape') {
       pending = null;
+      snapTarget = null;
       selectedNodeId = null;
       selectedEdgeId = null;
+      multiSelect = new Set();
       showJson = false;
       showLoad = false;
       showRuns = false;
@@ -275,13 +416,18 @@
   function resetAll() {
     nodes = [];
     edges = [];
+    groups = [];
     name = 'untitled-pipeline';
     currentPipelineId = null;
     selectedNodeId = null;
     selectedEdgeId = null;
+    multiSelect = new Set();
     pending = null;
+    snapTarget = null;
     logs = [];
     runOutputs = {};
+    debugEvents = [];
+    lastRun = null;
     statusText = '';
     running = false;
     es?.close();
@@ -391,27 +537,50 @@
     await loadList();
   }
 
-  async function run() {
-    if (nodes.length === 0) {
+  function debugCapture(event: string, data: Record<string, unknown>) {
+    if (!debug) return;
+    debugEvents = [...debugEvents, { event, data, ts: new Date().toLocaleTimeString() }].slice(-200);
+  }
+
+  async function run(onlyNodeId?: string) {
+    const test = !!onlyNodeId;
+    if (!test && nodes.length === 0) {
       pushLog('warn', 'Add at least one node before running');
       return;
     }
+    if (test) {
+      const target = getNode(onlyNodeId!);
+      if (!target) return;
+      pushLog('info', `Testing node "${target.label}" in isolation`);
+    }
     running = true;
-    statusText = 'Running…';
+    testMode = test;
+    statusText = test ? 'Testing…' : 'Running…';
     logs = [];
     runOutputs = {};
+    debugEvents = [];
+    lastRun = null;
     consoleTab = 'logs';
+    const runNodes = test ? [getNode(onlyNodeId!)!] : nodes;
+    const runEdges = test ? [] : edges;
     nodes = nodes.map((n) => ({ ...n, status: 'idle' as const, error: undefined, outputPreview: undefined }));
     try {
       const r = await fetch('/api/pipelines/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, nodes, edges, pipelineId: currentPipelineId ?? undefined }),
+        body: JSON.stringify({
+          name: test ? `test:${runNodes[0].label}` : name,
+          nodes: runNodes,
+          edges: runEdges,
+          pipelineId: currentPipelineId ?? undefined,
+          settings: { ...runSettings, test },
+        }),
       });
       const d = await r.json();
       if (!d.ok) {
         pushLog('error', d.error ?? 'Failed to start run');
         running = false;
+        testMode = false;
         statusText = 'Failed to start';
         return;
       }
@@ -419,30 +588,40 @@
       es.addEventListener('log', (ev) => {
         const p = JSON.parse((ev as MessageEvent).data);
         pushLog(p.level ?? 'info', p.message, p.nodeId);
+        debugCapture('log', p);
       });
       es.addEventListener('node_started', (ev) => {
         const p = JSON.parse((ev as MessageEvent).data);
         setNodeStatus(p.nodeId, 'running');
+        debugCapture('node_started', p);
       });
       es.addEventListener('node_completed', (ev) => {
         const p = JSON.parse((ev as MessageEvent).data);
         setNodeStatus(p.nodeId, 'ok', p.output);
+        debugCapture('node_completed', p);
       });
       es.addEventListener('node_error', (ev) => {
         const p = JSON.parse((ev as MessageEvent).data);
         setNodeStatus(p.nodeId, 'error', undefined, p.error);
+        debugCapture('node_error', p);
       });
       es.addEventListener('execution_completed', (ev) => {
         const p = JSON.parse((ev as MessageEvent).data);
         runOutputs = p.outputs ?? {};
+        lastRun = { status: 'completed', durationMs: p.durationMs, nodeCount: p.nodeCount, mode: p.mode };
         running = false;
-        statusText = `Completed in ${p.durationMs}ms`;
+        testMode = false;
+        statusText = `${test ? 'Test completed' : 'Completed'} in ${p.durationMs}ms`;
+        debugCapture('execution_completed', p);
         es?.close();
       });
       es.addEventListener('execution_failed', (ev) => {
         const p = JSON.parse((ev as MessageEvent).data);
+        lastRun = { status: 'failed', mode: runSettings.mode };
         running = false;
+        testMode = false;
         statusText = `Failed: ${p.error ?? 'unknown error'}`;
+        debugCapture('execution_failed', p);
         es?.close();
       });
       es.addEventListener('execution_done', () => {
@@ -450,11 +629,13 @@
       });
       es.onerror = () => {
         running = false;
+        testMode = false;
         es?.close();
       };
     } catch (e) {
       pushLog('error', `Run failed to start: ${(e as Error).message}`);
       running = false;
+      testMode = false;
       statusText = 'Failed to start';
     }
   }
@@ -506,6 +687,7 @@
   const selectedNode = (): PipelineNode | undefined => (selectedNodeId ? getNode(selectedNodeId) : undefined);
   const catColor = (c: CategoryKey) => CATEGORIES.find((x) => x.key === c)?.color ?? '#6c5ce7';
   $: sel = selectedNodeId ? getNode(selectedNodeId) : undefined;
+  $: snapKey = snapTarget ? `${snapTarget.nodeId}:${snapTarget.kind}${snapTarget.index}` : null;
 </script>
 
 <svelte:head><title>GENESIS — Real-time data pipeline system</title></svelte:head>
@@ -535,13 +717,25 @@
       <button class="tb" on:click={() => { resetAll(); }} title="Reset canvas">
         <span class="ic">↺</span> Reset
       </button>
-      <button class="tb" on:click={() => { nodes = []; edges = []; selectedNodeId = null; }} title="Clear canvas">
+      <button class="tb" on:click={() => { nodes = []; edges = []; groups = []; selectedNodeId = null; }} title="Clear canvas">
         <span class="ic">🧹</span> Clear
       </button>
       <button class="tb" on:click={loadDemo} title="Load the demo pipeline">
         <span class="ic">🧪</span> Demo
       </button>
+      <button class="tb" on:click={addGroup} title="Group selected nodes (shift+click to multi-select)">
+        <span class="ic">🗂️</span> Group
+      </button>
       <span class="grow"></span>
+      <select class="tb-select" bind:value={runSettings.provider} title="Default LLM provider">
+        <option value="openai">OpenAI</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="google">Google</option>
+      </select>
+      <input class="tb-input" placeholder="model (e.g. gpt-4o-mini)" bind:value={runSettings.model} title="Default model" />
+      <button class="tb" class:active={debug} on:click={() => (debug = !debug)} title="Toggle debug event trace">
+        <span class="ic">🐞</span> Debug
+      </button>
       <button class="tb" on:click={loadRuns} title="Recent runs">
         <span class="ic">🕘</span> Runs
       </button>
@@ -556,11 +750,11 @@
     <!-- palette -->
     <aside class="palette">
       <div class="palette-tabs">
-        <button class="ptab active">Nodes</button>
-        <button class="ptab" on:click={loadRuns}>Runs</button>
+        <button class:active={activeTab === 'nodes'} on:click={() => (activeTab = 'nodes')}>Nodes</button>
+        <button class:active={activeTab === 'tools'} on:click={() => (activeTab = 'tools')}>Tools</button>
       </div>
       <div class="palette-scroll">
-        {#each CATEGORIES as cat}
+        {#each CATEGORIES.filter((cat) => (activeTab === 'nodes' ? !['tools', 'utilities'].includes(cat.key) : ['tools', 'utilities'].includes(cat.key))) as cat}
           <div class="cat">
             <button class="cat-head" on:click={() => (collapsed[cat.key] = !collapsed[cat.key])}>
               <span class="cat-dot" style={`background:${cat.color}`}></span>
@@ -595,16 +789,29 @@
         }}
       >
         <div class="viewport" style={`transform: translate(${panX}px, ${panY}px) scale(${zoom});`}>
+          {#each groups as g}
+            {@const b = groupBounds(g)}
+            {#if b}
+              <div class="group" class:locked={g.locked} style={`left:${b.x}px; top:${b.y}px; width:${b.w}px; height:${b.h}px; border-color:${g.color};`}>
+                <div class="group-head" style={`background:${g.color};`}>
+                  <span class="group-name">{g.name} <span class="group-count">{g.nodeIds.length}</span></span>
+                  <button class="group-lock" on:pointerdown={(e) => e.stopPropagation()} on:click={() => toggleGroupLock(g.id)} title={g.locked ? 'Unlock group' : 'Lock group'}>{g.locked ? '🔒' : '🔓'}</button>
+                  <button class="group-del" on:pointerdown={(e) => e.stopPropagation()} on:click={() => removeGroup(g.id)} title="Ungroup (keep nodes)">✕</button>
+                </div>
+              </div>
+            {/if}
+          {/each}
+
           <svg class="edges" style="position:absolute; left:0; top:0; width:1px; height:1px; overflow:visible;">
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#8d7bff" />
               </marker>
             </defs>
-            {#each edges as e (e.id)}
+            {#each edges as e, i (e.id)}
               <g class="edge" class:edge-selected={selectedEdgeId === e.id} on:pointerdown={(ev) => ev.stopPropagation()} on:click={(ev) => onEdgeClick(ev, e)}>
-                <path class="edge-hit" d={edgePath(e)} />
-                <path class="edge-line" d={edgePath(e)} marker-end="url(#arrow)" />
+                <path class="edge-hit" d={edgePaths[i]} />
+                <path class="edge-line" d={edgePaths[i]} marker-end="url(#arrow)" />
               </g>
             {/each}
             {#if pending}
@@ -645,6 +852,8 @@
               {#each def.inputs as label, i}
                 <div
                   class="port input"
+                  class:snap={snapKey === `${node.id}:i${i}`}
+                  class:tools-port={label === 'tools'}
                   style={`top:${PORT_HEADER + i * PORT_SPACING + 4}px;`}
                   title={`Input: ${label}`}
                   on:pointerdown={(e) => onPortPointerDown(e, node.id, 'i', i)}
@@ -657,6 +866,7 @@
               {#each def.outputs as label, i}
                 <div
                   class="port output"
+                  class:snap={snapKey === `${node.id}:o${i}`}
                   style={`top:${PORT_HEADER + i * PORT_SPACING + 4}px;`}
                   title={`Output: ${label}`}
                   on:pointerdown={(e) => onPortPointerDown(e, node.id, 'o', i)}
@@ -744,7 +954,27 @@
           </div>
 
           <div class="cfg-actions">
-            <button class="btn solid" on:click={() => removeNode(sel.id)} style="width:100%;">Delete node</button>
+            <button class="btn" on:click={() => run(sel.id)} disabled={running} style="width:100%;">🧪 Test this node</button>
+            {#if groups.length > 0}
+              <label>Add to group</label>
+              <select
+                class="cfg-input"
+                bind:value={groupChoice}
+                on:change={() => {
+                  if (groupChoice) {
+                    addNodeToGroup(sel.id, groupChoice);
+                    pushLog('ok', `Added "${sel.label}" to a group`);
+                    groupChoice = '';
+                  }
+                }}
+              >
+                <option value="">— choose a group —</option>
+                {#each groups as g}
+                  <option value={g.id}>{g.name}</option>
+                {/each}
+              </select>
+            {/if}
+            <button class="btn solid" on:click={() => removeNode(sel.id)} style="width:100%; margin-top:10px;">Delete node</button>
           </div>
         </div>
       {:else}
@@ -767,12 +997,22 @@
       <div class="console-tabs">
         <button class:active={consoleTab === 'logs'} on:click={() => (consoleTab = 'logs')}>Logs</button>
         <button class:active={consoleTab === 'outputs'} on:click={() => (consoleTab = 'outputs')}>Outputs</button>
+        <button class:active={consoleTab === 'dashboard'} on:click={() => (consoleTab = 'dashboard')}>Dashboard</button>
       </div>
       <div class="grow"></div>
-      <button class="run-btn" class:running on:click={run} disabled={running || nodes.length === 0}>
-        {running ? '● Running…' : '▶ Run pipeline'}
+      <div class="mode-wrap">
+        <span class="mode-label">Expert</span>
+        <button class:mode-active={runSettings.mode === 'full'} on:click={() => (runSettings.mode = 'full')} title="Full mode">⚡ Full</button>
+        <button class:mode-active={runSettings.mode === 'autonomous'} on:click={() => (runSettings.mode = 'autonomous')} title="Autonomous mode">🤖 Autonomous</button>
+        <button class:mode-active={runSettings.mode === 'reference'} on:click={() => (runSettings.mode = 'reference')} title="Reference mode">📚 Reference</button>
+        <label class="mini-switch" title="Mock provider calls"><input type="checkbox" bind:checked={runSettings.mock} /> Mock</label>
+        <label class="mini-switch" title="Verbose logging"><input type="checkbox" bind:checked={runSettings.verbose} /> Verbose</label>
+      </div>
+      <button class="test-btn" on:click={() => selectedNodeId && run(selectedNodeId)} disabled={running || !selectedNodeId}>🧪 Test</button>
+      <button class="run-btn" class:running on:click={() => run()} disabled={running || nodes.length === 0}>
+        {running ? (testMode ? '● Testing…' : '● Running…') : '▶ Run pipeline'}
       </button>
-      <span class="status-text" class:ok={statusText.startsWith('Completed')} class:bad={statusText.startsWith('Failed')}>{statusText}</span>
+      <span class="status-text" class:ok={statusText.startsWith('Completed') || statusText.startsWith('Test completed')} class:bad={statusText.startsWith('Failed')}>{statusText}</span>
     </div>
     <div class="console-body">
       {#if consoleTab === 'logs'}
@@ -788,7 +1028,7 @@
             </div>
           {/each}
         {/if}
-      {:else}
+      {:else if consoleTab === 'outputs'}
         {#if Object.keys(runOutputs).length === 0}
           <div class="console-empty">
             <span class="mono faint">No outputs yet — run a pipeline with Display / Data Sink / Cortex Index nodes.</span>
@@ -806,9 +1046,58 @@
             {/if}
           {/each}
         {/if}
+      {:else}
+        {#if !lastRun}
+          <div class="console-empty">
+            <span class="mono faint">Execution Validation — run a pipeline to see validation data.</span>
+          </div>
+        {:else}
+          <div class="dash-grid">
+            <div class="dash-card">
+              <div class="dash-k">Status</div>
+              <div class="dash-v" class:good={lastRun.status === 'completed'}>{lastRun.status === 'completed' ? '✓ Completed' : '✗ Failed'}</div>
+            </div>
+            <div class="dash-card"><div class="dash-k">Duration</div><div class="dash-v">{lastRun.durationMs ?? '—'} ms</div></div>
+            <div class="dash-card"><div class="dash-k">Nodes</div><div class="dash-v">{lastRun.nodeCount ?? nodes.length}</div></div>
+            <div class="dash-card"><div class="dash-k">Mode</div><div class="dash-v">{lastRun.mode ?? runSettings.mode}</div></div>
+          </div>
+          <div class="dash-checks">
+            <div class="dash-sub">Validation checks</div>
+            {#each nodes as n}
+              {@const ok = n.status === 'ok'}
+              <div class="dash-check" class:pass={ok} class:fail={n.status === 'error'}>
+                <span class="dc-icon">{ok ? '✓' : n.status === 'error' ? '✗' : '○'}</span>
+                <span class="dc-label">{getCatalogNode(n.type).icon} {n.label} <span class="faint">({n.type})</span></span>
+                <span class="dc-detail">{n.error ?? (ok ? (n.outputPreview ? 'has output' : 'completed') : 'not run')}</span>
+              </div>
+            {/each}
+          </div>
+        {/if}
       {/if}
     </div>
   </footer>
+
+  {#if debug}
+    <div class="debug-strip">
+      <div class="debug-head">
+        <span class="mono">Debug — event trace</span>
+        <button class="tb" on:click={() => (debugEvents = [])}>Clear</button>
+      </div>
+      <div class="debug-body">
+        {#if debugEvents.length === 0}
+          <span class="faint mono">No events captured yet — run a pipeline to populate the trace.</span>
+        {:else}
+          {#each debugEvents as ev}
+            <div class="debug-line">
+              <span class="debug-ts mono">{ev.ts}</span>
+              <span class="debug-ev mono">{ev.event}</span>
+              <pre class="debug-data">{JSON.stringify(ev.data)}</pre>
+            </div>
+          {/each}
+        {/if}
+      </div>
+    </div>
+  {/if}
 </div>
 
 <!-- View JSON modal -->
@@ -1095,4 +1384,72 @@
   .li-main { flex: 1; min-width: 0; }
   .li-name { font-size: 13px; color: var(--ink); }
   .li-sub { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+  /* toolbar extras */
+  .tb.active { color: var(--ink); border-color: #fbbf24; background: rgba(251,191,36,0.12); }
+  .tb-select, .tb-input {
+    background: var(--panel); border: 1px solid var(--line); color: var(--ink-dim); border-radius: 8px;
+    padding: 6px 8px; font-size: 12px; font-family: var(--mono); max-width: 180px;
+  }
+  .tb-input { max-width: 160px; }
+  .tb-select:focus, .tb-input:focus { outline: none; border-color: var(--signal-2); }
+
+  /* groups */
+  .group { position: absolute; border: 1.5px dashed; border-radius: 12px; pointer-events: none; background: rgba(18,21,42,0.35); }
+  .group.locked { background: rgba(251,191,36,0.06); border-style: solid; }
+  .group-head {
+    position: absolute; top: -30px; left: -1px; display: flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 8px 8px 8px 0; pointer-events: auto; height: 24px;
+  }
+  .group-name { font-family: var(--mono); font-size: 11px; font-weight: 700; color: #fff; }
+  .group-count { opacity: 0.75; font-size: 9px; }
+  .group-lock, .group-del { background: rgba(0,0,0,0.25); border: none; color: #fff; border-radius: 5px; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .group-lock:hover, .group-del:hover { background: rgba(0,0,0,0.5); }
+
+  /* ports: snap highlight + expert tools port */
+  .port.snap .port-dot { background: #a855f7; transform: scale(1.45); box-shadow: 0 0 10px #a855f7; }
+  .port.snap .port-label { color: var(--ink); }
+  .port.tools-port .port-dot { border-color: #f472b6; }
+  .port.tools-port .port-label { color: #f472b6; }
+
+  /* console: test + expert mode + dashboard */
+  .test-btn {
+    background: var(--panel); border: 1px solid var(--signal-2); color: var(--signal-2);
+    font-family: var(--display); font-size: 12.5px; font-weight: 600; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  }
+  .test-btn:hover { background: var(--signal-2); color: #fff; }
+  .test-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .mode-wrap { display: flex; align-items: center; gap: 4px; }
+  .mode-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); margin-right: 2px; }
+  .mode-wrap button {
+    background: transparent; border: 1px solid var(--line); color: var(--ink-faint); font-size: 11px;
+    padding: 4px 8px; border-radius: 6px; cursor: pointer; font-family: var(--mono);
+  }
+  .mode-wrap button.mode-active { color: var(--ink); border-color: var(--signal-2); background: rgba(108,92,231,0.15); }
+  .mini-switch { display: flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 10px; color: var(--ink-faint); cursor: pointer; margin-left: 6px; }
+
+  .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+  .dash-card { background: var(--bg-alt); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .dash-k { font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .dash-v { font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+  .dash-v.good { color: var(--good); }
+  .dash-sub { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); margin-bottom: 6px; }
+  .dash-checks { display: flex; flex-direction: column; gap: 3px; }
+  .dash-check { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 7px; background: var(--bg-alt); border: 1px solid var(--line); font-size: 12px; }
+  .dash-check.pass { border-color: rgba(52,211,153,0.4); }
+  .dash-check.fail { border-color: var(--danger); }
+  .dc-icon { font-family: var(--mono); font-weight: 700; width: 14px; color: var(--ink-faint); }
+  .dash-check.pass .dc-icon { color: var(--good); }
+  .dash-check.fail .dc-icon { color: var(--danger); }
+  .dc-label { color: var(--ink-dim); }
+  .dc-detail { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); max-width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* debug strip */
+  .debug-strip { background: var(--bg-deep); border: 1px solid var(--line); border-radius: 12px; max-height: 180px; display: flex; flex-direction: column; overflow: hidden; }
+  .debug-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--line-soft); font-size: 11px; color: var(--ink-dim); }
+  .debug-body { overflow-y: auto; padding: 8px 12px; }
+  .debug-line { display: flex; gap: 10px; align-items: baseline; padding: 2px 0; border-bottom: 1px solid var(--line-soft); font-size: 11px; }
+  .debug-ts { color: var(--ink-faint); flex: none; }
+  .debug-ev { color: #a855f7; flex: none; font-weight: 700; }
+  .debug-data { margin: 0; color: var(--ink-dim); font-family: var(--mono); font-size: 10.5px; white-space: pre-wrap; word-break: break-word; flex: 1; }
 </style>

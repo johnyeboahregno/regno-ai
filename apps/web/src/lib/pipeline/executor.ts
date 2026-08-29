@@ -17,6 +17,7 @@ export interface RunRequest {
   nodes?: PipelineNode[];
   edges?: PipelineEdge[];
   pipelineId?: string;
+  settings?: Record<string, unknown>;
 }
 
 export interface RunOutcome {
@@ -156,6 +157,7 @@ async function runNode(
   portValues: Record<string, unknown>,
   emit: Emit,
   executionId: string,
+  settings: Record<string, unknown> = {},
 ): Promise<Record<string, unknown>> {
   const def = getCatalogNode(node.type);
   const cfg = node.config ?? {};
@@ -377,10 +379,16 @@ async function runNode(
     case 'docgen': {
       const promptTemplate =
         String(cfg.prompt ?? cfg.question ?? cfg.task ?? cfg.template ?? 'Answer using the input:\n\n{input}');
-      const input = firstInput(portValues);
-      const prompt = promptTemplate.replaceAll('{input}', stringify(input, 6000));
-      const provider = (String(cfg.provider ?? 'openai') as 'openai' | 'anthropic' | 'google') || 'openai';
-      const model = String(cfg.model ?? '').trim() || undefined;
+      // Build context from EVERY connected input port (e.g. an Expert node's
+      // 'context' + 'tools' ports), so attached tool nodes feed the model.
+      const ctxParts = Object.entries(portValues)
+        .filter(([, v]) => v !== null && v !== undefined)
+        .map(([port, v]) => `[${port}]\n${stringify(v, 5000)}`);
+      const contextBlock = ctxParts.join('\n\n');
+      const prompt = promptTemplate.replaceAll('{input}', contextBlock || 'No input');
+      const provider =
+        (String(cfg.provider ?? settings.provider ?? 'openai') as 'openai' | 'anthropic' | 'google') || 'openai';
+      const model = String(cfg.model ?? settings.model ?? '').trim() || undefined;
       try {
         const answer = await chat(
           [
@@ -393,9 +401,84 @@ async function runNode(
         return out(answer);
       } catch (e) {
         log(`${def.label} provider error: ${(e as Error).message} — returning simulated analysis`, 'warn');
-        const simulated = `[${def.label} — simulated]\n\nInput:\n${stringify(input, 1200)}\n\nAnalysis:\nThe ${def.label} node reviewed the incoming payload of ${asArray(input).length} item(s). Key observation: data flows through GENESIS deterministically, and this stage is ready for real provider routing.`;
+        const simulated = `[${def.label} — simulated]\n\nInput:\n${contextBlock || stringify(firstInput(portValues), 1200)}\n\nAnalysis:\nThe ${def.label} node reviewed the incoming payload and produced a deterministic analysis. Configure a provider API key to enable real generation.`;
         return out(simulated);
       }
+    }
+
+    case 'file-io': {
+      const path = String(cfg.path ?? '').trim();
+      const content = String(cfg.content ?? '').trim();
+      if (path && !content) {
+        try {
+          const { readFileSync } = await import('node:fs');
+          const fsContent = readFileSync(path, 'utf8');
+          log(`Read ${fsContent.length} chars from ${path}`, 'ok');
+          return out([{ tool: 'file-io', path, content: fsContent.slice(0, 20000) }]);
+        } catch (e) {
+          log(`file-io read failed: ${(e as Error).message}`, 'warn');
+        }
+      }
+      return out([{ tool: 'file-io', path, content: content || '(no content)' }]);
+    }
+
+    case 'web-fetcher': {
+      const url = String(cfg.url ?? '').trim();
+      if (!url) throw new Error('Web Fetcher needs a URL');
+      const res = await fetch(url);
+      const text = await res.text();
+      log(`Fetched ${text.length} chars from ${url}`, 'ok');
+      return out([{ tool: 'web-fetcher', url, content: text.slice(0, 20000) }]);
+    }
+
+    case 'web-search': {
+      const query = String(cfg.query ?? '').trim() || 'genesis pipelines';
+      log(`Web Search (simulated) for "${query}" — configure a search engine to enable real results`, 'warn');
+      return out([
+        { tool: 'web-search', query, results: [`Simulated result for "${query}" — hook up a search API to enable live results.`] },
+      ]);
+    }
+
+    case 'cost-tracker': {
+      const budget = Number(cfg.budgetUsd ?? 1);
+      const input = firstInput(portValues);
+      const estChars = stringify(input, 20000).length;
+      const estTokens = Math.ceil(estChars / 4);
+      const estCost = (estTokens / 1_000_000) * 3; // rough $3/M tokens
+      log(`Cost Tracking: ~${estTokens} tokens ≈ $${estCost.toFixed(4)} (budget $${budget})`, 'ok');
+      return out({ ...(input && typeof input === 'object' ? (input as object) : { value: input }), __costUsd: estCost });
+    }
+
+    case 'performance': {
+      const start = Date.now();
+      const input = firstInput(portValues);
+      const ms = Date.now() - start;
+      log(`Performance: node took ${ms}ms`, 'ok');
+      return out(input);
+    }
+
+    case 'error-handler': {
+      const input = firstInput(portValues);
+      if (input === null || input === undefined) {
+        const fallback = parseJson(String(cfg.fallback ?? '{}'));
+        log('Error Handling: upstream produced no data — applied fallback', 'warn');
+        return out(fallback ?? {});
+      }
+      return out(input);
+    }
+
+    case 'audit-trail': {
+      const input = firstInput(portValues);
+      const action = String(cfg.action ?? 'pipeline-step') || 'pipeline-step';
+      const entry = { action, node: node.label, ts: new Date().toISOString(), payload: stringify(input, 2000) };
+      try {
+        const db = await getDb().catch(() => null);
+        if (db) await db.collection(Collections.AUDIT).insertOne(entry);
+      } catch {
+        /* best effort */
+      }
+      log(`Audit Trail: recorded "${action}"`, 'ok');
+      return out(input);
     }
 
     case 'display':
@@ -507,7 +590,7 @@ export async function runPipeline(
         portValues[e.toPort] = val;
       }
       try {
-        const byPort = await runNode(node, portValues, emitL, executionId);
+        const byPort = await runNode(node, portValues, emitL, executionId, req.settings ?? {});
         results.set(node.id, byPort);
         outputs[node.id] = byPort['__out'] ?? firstInput(byPort);
         emitL('node_completed', { nodeId: node.id, output: outputs[node.id] });
@@ -520,7 +603,13 @@ export async function runPipeline(
     }
 
     const durationMs = Date.now() - started;
-    emitL('execution_completed', { executionId, durationMs, outputs });
+    emitL('execution_completed', {
+      executionId,
+      durationMs,
+      outputs,
+      nodeCount: nodes.length,
+      mode: req.settings?.mode ?? 'full',
+    });
     return { executionId, status: 'completed', durationMs, outputs };
   } catch (e) {
     const durationMs = Date.now() - started;

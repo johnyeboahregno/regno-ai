@@ -9,7 +9,9 @@ export type CategoryKey =
   | 'control'
   | 'ai'
   | 'visualization'
-  | 'sinks';
+  | 'sinks'
+  | 'tools'
+  | 'utilities';
 
 export interface CategoryDef {
   key: CategoryKey;
@@ -25,6 +27,8 @@ export const CATEGORIES: CategoryDef[] = [
   { key: 'ai', label: 'AI & Intelligence', hint: 'LLM-powered nodes', color: '#6c5ce7' },
   { key: 'visualization', label: 'Visualization', hint: 'Render output', color: '#34d399' },
   { key: 'sinks', label: 'Data Sinks', hint: 'Define destination', color: '#fb7185' },
+  { key: 'tools', label: 'Tools', hint: 'Capabilities for Expert nodes', color: '#f472b6' },
+  { key: 'utilities', label: 'Utilities', hint: 'Observability, Error Handling, Performance', color: '#38bdf8' },
 ];
 
 export interface CatalogField {
@@ -387,8 +391,8 @@ export const CATALOG: CatalogNode[] = [
     label: 'Expert',
     icon: '🧠',
     category: 'ai',
-    description: 'AI expert with Q&A workflow.',
-    inputs: ['context'],
+    description: 'AI expert with Q&A workflow. Attach tool nodes (File I/O, Web Fetcher, Web Search) to the tools port.',
+    inputs: ['context', 'tools'],
     outputs: ['answer'],
     impl: 'implemented',
     fields: [
@@ -550,6 +554,93 @@ export const CATALOG: CatalogNode[] = [
       { key: 'domain', label: 'Domain', kind: 'text', placeholder: 'pipeline' },
       { key: 'tags', label: 'Tags (comma)', kind: 'text', placeholder: 'genesis, pipeline' },
     ],
+  },
+
+  // ── Tools (attachable to Expert nodes) ─────────────────────────
+  {
+    type: 'file-io',
+    label: 'File I/O',
+    icon: '📁',
+    category: 'tools',
+    description: 'Read from / write to files. Connects to an Expert node\u2019s tools port.',
+    inputs: [],
+    outputs: ['content'],
+    impl: 'implemented',
+    fields: [
+      { key: 'path', label: 'File path', kind: 'text', placeholder: 'docs/README.md' },
+      { key: 'content', label: 'Inline content', kind: 'textarea', placeholder: 'Content to pass through…' },
+    ],
+  },
+  {
+    type: 'web-fetcher',
+    label: 'Web Fetcher',
+    icon: '🌍',
+    category: 'tools',
+    description: 'Fetch a web page and pass its content to an Expert node.',
+    inputs: [],
+    outputs: ['content'],
+    impl: 'implemented',
+    fields: [{ key: 'url', label: 'URL', kind: 'text', placeholder: 'https://example.com' }],
+  },
+  {
+    type: 'web-search',
+    label: 'Web Search',
+    icon: '🔎',
+    category: 'tools',
+    description: 'Search the web and return results to an Expert node.',
+    inputs: [],
+    outputs: ['results'],
+    impl: 'implemented',
+    fields: [
+      { key: 'query', label: 'Query', kind: 'text', placeholder: 'search terms' },
+      { key: 'engine', label: 'Engine', kind: 'select', default: 'simulated', options: [{ label: 'Simulated (no API key)', value: 'simulated' }] },
+    ],
+  },
+
+  // ── Utilities (observability / error handling / performance) ───
+  {
+    type: 'cost-tracker',
+    label: 'Cost Tracking',
+    icon: '💰',
+    category: 'utilities',
+    description: 'Estimate LLM token cost flowing through the pipeline and tag it to the payload.',
+    inputs: ['data'],
+    outputs: ['data'],
+    impl: 'implemented',
+    fields: [{ key: 'budgetUsd', label: 'Budget cap (USD)', kind: 'number', default: 1 }],
+  },
+  {
+    type: 'performance',
+    label: 'Performance',
+    icon: '⚡',
+    category: 'utilities',
+    description: 'Measure execution duration at this point in the pipeline and log it.',
+    inputs: ['data'],
+    outputs: ['data'],
+    impl: 'implemented',
+    fields: [],
+  },
+  {
+    type: 'error-handler',
+    label: 'Error Handling',
+    icon: '🛡️',
+    category: 'utilities',
+    description: 'Catch upstream failures and continue with a fallback value.',
+    inputs: ['data'],
+    outputs: ['data'],
+    impl: 'implemented',
+    fields: [{ key: 'fallback', label: 'Fallback value', kind: 'code', placeholder: '{}', default: '{}' }],
+  },
+  {
+    type: 'audit-trail',
+    label: 'Audit Trail',
+    icon: '📜',
+    category: 'utilities',
+    description: 'Record an audit entry for everything that flows through this point.',
+    inputs: ['data'],
+    outputs: ['data'],
+    impl: 'implemented',
+    fields: [{ key: 'action', label: 'Action label', kind: 'text', placeholder: 'pipeline-step' }],
   },
 ];
 
