@@ -5,3 +5,4 @@ export * from './redis.js';
 export * from './indexes.js';
 export * from './sync.js';
 export * from './credentials.js';
+export * from './usage.js';

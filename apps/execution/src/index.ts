@@ -5,9 +5,15 @@
  * Phase 3 will wire PlanEngine → (agent, topology) → AgentExecutor loop,
  * QualityAuditor refine loop, and AgentMemoryService wisdom persistence.
  */
-import { getRedis } from '@regno/db';
+import { getRedis, recordAiUsage } from '@regno/db';
+import { setUsageSink } from '@regno/ai';
 import { startOrchestratorWorker } from './workers/orchestrator.js';
 import { startNotificationsWorker } from './workers/notifications.js';
+
+// Capture AI usage (tokens + cost) for every LLM call made by the worker.
+setUsageSink((u) => {
+  void recordAiUsage(u);
+});
 
 async function main() {
   const connection = getRedis();

@@ -45,6 +45,7 @@ export const Collections = {
   SKILLS: 'skills',
   VISION_NARRATIONS: 'vision_narrations',
   SHOWCASES: 'showcases',
+  AI_USAGE: 'ai_usage',
 } as const;
 
 /** Qdrant collections (see docs/DB_SCHEMA.md §3) */

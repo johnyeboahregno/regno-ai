@@ -69,7 +69,7 @@ export async function runExecution(
           content: `${ctx ? `Context:\n${ctx}\n\n` : ''}Task: ${prompt}\nPhase: ${phase.name}`,
         },
       ],
-      { provider: settings.provider, model: settings.model },
+      { provider: settings.provider, model: settings.model, taskId: executionId },
     );
     finalOutput = output;
     phaseResults.push({ name: phase.name, output });
@@ -87,7 +87,7 @@ export async function runExecution(
         { role: 'system', content: 'Refine the output to address the critique. Return only the improved output.' },
         { role: 'user', content: `Output:\n${finalOutput}\n\nCritique:\n${graded.critique}` },
       ],
-      { provider: settings.provider, model: settings.model },
+      { provider: settings.provider, model: settings.model, taskId: executionId },
     );
     graded = await gradeOutput(RUBRIC, finalOutput, settings);
   }

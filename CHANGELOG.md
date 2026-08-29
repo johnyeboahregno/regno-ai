@@ -3,6 +3,23 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-29 — Oracle rename + AI usage & cost on Health
+
+- **Nexus → Oracle**: the knowledge-search dashboard moved from `/app/nexus` to `/app/oracle`
+  (search API is now `/api/oracle/search`). Old `/app/nexus` 301-redirects. Sidebar + app chooser
+  updated. The `/app/chat` page stays **Architect** (no rename).
+- **Removed system-health grids from `/app/docs`**: the Builds / Tests / Deployments cards were
+  stripped from the Docs page (they had been added alongside `GET /api/system-health`); Docs is
+  back to document/artifact listing only.
+- **AI usage & cost tracking** (new): the `@regno/ai` gateway now parses token usage from
+  OpenAI / Anthropic / Google chat + OpenAI embeddings, estimates USD cost via a per-model pricing
+  table, and emits `UsageRecord`s to a module-level sink. New `ai_usage` Mongo collection (indexed
+  on ts / provider·model / day) + `recordAiUsage` helper in `@regno/db`. Sinks installed in the
+  execution worker (`apps/execution`) and web server (`apps/web/src/hooks.server.ts`).
+- **Health page**: `/app/health` now shows an **AI usage & cost** section on top — total tokens,
+  total cost, cost this month, LLM call count, a 30-day token bar chart, and a per-model breakdown
+  table (via extended `GET /api/health`). Infra status cards retained below.
+
 ## 2026-08-29 — Architects (full stack + own brain + base knowledge)
 
 - **Agent wizard** (`/app/agents` → "Regno Architects"): admin parent screen to create a

@@ -25,6 +25,7 @@ export async function ensureMongoIndexes(): Promise<void> {
     { collection: Collections.CREDENTIALS, indexes: [{ key: { name: 1 }, unique: true }] },
     { collection: Collections.PIPELINE_HISTORY, indexes: [{ key: { pipelineId: 1, createdAt: -1 } }] },
     { collection: Collections.AUDIT, indexes: [{ key: { ts: -1 } }, { key: { actor: 1 } }] },
+    { collection: Collections.AI_USAGE, indexes: [{ key: { ts: -1 } }, { key: { provider: 1, model: 1 } }, { key: { day: 1 } }] },
   ];
 
   for (const { collection, indexes } of specs) {

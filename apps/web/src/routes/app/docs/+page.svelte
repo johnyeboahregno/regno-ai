@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { marked } from 'marked';
-  import HealthGrid from '$lib/HealthGrid.svelte';
 
   function renderMarkdown(md: string): string {
     return marked.parse(md, { async: false }) as string;
@@ -41,13 +40,6 @@
   let loading = false;
   let collapsed: Record<string, boolean> = {};
 
-  type HealthEvent = { id: string; label: string; status: 'success' | 'failed'; date?: string; detail?: string };
-  let health: { builds: HealthEvent[]; tests: HealthEvent[]; deployments: HealthEvent[] } = {
-    builds: [],
-    tests: [],
-    deployments: [],
-  };
-
   async function setSelected(title: string, content: string, meta: string) {
     selected = { title, content, meta };
     html = renderMarkdown(content);
@@ -61,10 +53,9 @@
 
   async function load() {
     try {
-      const [dr, ar, hr] = await Promise.all([
+      const [dr, ar] = await Promise.all([
         fetch('/api/docs').then((r) => r.json()),
         fetch('/api/artifacts').then((r) => r.json()),
-        fetch('/api/system-health').then((r) => r.json()),
       ]);
       if (dr.ok) {
         total = dr.total;
@@ -75,7 +66,6 @@
         collapsed = c;
       }
       if (ar.ok) artifacts = ar.artifacts;
-      if (hr.ok) health = { builds: hr.builds ?? [], tests: hr.tests ?? [], deployments: hr.deployments ?? [] };
     } catch {
       /* ignore */
     }
@@ -114,12 +104,6 @@
   <div class="eyebrow blue">Knowledge</div>
   <h1>Documentation</h1>
   <p>{total} documents in the brain, grouped by domain.</p>
-</div>
-
-<div class="health-row">
-  <HealthGrid title="Builds" kind="build" events={health.builds} />
-  <HealthGrid title="Tests" kind="test" events={health.tests} />
-  <HealthGrid title="Deployments" kind="deploy" events={health.deployments} />
 </div>
 
 <div class="split">
@@ -187,12 +171,6 @@
 </div>
 
 <style>
-  .health-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
-    margin-bottom: 20px;
-  }
   .split {
     display: grid;
     grid-template-columns: minmax(280px, 400px) 1fr;

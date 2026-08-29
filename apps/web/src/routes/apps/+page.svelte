@@ -11,7 +11,7 @@
   }
 
   const apps: App[] = [
-    { name: 'NEXUS', href: '/app/nexus', glyph: '💬', color: '#2dd4bf', desc: 'Knowledge base' },
+    { name: 'ORACLE', href: '/app/oracle', glyph: '💬', color: '#2dd4bf', desc: 'Knowledge base' },
     { name: 'GENESIS', href: '/app/genesis', glyph: '📈', color: '#22d3ee', desc: 'Architecture' },
     { name: 'CORTEX', href: '/app/cortex', glyph: '🧠', color: '#eea23c', desc: 'Memory system', done: true },
     { name: 'STAGE', href: '/app/stage', glyph: '🗂️', color: '#3b82f6', desc: 'Projects' },

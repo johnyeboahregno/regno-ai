@@ -14,7 +14,7 @@
       title: 'Platform',
       items: [
         { href: '/app', label: 'Dashboard' },
-        { href: '/app/nexus', label: 'Nexus', badge: true },
+        { href: '/app/oracle', label: 'Oracle', badge: true },
         { href: '/app/canvas', label: 'Canvas' },
         { href: '/app/cortex', label: 'Cortex' },
         { href: '/app/stage', label: 'Stage' },
