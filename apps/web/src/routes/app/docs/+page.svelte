@@ -6,6 +6,11 @@
   let artifacts: Array<{ taskId: string; title: string; agentSlug: string; createdAt: string }> = [];
   let selected: { title: string; content: string; meta: string } | null = null;
   let loading = false;
+  let collapsed: Record<string, boolean> = {};
+
+  function toggleSection(key: string) {
+    collapsed = { ...collapsed, [key]: !collapsed[key] };
+  }
 
   async function load() {
     try {
@@ -139,6 +144,19 @@
     text-align: left;
   }
   .doc:hover { background: rgba(91,110,245,0.06); }
+  .group-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 4px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .group-head .chev { color: var(--ink-faint); font-family: var(--mono); }
   .content {
     white-space: pre-wrap;
     word-break: break-word;
