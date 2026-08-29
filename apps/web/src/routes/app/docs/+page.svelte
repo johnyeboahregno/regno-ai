@@ -1,17 +1,47 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { marked } from 'marked';
+  import mermaid from 'mermaid';
+
+  mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
 
   function renderMarkdown(md: string): string {
     return marked.parse(md, { async: false }) as string;
+  }
+
+  function basename(p: string): string {
+    return p.split('/').pop() ?? p;
+  }
+
+  async function renderMermaidDiagrams() {
+    const blocks = Array.from(document.querySelectorAll('.content code.language-mermaid'));
+    for (const block of blocks) {
+      const code = block.textContent ?? '';
+      try {
+        const { svg } = await mermaid.render('m' + Math.random().toString(36).slice(2), code);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = svg;
+        block.parentElement?.replaceWith(wrapper);
+      } catch (e) {
+        console.warn('mermaid render failed', e);
+      }
+    }
   }
 
   let total = 0;
   let groups: Array<{ domain: string; count: number; docs: Array<{ title: string; sourceUrl: string }> }> = [];
   let artifacts: Array<{ taskId: string; title: string; agentSlug: string; createdAt: string }> = [];
   let selected: { title: string; content: string; meta: string } | null = null;
+  let html = '';
   let loading = false;
   let collapsed: Record<string, boolean> = {};
+
+  async function setSelected(title: string, content: string, meta: string) {
+    selected = { title, content, meta };
+    html = renderMarkdown(content);
+    await tick();
+    await renderMermaidDiagrams();
+  }
 
   function toggleSection(key: string) {
     collapsed = { ...collapsed, [key]: !collapsed[key] };
@@ -42,7 +72,7 @@
     try {
       const r = await fetch(`/api/docs/content?sourceUrl=${encodeURIComponent(d.sourceUrl)}`);
       const data = await r.json();
-      if (data.ok) selected = { title: data.doc.title, content: data.doc.content, meta: data.doc.domain };
+      if (data.ok) await setSelected(basename(data.doc.title), data.doc.content, data.doc.domain);
     } catch {
       /* ignore */
     } finally {
@@ -55,7 +85,7 @@
     try {
       const r = await fetch(`/api/artifacts/${taskId}`);
       const d = await r.json();
-      if (d.ok) selected = { title: d.artifact.title, content: d.artifact.markdown, meta: d.artifact.agentSlug ?? 'artifact' };
+      if (d.ok) await setSelected(d.artifact.title, d.artifact.markdown, d.artifact.agentSlug ?? 'artifact');
     } catch {
       /* ignore */
     } finally {
@@ -105,7 +135,7 @@
           <div class="panel mt" style="padding:6px 0;">
             {#each g.docs.slice(0, 20) as d}
               <button class="doc" on:click={() => openDoc(d)}>
-                <span class="mono small" style="color:var(--ink-dim);">{d.title}</span>
+                <span class="mono small" style="color:var(--ink-dim);">{basename(d.title)}</span>
               </button>
             {/each}
             {#if g.docs.length > 20}
@@ -126,7 +156,7 @@
           <div class="eyebrow blue">{selected.meta}</div>
           <span class="faint small">{selected.title}</span>
         </div>
-        <div class="content">{@html renderMarkdown(selected.content)}</div>
+        <div class="content">{@html html}</div>
       </div>
     {:else}
       <div class="panel" style="padding:28px; text-align:center;">
