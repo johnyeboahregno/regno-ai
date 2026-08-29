@@ -13,7 +13,8 @@
     "@regno/db": "*",
     "@regno/flow": "*",
     "@regno/shared": "*",
-    "jose": "^5.9.0"
+    "jose": "^5.9.0",
+    "marked": "^12.0.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.0",

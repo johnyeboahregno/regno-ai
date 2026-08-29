@@ -1,5 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { marked } from 'marked';
+
+  function renderMarkdown(md: string): string {
+    return marked.parse(md, { async: false }) as string;
+  }
 
   let total = 0;
   let groups: Array<{ domain: string; count: number; docs: Array<{ title: string; sourceUrl: string }> }> = [];
@@ -107,7 +112,7 @@
           <div class="eyebrow blue">{selected.meta}</div>
           <span class="faint small">{selected.title}</span>
         </div>
-        <pre class="content">{selected.content}</pre>
+        <div class="content">{@html renderMarkdown(selected.content)}</div>
       </div>
     {:else}
       <div class="panel" style="padding:28px; text-align:center;">
@@ -127,8 +132,8 @@
   .list { min-width: 0; }
   .preview {
     position: sticky;
-    top: 72px;
-    max-height: calc(100vh - 90px);
+    top: 60px;
+    max-height: calc(100vh - 80px);
     overflow-y: auto;
   }
   .doc {
@@ -157,14 +162,43 @@
     text-align: left;
   }
   .group-head .chev { color: var(--ink-faint); font-family: var(--mono); }
-  .content {
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.7;
-    color: var(--ink-dim);
+  .content { font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
+  .content :global(h1), .content :global(h2), .content :global(h3), .content :global(h4) {
+    font-family: var(--display);
+    color: var(--ink);
+    margin: 18px 0 8px;
+    line-height: 1.2;
   }
+  .content :global(h1) { font-size: 22px; }
+  .content :global(h2) { font-size: 18px; }
+  .content :global(h3) { font-size: 16px; }
+  .content :global(h4) { font-size: 14px; }
+  .content :global(p) { margin: 8px 0; }
+  .content :global(code) {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--bg-alt);
+    padding: 2px 6px;
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+  }
+  .content :global(pre) {
+    background: var(--bg-alt);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+  .content :global(pre code) { background: transparent; border: 0; padding: 0; }
+  .content :global(ul), .content :global(ol) { margin: 8px 0 8px 22px; }
+  .content :global(li) { margin: 4px 0; }
+  .content :global(a) { color: var(--signal); }
+  .content :global(blockquote) { border-left: 2px solid var(--signal); padding-left: 12px; margin: 12px 0; }
+  .content :global(hr) { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+  .content :global(table) { border-collapse: collapse; margin: 12px 0; }
+  .content :global(th), .content :global(td) { border: 1px solid var(--line); padding: 6px 10px; font-size: 13px; }
+  .content :global(th) { color: var(--ink); background: var(--bg-alt); }
   @media (max-width: 900px) {
     .split { grid-template-columns: 1fr; }
     .preview { position: static; max-height: none; }
