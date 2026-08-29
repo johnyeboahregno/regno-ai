@@ -50,6 +50,7 @@
 | 16 | [`16-documentation-pipeline.md`](./16-documentation-pipeline.md) | Auto-document every artifact |
 | 17 | [`17-agent-wizard-spawner.md`](./17-agent-wizard-spawner.md) | Create agents + spawn namespaces |
 | 18 | [`18-architect-brain-model.md`](./18-architect-brain-model.md) | Architect = full stack + own brain + base knowledge |
+| 19 | [`19-cicd.md`](./19-cicd.md) | GitHub Actions → k3s deploy + validation |
 
 ## Golden rule
 
