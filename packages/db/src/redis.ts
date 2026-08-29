@@ -11,6 +11,19 @@ export function getRedis(): Redis {
       maxRetriesPerRequest: null, // required by BullMQ
       lazyConnect: false,
     });
+    // Never crash the process when Redis is unreachable (e.g. local dev
+    // without the docker stack). An unhandled 'error' event would otherwise
+    // kill the server. Log once, then stay quiet — calls fail per-request
+    // and the /api/health endpoint reports Redis as down.
+    let warned = false;
+    redis.on('error', (err: Error) => {
+      if (!warned) {
+        console.error(
+          `[redis] unavailable: ${err.message} (start the stack with \`npm run db:up\` to fix this)`,
+        );
+        warned = true;
+      }
+    });
   }
   return redis;
 }
