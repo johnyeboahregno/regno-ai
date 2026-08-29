@@ -3,6 +3,23 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-29 — Keyless search fallback for Oracle (Zaeem's zero-cost engine)
+
+- **Fork framing**: this repo is a **fork** of Zaeem's Regno Architect. Zaeem's `docs/` corpus is
+  gospel — always ingested and used to build; when he changes his docs we re-ingest
+  (`npm run db:seed-brain`) and apply. The fork's only difference: it connects to **our** repos and
+  **our** databases, never Zaeem's repo/DBs (no `BASE_QDRANT_URL` link to the base platform).
+- **Keyword/TF-IDF fallback** (matches `REGNO_AI_ARCHITECTURE_2026.html` §9 "zero-cost fallback
+  engine"): new `keywordSearch()` in `@regno/cortex` (`src/search.ts`) — TF-IDF keyword scoring over
+  Mongo `cortex_index` (raw docs are always stored, even without an embedding key).
+- **Oracle search** (`/api/oracle/search`) now works **keyless**: semantic (Qdrant) when
+  `OPENAI_API_KEY` is set, else keyword/TF-IDF fallback. Never hard-fails with "OPENAI_API_KEY is
+  not set". Response includes `method: 'semantic' | 'keyword'`.
+- **`knowledgeBase` tool** (`@regno/flow`): same fallback — semantic when a key is present, else
+  keyword/TF-IDF.
+- **Oracle UI hint** updated: keyword search works without a key; re-run `db:seed-brain` when Zaeem
+  updates his docs.
+
 ## 2026-08-29 — Oracle rename + AI usage & cost on Health
 
 - **Nexus → Oracle**: the knowledge-search dashboard moved from `/app/nexus` to `/app/oracle`

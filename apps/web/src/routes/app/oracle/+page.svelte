@@ -57,7 +57,7 @@
 
 {#if results.length === 0 && !busy && !error}
   <div class="panel" style="padding:28px; text-align:center;">
-    <p class="muted">Ask anything — results surface from the seeded knowledge base.</p>
-    <p class="faint small mt">(Requires <code>db:seed-brain</code> / <code>db:seed-github</code> to have run with <code>OPENAI_API_KEY</code>.)</p>
+    <p class="muted">Ask anything — results surface from the ingested knowledge base.</p>
+    <p class="faint small mt">Semantic search uses <code>OPENAI_API_KEY</code> when set; keyword search works without one. Re-run <code>npm run db:seed-brain</code> after Zaeem updates his docs.</p>
   </div>
 {/if}

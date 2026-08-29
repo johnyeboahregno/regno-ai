@@ -1,11 +1,13 @@
-// POST /api/oracle/search — semantic search over the architect's OWN knowledge
-// plus the shared BASE knowledge (read-only), so each architect can learn from
-// the base while keeping its own private knowledge.
+// POST /api/oracle/search — semantic search over the fork's OWN brain (Qdrant
+// doc_search) when an embedding key is present; otherwise a zero-cost
+// keyword/TF-IDF fallback over the ingested docs (Mongo cortex_index), matching
+// Zaeem's design ("zero-cost fallback engine" — REGNO_AI_ARCHITECTURE_2026.html §9).
 import { json } from '@sveltejs/kit';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { getQdrant } from '@regno/db';
 import { QdrantCollections } from '@regno/shared';
 import { embed } from '@regno/ai';
+import { keywordSearch } from '@regno/cortex';
 import { requireSession } from '$lib/server/auth.js';
 
 interface Payload {
@@ -23,6 +25,17 @@ export async function POST({ request, cookies }) {
   if (!query) return json({ ok: false, error: 'query is required' }, { status: 400 });
 
   try {
+    // Keyless fallback: raw docs always live in Mongo cortex_index, so keyword
+    // search works even without an embedding key (Zaeem's zero-cost fallback).
+    if (!process.env.OPENAI_API_KEY) {
+      const kw = await keywordSearch(query, 8);
+      return json({
+        ok: true,
+        method: 'keyword',
+        results: kw.map((h) => ({ score: Number(h.score.toFixed(3)), title: h.title, sourceUrl: h.sourceUrl, text: h.text, source: h.source })),
+      });
+    }
+
     const vector = await embed(query);
     const hits: Array<{ id: unknown; score: number; payload: Payload | null; source: 'own' | 'base' }> = [];
 
@@ -68,8 +81,18 @@ export async function POST({ request, cookies }) {
         source: h.source,
       }));
 
-    return json({ ok: true, results });
+    return json({ ok: true, method: 'semantic', results });
   } catch (e) {
-    return json({ ok: false, error: `Search failed: ${(e as Error).message}` }, { status: 500 });
+    // If semantic search fails for any reason (bad key, etc.), fall back to keyword.
+    try {
+      const kw = await keywordSearch(query, 8);
+      return json({
+        ok: true,
+        method: 'keyword',
+        results: kw.map((h) => ({ score: Number(h.score.toFixed(3)), title: h.title, sourceUrl: h.sourceUrl, text: h.text, source: h.source })),
+      });
+    } catch {
+      return json({ ok: false, error: `Search failed: ${(e as Error).message}` }, { status: 500 });
+    }
   }
 }

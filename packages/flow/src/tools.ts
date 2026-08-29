@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { getQdrant } from '@regno/db';
 import { QdrantCollections } from '@regno/shared';
 import { embed } from '@regno/ai';
+import { keywordSearch } from '@regno/cortex';
 import { enqueueEmail } from '@regno/mail';
 
 export interface Tool {
@@ -61,21 +62,28 @@ export function buildTools(repoRoot: string, enabled: string[]): Tool[] {
     },
     {
       name: 'knowledgeBase',
-      description: 'Semantic search over the doc corpus (Qdrant doc_search)',
+      description: 'Semantic search over the doc corpus (Qdrant doc_search); falls back to keyword/TF-IDF when no embedding key',
       run: async (args) => {
+        const query = args.query ?? '';
+        const limit = Number(args.limit ?? 5);
         const q = getQdrant();
-        const vector = await embed(args.query ?? '');
-        const res = await q.query(QdrantCollections.DOC_SEARCH, {
-          query: vector,
-          limit: Number(args.limit ?? 5),
-          with_payload: true,
-        });
-        return (res.points ?? [])
-          .map((p) => {
+        if (process.env.OPENAI_API_KEY) {
+          const vector = await embed(query);
+          const res = await q.query(QdrantCollections.DOC_SEARCH, {
+            query: vector,
+            limit,
+            with_payload: true,
+          });
+          const hits = (res.points ?? []).map((p) => {
             const payload = p.payload as DocPayload;
             return `[${(p.score ?? 0).toFixed(3)}] ${payload.title ?? '?'}: ${(payload.text ?? '').slice(0, 400)}`;
-          })
-          .join('\n\n');
+          });
+          if (hits.length) return hits.join('\n\n');
+        }
+        const kw = await keywordSearch(query, limit);
+        return kw
+          .map((h) => `[${h.score.toFixed(3)}] ${h.title}: ${h.text.slice(0, 400)}`)
+          .join('\n\n') || 'no matches';
       },
     },
     {
