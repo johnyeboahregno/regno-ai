@@ -26,6 +26,10 @@
       if (dr.ok) {
         total = dr.total;
         groups = dr.groups;
+        // Collapse all sections by default.
+        const c: Record<string, boolean> = { artifacts: true };
+        for (const g of groups) c[g.domain] = true;
+        collapsed = c;
       }
       if (ar.ok) artifacts = ar.artifacts;
     } catch {
