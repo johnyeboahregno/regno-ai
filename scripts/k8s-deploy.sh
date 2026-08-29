@@ -15,6 +15,9 @@ set -euo pipefail
 #   -n, --namespace NS    Kubernetes namespace        (default: default)
 #   -p, --port PORT       Web host port               (default: 3000; realtime = PORT+2)
 #   -e, --env-file FILE   Path to .env.prod           (default: auto-detect below)
+#   -r, --image-repo REPO Docker Hub repo, e.g. regnodockerhub/regno (enables push mode)
+#       --tag TAG         Image tag                   (default: latest)
+#       --push            Push images to the registry after build
 #       --skip-build      Skip docker build           (reuse existing local images)
 #       --skip-secret     Skip (re)creating the regno-env Secret
 #       --skip-validate   Skip post-deploy health check
@@ -22,13 +25,16 @@ set -euo pipefail
 #
 # Env:
 #   KUBECTL       kubectl command (default: kubectl; set to "sudo kubectl" if needed)
-#   IMAGE_PREFIX  image prefix    (default: regno-architect)
+#   IMAGE_PREFIX  local image prefix (default: regno-architect)
 #   ENV_FILE      fallback path for .env.prod
 # =====================================================================
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 KUBECTL="${KUBECTL:-kubectl}"
 IMAGE_PREFIX="${IMAGE_PREFIX:-regno-architect}"
+IMAGE_REPO=""
+TAG="latest"
+PUSH=0
 NAMESPACE="default"
 PORT="3000"
 ENV_FILE=""
@@ -39,7 +45,21 @@ ROLLBACK=1
 TIMEOUT=180
 
 usage() {
-  sed -n '5,24p' "$0" | sed 's/^# \{0,1\}//'
+  cat <<'EOF'
+Usage: scripts/k8s-deploy.sh [options]
+
+  -n, --namespace NS     Kubernetes namespace       (default: default)
+  -p, --port PORT        Web host port              (default: 3000; realtime = PORT+2)
+  -e, --env-file FILE    Path to .env.prod
+  -r, --image-repo REPO  Registry repo, e.g. regnodockerhub/regno (enables push mode)
+      --tag TAG          Image tag                  (default: latest)
+      --push             Push images after build
+      --skip-build       Reuse existing local images
+      --skip-secret      Skip (re)creating regno-env Secret
+      --skip-validate    Skip post-deploy health check
+      --no-rollback      Disable auto rollback on failed validation
+  -h, --help             Show this help
+EOF
 }
 
 while [ $# -gt 0 ]; do
@@ -47,6 +67,9 @@ while [ $# -gt 0 ]; do
     -n|--namespace)  NAMESPACE="${2:?namespace required}"; shift 2 ;;
     -p|--port)       PORT="${2:?port required}"; shift 2 ;;
     -e|--env-file)   ENV_FILE="${2:?env file required}"; shift 2 ;;
+    -r|--image-repo) IMAGE_REPO="${2:?image repo required}"; shift 2 ;;
+    --tag)           TAG="${2:?tag required}"; shift 2 ;;
+    --push)          PUSH=1; shift ;;
     --skip-build)    SKIP_BUILD=1; shift ;;
     --skip-secret)   SKIP_SECRET=1; shift ;;
     --skip-validate) SKIP_VALIDATE=1; shift ;;
@@ -68,12 +91,29 @@ fi
 
 cd "$REPO_DIR"
 
-# --- 1. build app images ----------------------------------------------
+# --- 1. resolve names + build (and optionally push) app images ---------
+if [ -n "$IMAGE_REPO" ]; then
+  WEB_IMG="$IMAGE_REPO-web:$TAG"
+  EXEC_IMG="$IMAGE_REPO-execution:$TAG"
+  RT_IMG="$IMAGE_REPO-realtime:$TAG"
+else
+  WEB_IMG="$IMAGE_PREFIX-web:$TAG"
+  EXEC_IMG="$IMAGE_PREFIX-execution:$TAG"
+  RT_IMG="$IMAGE_PREFIX-realtime:$TAG"
+fi
+
 if [ "$SKIP_BUILD" -eq 0 ]; then
-  step "building app images ($IMAGE_PREFIX-*)"
-  docker build -t "$IMAGE_PREFIX-web:latest"       -f apps/web/Dockerfile .
-  docker build -t "$IMAGE_PREFIX-execution:latest" -f apps/execution/Dockerfile .
-  docker build -t "$IMAGE_PREFIX-realtime:latest"  -f apps/realtime/Dockerfile .
+  step "building app images"
+  docker build -t "$WEB_IMG"  -f apps/web/Dockerfile .
+  docker build -t "$EXEC_IMG" -f apps/execution/Dockerfile .
+  docker build -t "$RT_IMG"   -f apps/realtime/Dockerfile .
+fi
+
+if [ "$PUSH" -eq 1 ]; then
+  step "pushing app images"
+  docker push "$WEB_IMG"
+  docker push "$EXEC_IMG"
+  docker push "$RT_IMG"
 fi
 
 # --- 2. namespace + secret ---------------------------------------------
@@ -100,8 +140,11 @@ fi
 
 # --- 3. apply manifests (unique host ports per namespace) ---------------
 step "applying manifests (web :$PORT, realtime :$RTPORT)"
-sed "s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/" k8s/app.yaml \
-  | "$KUBECTL" apply -n "$NAMESPACE" -f -
+SED_EXPR="s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/"
+if [ -n "$IMAGE_REPO" ]; then
+  SED_EXPR="$SED_EXPR; s|image: regno-architect-web:latest|image: $WEB_IMG|; s|image: regno-architect-execution:latest|image: $EXEC_IMG|; s|image: regno-architect-realtime:latest|image: $RT_IMG|"
+fi
+sed "$SED_EXPR" k8s/app.yaml | "$KUBECTL" apply -n "$NAMESPACE" -f -
 
 # --- 4. wait for rollouts ----------------------------------------------
 step "waiting for deployments to roll out"

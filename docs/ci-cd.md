@@ -11,7 +11,7 @@ automatically if validation fails. Individual developers get isolated preview na
 | 1. Install | `npm ci` (lockfile, clean install) | GitHub-hosted runner |
 | 2. Type-check | `npm run check -w @regno/web` (svelte-check) | GitHub-hosted runner |
 | 3. Build | `npm run build` (type-checks all packages + apps, builds web) | GitHub-hosted runner |
-| 4. Build images | `docker build` for `web`, `execution`, `realtime` (tag `:latest`) | Self-hosted runner on the k3s node |
+| 4. Build & push | `docker build` + `docker push` to Docker Hub (`regnodockerhub/regno-*:<sha>`) | Self-hosted runner on the k3s node |
 | 5. Deploy | create Secret + `kubectl apply` + `rollout status` | Self-hosted runner |
 | 6. Validate | `curl http://localhost:<port>/api/health` → expect `"ok":true` | Self-hosted runner |
 | 7. Rollback | `kubectl rollout undo` on web/execution/realtime if validation fails | Self-hosted runner |
@@ -28,36 +28,53 @@ automatically if validation fails. Individual developers get isolated preview na
 
 ## Why a self-hosted runner
 
-The k8s manifests use local image names (`regno-architect-web:latest`) with
-`imagePullPolicy: IfNotPresent`, so no container registry is needed: the deploy job builds the
-images directly on the k3s node and `kubectl apply` picks them up. A GitHub-hosted runner can't
-reach the node's docker daemon or the cluster, hence a **self-hosted runner on the k3s box**.
+Images are pushed to **Docker Hub** (`regnodockerhub/regno-{web,execution,realtime}`) with a unique
+tag per commit (`sha-<short-sha>`). The deploy step still runs on a **self-hosted runner on the k3s
+box** because only it can reach the cluster (`kubectl`); the kubelet pulls the app images from Docker
+Hub, so the node no longer needs the images built locally. The test/build gate runs on GitHub-hosted
+runners, so the box only does docker build/push + kubectl.
 
-> Alternative (if you prefer GitHub-hosted runners for everything): build the images in CI, push
-> them to a registry (e.g. GHCR), change the manifests to pull `imagePullPolicy: Always` with
-> versioned tags, and SSH into the box to `kubectl set image`. That needs a registry + SSH secrets
-> and is more moving parts — not required for this single-node setup.
+> If you'd rather not run anything on the box, you can build + push on GitHub-hosted runners and
+> deploy over SSH (`kubectl set image`), but that adds SSH keys and is more moving parts for a
+> single-node setup — the self-hosted runner is simpler.
 
 ## One-time setup
 
-1. **Register a self-hosted runner** on the k3s node (as the deploy user):
+1. **Docker Hub** — create the three repositories and an access token:
+   - Repos: `regnodockerhub/regno-web`, `regnodockerhub/regno-execution`, `regnodockerhub/regno-realtime`
+     (public is simplest; for private repos see the note below)
+   - Token: Hub → Account Settings → Security → **Access Tokens** → New Access Token (scope: Read, Write, Delete)
+2. **Add GitHub secrets** (Repo → Settings → Secrets and variables → Actions → Secrets):
+   - `DOCKERHUB_USERNAME` = `regnodockerhub`
+   - `DOCKERHUB_TOKEN` = the access token from step 1
+3. **Register a self-hosted runner** on the k3s node (as the deploy user):
    ```bash
    # On the k3s box — Repo → Settings → Actions → Runners → New self-hosted runner
    # Add label "k3s" during registration (./config.sh --labels self-hosted,linux,k3s)
    sudo ./svc.sh install && sudo ./svc.sh start
    ```
-2. **Give the runner user access:**
+4. **Give the runner user access:**
    ```bash
-   sudo usermod -aG docker $RUNNER_USER        # docker build without sudo
+   sudo usermod -aG docker $RUNNER_USER        # docker build/push without sudo
    # kubectl: copy the k3s kubeconfig into the runner user's home so `kubectl` works without sudo:
    mkdir -p ~/.kube
    sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $USER ~/.kube/config
    ```
    If the runner must use `sudo kubectl` instead, export `KUBECTL="sudo kubectl"` in the runner
    user's environment (the deploy script reads `$KUBECTL`, default `kubectl`).
-3. **Secrets:** none are stored in GitHub. The `regno-env` Secret is built from `.env.prod` already
-   present on the box (`~/regno/.env.prod` or `/opt/regno/.env.prod`). It is never committed or
-   echoed in CI logs.
+5. **Cluster secrets:** the `regno-env` Secret is built from `.env.prod` already present on the box
+   (`~/regno/.env.prod` or `/opt/regno/.env.prod`). It is never committed or echoed in CI logs.
+
+> **Private Docker Hub repos:** if you keep the repos private, the kubelet can't pull them without
+> credentials. Either make them public, or create an image pull secret in each namespace:
+> ```bash
+> kubectl -n <ns> create secret docker-registry regcred \
+>   --docker-server=https://index.docker.io/v1/ \
+>   --docker-username=regnodockerhub \
+>   --docker-password=<access-token>
+> ```
+> and add `imagePullSecrets: [{ name: regcred }]` to the pod specs in `k8s/app.yaml`. Public repos
+> avoid this entirely.
 
 ## How it works for different developers
 
@@ -75,8 +92,10 @@ The deploy logic itself lives in `scripts/k8s-deploy.sh` and is identical for pr
 previews — only the namespace and port differ:
 
 ```bash
-bash scripts/k8s-deploy.sh                        # production  → namespace default, web :3000
-bash scripts/k8s-deploy.sh -n dev-jsmith -p 3010  # preview     → namespace dev-jsmith, web :3010
+bash scripts/k8s-deploy.sh \
+  -r regnodockerhub/regno --tag sha-abc1234 --push               # production → default ns, :3000
+bash scripts/k8s-deploy.sh -n dev-jsmith -p 3010 \
+  -r regnodockerhub/regno --tag sha-abc1234 --push               # preview    → dev-jsmith, :3010
 ```
 
 Each namespace runs its own full stack (MongoDB, Qdrant, Neo4j, Redis + the three apps), so a

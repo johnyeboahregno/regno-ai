@@ -18,14 +18,25 @@ jobs:
     uses: ./.github/workflows/_verify.yml
 
   deploy:
-    name: Build images, deploy & validate
+    name: Build images, push & deploy
     needs: verify
     runs-on: [self-hosted, linux, k3s]
     steps:
       - uses: actions/checkout@v4
 
-      - name: "Build, deploy & validate (namespace: default)"
-        run: bash scripts/k8s-deploy.sh --namespace default --port 3000
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: "Build, push, deploy & validate (namespace: default)"
+        run: |
+          bash scripts/k8s-deploy.sh \
+            --namespace default --port 3000 \
+            --image-repo "${{ secrets.DOCKERHUB_USERNAME }}/regno" \
+            --tag "sha-${GITHUB_SHA:0:12}" \
+            --push
 
       - name: Show rollout result
         if: always()
