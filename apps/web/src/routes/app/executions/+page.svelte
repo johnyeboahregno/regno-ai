@@ -28,6 +28,12 @@
 
   onMount(loadExecutions);
 
+  function statusClass(s?: string) {
+    if (s === 'failed') return 'bad';
+    if (s === 'complete' || s === 'success') return 'good';
+    return 'amber';
+  }
+
   async function run() {
     if (!prompt.trim()) return;
     busy = true;
@@ -82,7 +88,7 @@
     <tbody>
       {#each executions as e}
         <tr>
-          <td><span class="status"><span class="dot good"></span>{e.status ?? 'complete'}</span></td>
+          <td><span class="status"><span class="dot {statusClass(e.status)}"></span>{e.status ?? 'complete'}</span></td>
           <td>{e.agentSlug}</td>
           <td class="muted">{e.prompt?.slice(0, 80)}{e.prompt?.length > 80 ? '…' : ''}</td>
           <td>{e.depth}</td>
