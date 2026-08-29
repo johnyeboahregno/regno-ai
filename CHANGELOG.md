@@ -3,6 +3,30 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-29 — GENESIS → real-time visual pipeline system (regno.ai/pipelines)
+
+- **GENESIS is now the pipeline builder** (per user: "this is what GENESIS needs to be" —
+  https://regno.ai/pipelines). `/app/genesis` is a full node-canvas editor: draggable nodes,
+  connectable input/output ports, SVG edges, pan/zoom, node groups/categories, and a live
+  execution console. The old placeholder ("Architecture & refactoring") is replaced; the GENESIS
+  refactor plan remains in `docs/strategy/GENESIS_REFACTORING_PLAN.md`.
+- **Node catalog** (`apps/web/src/lib/pipeline/catalog.ts`): six categories mirroring the live
+  page — Data Sources, Transformation, Control Flow, AI & Intelligence, Visualization, Data Sinks —
+  with ~40 node types (Data Source, HTTP, Knowledge Source, Transform, Mapper, Aggregation,
+  Filter, Switch, Merge, Delay, Buffer, ForEach, LLM, Expert, Data Analyst, AI Insights, MAESTRO,
+  Document Generator, Display, Data Grid, Chart, Data Sink, Cortex Index, …).
+- **Executor** (`apps/web/src/lib/pipeline/executor.ts`): topological DAG runner that executes each
+  node by type — Mongo/HTTP/JSON data sources, JS transforms/filters/aggregations, `@regno/ai`
+  LLM calls (with a simulated fallback when no provider key is set), knowledge staging/synthesis,
+  and Cortex Index / Data Sink writes. Emits per-node `node_started` / `node_completed` /
+  `node_error` events for SSE; records each run in the `pipeline_history` collection.
+- **API**: `POST /api/pipelines/run` starts a run and returns an `executionId`;
+  `GET /api/pipelines/run/[id]/events` streams progress via SSE; `GET /api/pipelines/runs` lists
+  recent runs; `/api/pipelines/[id]` supports fetch/update/delete; the base `/api/pipelines`
+  create/list now persists `edges` too.
+- **`@regno/db`** now re-exports `ObjectId` (used by the pipeline CRUD routes).
+- App chooser: GENESIS is now marked `done` with description **Pipelines**.
+
 ## 2026-08-29 — Keyless search fallback for Oracle (Zaeem's zero-cost engine)
 
 - **Fork framing**: this repo is a **fork** of Zaeem's Regno Architect. Zaeem's `docs/` corpus is

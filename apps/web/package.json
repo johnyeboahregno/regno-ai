@@ -10,6 +10,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
+    "@regno/ai": "*",
     "@regno/db": "*",
     "@regno/flow": "*",
     "@regno/shared": "*",

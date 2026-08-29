@@ -7,6 +7,8 @@
 import { MongoClient, Db } from 'mongodb';
 import { DB_NAME } from '@regno/shared';
 
+export { ObjectId } from 'mongodb';
+
 let client: MongoClient | null = null;
 
 export function getMongoClient(): MongoClient {

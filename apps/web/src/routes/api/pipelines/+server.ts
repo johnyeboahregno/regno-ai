@@ -1,4 +1,4 @@
-// /api/pipelines — save + list visual pipelines (Canvas).
+// /api/pipelines — save + list visual pipelines (GENESIS).
 import { json } from '@sveltejs/kit';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
@@ -13,6 +13,7 @@ export async function GET({ cookies }) {
     id: String(p._id),
     name: p.name,
     nodes: p.nodes ?? [],
+    edges: p.edges ?? [],
     createdAt: p.createdAt,
   }));
   return json({ ok: true, pipelines });
@@ -22,7 +23,7 @@ export async function POST({ request, cookies }) {
   const user = await requireSession(cookies);
   if (!user) return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
 
-  const body = (await request.json().catch(() => ({}))) as { name?: string; nodes?: unknown[] };
+  const body = (await request.json().catch(() => ({}))) as { name?: string; nodes?: unknown[]; edges?: unknown[] };
   const name = String(body.name ?? '').trim();
   const nodes = Array.isArray(body.nodes) ? body.nodes : [];
   if (!name || nodes.length === 0) {
@@ -30,6 +31,12 @@ export async function POST({ request, cookies }) {
   }
 
   const db = await getDb();
-  const res = await db.collection(Collections.PIPELINES).insertOne({ name, nodes, createdAt: new Date() });
+  const res = await db.collection(Collections.PIPELINES).insertOne({
+    name,
+    nodes,
+    edges: Array.isArray(body.edges) ? body.edges : [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
   return json({ ok: true, id: String(res.insertedId) });
 }
