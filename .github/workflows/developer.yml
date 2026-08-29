@@ -65,8 +65,6 @@ jobs:
           bash scripts/k8s-deploy.sh \
             --namespace "${{ steps.resolve.outputs.namespace }}" \
             --port "${{ steps.resolve.outputs.port }}"
-        env:
-          KUBECTL: ${{ vars.KUBECTL || 'kubectl' }}
 
       - name: Summary
         run: |

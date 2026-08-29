@@ -39,6 +39,4 @@ jobs:
       - name: Delete namespace
         if: steps.resolve.outputs.namespace != ''
         run: |
-          ${KUBECTL:-kubectl} delete namespace "${{ steps.resolve.outputs.namespace }}" --ignore-not-found
-        env:
-          KUBECTL: ${{ vars.KUBECTL || 'kubectl' }}
+          kubectl delete namespace "${{ steps.resolve.outputs.namespace }}" --ignore-not-found

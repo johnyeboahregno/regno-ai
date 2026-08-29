@@ -49,11 +49,13 @@ reach the node's docker daemon or the cluster, hence a **self-hosted runner on t
 2. **Give the runner user access:**
    ```bash
    sudo usermod -aG docker $RUNNER_USER        # docker build without sudo
-   # and make sure `kubectl` works without sudo, OR set KUBECTL below to "sudo kubectl"
+   # kubectl: copy the k3s kubeconfig into the runner user's home so `kubectl` works without sudo:
+   mkdir -p ~/.kube
+   sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $USER ~/.kube/config
    ```
-3. **Optional repository variable** (Repo → Settings → Secrets and variables → Actions → Variables):
-   - `KUBECTL` = `sudo kubectl` (only if the runner user needs sudo for kubectl; default is `kubectl`).
-4. **Secrets:** none are stored in GitHub. The `regno-env` Secret is built from `.env.prod` already
+   If the runner must use `sudo kubectl` instead, export `KUBECTL="sudo kubectl"` in the runner
+   user's environment (the deploy script reads `$KUBECTL`, default `kubectl`).
+3. **Secrets:** none are stored in GitHub. The `regno-env` Secret is built from `.env.prod` already
    present on the box (`~/regno/.env.prod` or `/opt/regno/.env.prod`). It is never committed or
    echoed in CI logs.
 

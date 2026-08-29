@@ -24,14 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build, deploy & validate (namespace: default)
+      - name: "Build, deploy & validate (namespace: default)"
         run: bash scripts/k8s-deploy.sh --namespace default --port 3000
-        env:
-          KUBECTL: ${{ vars.KUBECTL || 'kubectl' }}
 
       - name: Show rollout result
         if: always()
         run: |
-          ${KUBECTL:-kubectl} -n default get pods
-        env:
-          KUBECTL: ${{ vars.KUBECTL || 'kubectl' }}
+          kubectl -n default get pods

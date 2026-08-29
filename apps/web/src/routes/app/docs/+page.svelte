@@ -214,11 +214,11 @@
   .content :global(blockquote) { border-left: 2px solid var(--signal); padding-left: 12px; margin: 12px 0; }
   .content :global(hr) { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
   .content :global(table) { border-collapse: collapse; margin: 12px 0; }
-  .content :global(th), .content :global(height: auto; }
-    .list { overflow: visible; }
-    .preview { overflow: visiblground: var(--bg-alt); }
+  .content :global(th), .content :global(td) { border: 1px solid var(--line); padding: 6px 10px; font-size: 13px; }
+  .content :global(th) { color: var(--ink); background: var(--bg-alt); }
   @media (max-width: 900px) {
-    .split { grid-template-columns: 1fr; }
-    .preview { position: static; max-height: none; }
+    .split { grid-template-columns: 1fr; height: auto; }
+    .list { overflow: visible; }
+    .preview { overflow: visible; }
   }
 </style>
