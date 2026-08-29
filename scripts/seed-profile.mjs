@@ -30,15 +30,17 @@ async function main() {
     { upsert: true },
   );
 
-  // Profile memory → injected as userMemories
+  // Profile memory → injected as userMemories (flavour, not an override of the base).
+  // If it still looks like the unfilled template, mark it inactive so only the base applies.
+  const isTemplate = /\(e\.g\.|Replace with your organisation|\(replace/i.test(content);
   await db.collection('cortex_agent_memories').updateOne(
     { _id: 'profile-conventions' },
-    { $set: { agentSlug: 'regno-architect', category: 'profile', content, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+    { $set: { agentSlug: 'regno-architect', category: 'profile', content, active: !isTemplate, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
     { upsert: true },
   );
 
   await mongo.close();
-  console.log('[seed-profile] done ✅ — conventions seeded as userMemories for regno-architect');
+  console.log(`[seed-profile] done ✅ — conventions seeded (${isTemplate ? 'template — base conventions apply' : 'active flavour'})`);
 }
 
 main().catch((err) => {

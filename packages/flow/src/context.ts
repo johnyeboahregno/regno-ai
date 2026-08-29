@@ -55,12 +55,12 @@ export async function buildContext(needs: string[], developer?: string, technolo
     if (need === 'userMemories') {
       const mems = await db
         .collection(Collections.CORTEX_AGENT_MEMORIES)
-        .find({ category: 'profile' })
+        .find({ category: 'profile', active: { $ne: false } })
         .sort({ updatedAt: -1 })
         .limit(10)
         .toArray();
       const text = mems.map((m) => `- ${m.content}`).join('\n');
-      blocks.push(text ? `## userMemories\n${text}` : `## userMemories\n(no profile set — run \`npm run db:seed-profile\`)`);
+      blocks.push(text ? `## userMemories\n${text}` : `## userMemories\n(base conventions apply)`);
     }
   }
 
