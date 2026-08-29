@@ -70,35 +70,45 @@
 
 <div class="split">
   <div class="list">
-    <div class="eyebrow blue mb">Artifacts</div>
-    {#if artifacts.length === 0}
-      <p class="faint small mb">No artifacts yet — they appear when the architect builds something.</p>
-    {:else}
-      <div class="panel mb" style="padding:6px 0;">
-        {#each artifacts as a}
-          <button class="doc" on:click={() => openArtifact(a.taskId)}>
-            <span class="mono small" style="color:var(--ink);">{a.title}</span>
-            <span class="faint small" style="white-space:nowrap;">{a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''}</span>
-          </button>
-        {/each}
-      </div>
+    <button class="group-head" on:click={() => toggleSection('artifacts')}>
+      <span class="eyebrow blue">Artifacts</span>
+      <span class="chev">{collapsed['artifacts'] ? '▸' : '▾'}</span>
+    </button>
+    {#if !collapsed['artifacts']}
+      {#if artifacts.length === 0}
+        <p class="faint small mb">No artifacts yet — they appear when the architect builds something.</p>
+      {:else}
+        <div class="panel mb" style="padding:6px 0;">
+          {#each artifacts as a}
+            <button class="doc" on:click={() => openArtifact(a.taskId)}>
+              <span class="mono small" style="color:var(--ink);">{a.title}</span>
+              <span class="faint small" style="white-space:nowrap;">{a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''}</span>
+            </button>
+          {/each}
+        </div>
+      {/if}
     {/if}
 
     {#each groups as g}
       <div class="mb">
-        <div class="mono small" style="color:var(--telemetry); text-transform:uppercase; letter-spacing:.08em;">
-          {g.domain} <span class="faint">· {g.count}</span>
-        </div>
-        <div class="panel mt" style="padding:6px 0;">
-          {#each g.docs.slice(0, 20) as d}
-            <button class="doc" on:click={() => openDoc(d)}>
-              <span class="mono small" style="color:var(--ink-dim);">{d.title}</span>
-            </button>
-          {/each}
-          {#if g.docs.length > 20}
-            <div class="faint small" style="padding:8px 16px;">+ {g.docs.length - 20} more…</div>
-          {/if}
-        </div>
+        <button class="group-head" on:click={() => toggleSection(g.domain)}>
+          <span class="mono small" style="color:var(--telemetry); text-transform:uppercase; letter-spacing:.08em;">
+            {g.domain} <span class="faint">· {g.count}</span>
+          </span>
+          <span class="chev">{collapsed[g.domain] ? '▸' : '▾'}</span>
+        </button>
+        {#if !collapsed[g.domain]}
+          <div class="panel mt" style="padding:6px 0;">
+            {#each g.docs.slice(0, 20) as d}
+              <button class="doc" on:click={() => openDoc(d)}>
+                <span class="mono small" style="color:var(--ink-dim);">{d.title}</span>
+              </button>
+            {/each}
+            {#if g.docs.length > 20}
+              <div class="faint small" style="padding:8px 16px;">+ {g.docs.length - 20} more…</div>
+            {/if}
+          </div>
+        {/if}
       </div>
     {/each}
   </div>
