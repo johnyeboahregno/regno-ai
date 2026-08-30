@@ -1,10 +1,17 @@
 # Architect Brain Model (base knowledge + own brain)
 
-> Status: stable · Last updated: 2026-08-29
+> Status: corrected · Last updated: 2026-08-30
 
-## What it is
+> Correction (2026-08-30): there is **one** architect — the whole application — with **one** brain.
+> What this doc described as "each architect = a new stack with its own brain" is now the **SMA**
+> concept, but SMAs are *not* new stacks: they are selectable expert profiles that **center** the
+> shared knowledge on a focus area. See [`20-sma-subject-matter-experts.md`](./20-sma-subject-matter-experts.md).
+> The multi-stack "own brain" model only applies when you deploy a whole new copy of the repo
+> (see [`15-per-developer-cloning.md`](./15-per-developer-cloning.md)).
 
-Each **Regno Architect** is a **complete new stack** — a k3s namespace with its **own brain**
+## What it was
+
+Each **Regno Architect** was a **complete new stack** — a k3s namespace with its **own brain**
 (MongoDB + Qdrant + Neo4j) — plus a **read-only connection to the shared base knowledge**.
 
 ## Why

@@ -20,6 +20,7 @@ export interface KeywordHit {
   sourceUrl: string;
   text: string;
   source: 'own';
+  tags?: string[];
 }
 
 const STOPWORDS = new Set([
@@ -48,7 +49,7 @@ const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  * TF-IDF keyword search over the ingested docs (Mongo `cortex_index`).
  * Returns the top `limit` hits scored 0..1, best first.
  */
-export async function keywordSearch(query: string, limit = 8): Promise<KeywordHit[]> {
+export async function keywordSearch(query: string, limit = 8, boostTags?: string[]): Promise<KeywordHit[]> {
   const terms = tokenize(query);
   if (!terms.length) return [];
 
@@ -83,6 +84,15 @@ export async function keywordSearch(query: string, limit = 8): Promise<KeywordHi
     return { doc, score };
   });
 
+  // Center on focus area: boost docs whose tags intersect the SMA's focus tags.
+  const boostSet = new Set((boostTags ?? []).map((t) => String(t).toLowerCase()));
+  if (boostSet.size) {
+    for (const s of scored) {
+      const tags = (s.doc.tags ?? []) as string[];
+      if (tags.some((t) => boostSet.has(String(t).toLowerCase()))) s.score *= 2;
+    }
+  }
+
   const ranked = scored
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score)
@@ -96,6 +106,7 @@ export async function keywordSearch(query: string, limit = 8): Promise<KeywordHi
     title: (doc.title as string) ?? 'Untitled',
     sourceUrl: (doc.sourceUrl as string) ?? '',
     text: ((doc.content as string) ?? '').slice(0, 300),
+    tags: (doc.tags as string[] | undefined) ?? [],
     source: 'own' as const,
   }));
 }

@@ -50,7 +50,7 @@ export function buildNav(role: string): NavGroup[] {
         { href: '/app/docs', label: 'Docs', icon: 'docs' },
         { href: '/app/credentials', label: 'Credentials', icon: 'credentials' },
         { href: '/app/health', label: 'Health', icon: 'health' },
-        ...(role === 'owner' ? [{ href: '/app/agents', label: 'Architects', icon: 'agents' }] : []),
+        ...(role === 'owner' ? [{ href: '/app/agents', label: 'SMA', icon: 'agents' }] : []),
       ],
     },
   ];

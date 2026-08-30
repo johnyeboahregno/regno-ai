@@ -8,8 +8,8 @@
 
   let messages: Msg[] = [];
   let input = '';
-  let persona = 'base';
-  let personas: Array<{ slug: string; name: string; developer: string }> = [
+  let sma = 'base';
+  let smas: Array<{ slug: string; name: string; developer?: string }> = [
     { slug: 'base', name: 'Base Regno Architect', developer: 'base' },
   ];
   let busy = false;
@@ -26,13 +26,12 @@
     error = '';
 
     try {
-      const developer = personas.find((p) => p.slug === persona)?.developer ?? 'base';
       const r = await fetch('/api/executions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: text,
-          settings: { forceAgent: 'regno-architect', analysisDepth: 'standard', developer },
+          settings: { forceAgent: 'regno-architect', analysisDepth: 'standard', sma },
         }),
       });
       const d = await r.json();
@@ -81,9 +80,9 @@
       },
     ];
     try {
-      const r = await fetch('/api/personas');
+      const r = await fetch('/api/agents');
       const d = await r.json();
-      if (d.ok && d.personas?.length) personas = d.personas;
+      if (d.ok && d.smas?.length) smas = d.smas;
     } catch {
       /* ignore */
     }
@@ -132,9 +131,9 @@
 
   <form class="composer" on:submit={send}>
     <div style="width:200px;">
-      <label for="persona">Persona</label>
-      <select class="input" id="persona" bind:value={persona}>
-        {#each personas as p}
+      <label for="sma">SMA</label>
+      <select class="input" id="sma" bind:value={sma}>
+        {#each smas as p}
           <option value={p.slug}>{p.name}</option>
         {/each}
       </select>

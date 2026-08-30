@@ -1,35 +1,28 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import PasswordInput from '$lib/PasswordInput.svelte';
 
   interface Tech { slug: string; label: string; icon: string }
-  interface Agent {
-    slug: string; name: string; technologies: string[]; namespace: string; port: number; status: string; createdAt: string;
+  interface Sma {
+    slug: string; name: string; description: string; focusTags: string[]; technologies: string[]; createdAt: string | null;
   }
 
   let step = 0;
   let name = '';
   let description = '';
+  let focusTagsText = '';
   let disciplines: Tech[] = [];
   let languages: Tech[] = [];
   let selectedDisciplines: string[] = [];
   let selectedLanguages: string[] = [];
-  let reposText = '';
-  let githubToken = '';
-  let testingToken = false;
-  let tokenResult = '';
-  let datasourceType = '';
-  let datasourceConn = '';
   let busy = false;
   let error = '';
   let message = '';
-  let agents: Agent[] = [];
-  let origin = '';
+  let smas: Sma[] = [];
   let deleting = '';
 
   async function load() {
     try {
-      const [tr, ar] = await Promise.all([
+      const [tr, sr] = await Promise.all([
         fetch('/api/technologies').then((r) => r.json()),
         fetch('/api/agents').then((r) => r.json()),
       ]);
@@ -37,7 +30,7 @@
         disciplines = tr.disciplines ?? [];
         languages = tr.languages ?? [];
       }
-      if (ar.ok) agents = ar.agents;
+      if (sr.ok) smas = sr.smas;
     } catch {
       /* ignore */
     }
@@ -55,101 +48,67 @@
       : [...selectedLanguages, slug];
   }
 
-  async function testToken() {
-    if (!githubToken.trim()) return;
-    testingToken = true;
-    tokenResult = '';
-    const repos = reposText.split('\n').map((r) => r.trim()).filter(Boolean);
-    try {
-      const r = await fetch('/api/github/test-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: githubToken, repos }),
-      });
-      const d = await r.json();
-      if (d.ok) {
-        const who = d.user?.login ? `${d.user.login}${d.user.name ? ` (${d.user.name})` : ''}` : 'valid token';
-        const parts = [`Token OK — ${who}`];
-        if (d.repos?.length) {
-          const bad = d.repos.filter((x: { accessible: boolean }) => !x.accessible);
-          if (bad.length) parts.push(`No access to: ${bad.map((x: { repo: string }) => x.repo).join(', ')}`);
-          else parts.push(`Read access to all ${d.repos.length} repo(s) ✓`);
-        }
-        tokenResult = parts.join(' · ');
-      } else {
-        tokenResult = d.error ?? 'Token test failed';
-      }
-    } catch {
-      tokenResult = 'Token test failed';
-    } finally {
-      testingToken = false;
-    }
-  }
-
   async function create() {
     busy = true;
     error = '';
     message = '';
-    const datasources = datasourceType && datasourceConn ? [{ type: datasourceType, connection: datasourceConn }] : [];
-    const repos = reposText.split('\n').map((r) => r.trim()).filter(Boolean);
+    const focusTags = focusTagsText.split(',').map((t) => t.trim()).filter(Boolean);
     try {
       const r = await fetch('/api/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
+          description,
+          focusTags,
           disciplines: selectedDisciplines,
           languages: selectedLanguages,
           technologies: [...selectedDisciplines, ...selectedLanguages],
-          repos,
-          datasources,
-          githubToken,
         }),
       });
       const d = await r.json();
       if (d.ok) {
-        message = `Agent "${d.name}" is spawning in namespace ${d.namespace} (web on :${d.port})`;
-        name = ''; description = ''; selectedDisciplines = []; selectedLanguages = []; reposText = ''; githubToken = ''; tokenResult = ''; datasourceType = ''; datasourceConn = ''; step = 0;
+        message = `SMA "${d.name}" created. Select it from the Architect screen when running a job.`;
+        name = ''; description = ''; focusTagsText = ''; selectedDisciplines = []; selectedLanguages = []; step = 0;
         load();
       } else error = d.error ?? 'Failed';
     } catch {
-      error = 'Failed to create agent';
+      error = 'Failed to create SMA';
     } finally {
       busy = false;
     }
   }
 
-  async function remove(a: Agent) {
-    if (!confirm(`Delete architect "${a.name}" (${a.namespace})? This removes its brain, memories, credentials and k3s namespace.`)) return;
-    deleting = a.slug;
+  async function remove(s: Sma) {
+    if (!window.confirm(`Delete SMA "${s.name}"?`)) return;
+    deleting = s.slug;
     error = '';
     message = '';
     try {
-      const r = await fetch(`/api/agents/${encodeURIComponent(a.slug)}`, { method: 'DELETE' });
+      const r = await fetch(`/api/agents/${encodeURIComponent(s.slug)}`, { method: 'DELETE' });
       const d = await r.json();
       if (d.ok) {
-        message = `Deleted "${a.name}".`;
+        message = `Deleted "${s.name}".`;
         load();
       } else {
         error = d.error ?? 'Failed to delete';
       }
     } catch {
-      error = 'Failed to delete agent';
+      error = 'Failed to delete SMA';
     } finally {
       deleting = '';
     }
   }
 
   onMount(() => {
-    origin = window.location.protocol + '//' + window.location.hostname;
     load();
   });
 </script>
 
 <div class="page-head">
-  <div class="eyebrow blue">Admin · Regno Architects</div>
-  <h1>Regno Architects</h1>
-  <p>Each architect is a <strong>complete new stack with its own brain</strong> — its own context, docs, and knowledge — that can also read the shared base knowledge.</p>
+  <div class="eyebrow blue">Admin · Subject Matter Experts</div>
+  <h1>Subject Matter Experts (SMA)</h1>
+  <p>One architect, many lenses. An <strong>SMA</strong> is a selectable expert profile for architect jobs — focused on a specific area (e.g. an F1 Race Engineer centered on F1, telemetry and aero). It is <strong>not</strong> a new stack.</p>
 </div>
 
 {#if message}<p class="ok mb">{message}</p>{/if}
@@ -157,25 +116,28 @@
 
 <div class="card mb" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
   <div>
-    <div class="eyebrow blue">Create a new stack</div>
-    <p class="muted small mt">Provisions a fresh namespace with the full platform + its own brain.</p>
+    <div class="eyebrow blue">Create an SMA</div>
+    <p class="muted small mt">A profile you can select when running an architect job.</p>
   </div>
-  <button class="btn solid" on:click={() => (step = 1)}>Create new Architect</button>
+  <button class="btn solid" on:click={() => (step = 1)}>Create SMA</button>
 </div>
 
 {#if step === 1}
   <div class="card mb">
-    <div class="eyebrow blue mb">Step 1 · Name it</div>
-    <label for="aname">Agent name</label>
-    <input class="input mb" id="aname" bind:value={name} placeholder="e.g. Go API Developer" />
+    <div class="eyebrow blue mb">Step 1 · Name &amp; focus</div>
+    <label for="aname">Name</label>
+    <input class="input mb" id="aname" bind:value={name} placeholder="e.g. F1 Race Engineer" />
     <label for="adesc">Description</label>
-    <textarea class="input mb" id="adesc" rows="2" bind:value={description} placeholder="What does this architect specialise in?"></textarea>
+    <textarea class="input mb" id="adesc" rows="2" bind:value={description} placeholder="What does this SMA specialise in?"></textarea>
+    <label for="atags">Focus tags (comma-separated)</label>
+    <input class="input mb" id="atags" bind:value={focusTagsText} placeholder="F1, telemetry, aerodynamics" />
+    <p class="muted small mb">Knowledge tagged with these areas is centered when this SMA runs a job — all knowledge stays reachable.</p>
     <button class="btn solid" on:click={() => (step = 2)} disabled={!name.trim()}>Next</button>
   </div>
 {:else if step === 2}
   <div class="card mb">
-    <div class="eyebrow blue mb">Step 2 · Disciplines &amp; Languages</div>
-    <p class="muted small mb">Select one or more — the agent will follow the best-practice standards for each.</p>
+    <div class="eyebrow blue mb">Step 2 · Disciplines &amp; Languages (optional)</div>
+    <p class="muted small mb">Select one or more — the SMA will follow the best-practice standards for each.</p>
 
     <div class="eyebrow blue mb" style="font-size:11px; letter-spacing:0.06em;">Disciplines</div>
     <div class="grid grid-2">
@@ -201,66 +163,32 @@
 
     <div class="mt" style="display:flex; gap:12px;">
       <button class="btn ghost" on:click={() => (step = 1)}>Back</button>
-      <button class="btn solid" on:click={() => (step = 3)} disabled={!selectedDisciplines.length && !selectedLanguages.length}>Next</button>
-    </div>
-  </div>
-{:else if step === 3}
-  <div class="card mb">
-    <div class="eyebrow blue mb">Step 3 · Repos (optional)</div>
-    <label for="repos">GitHub repos to learn from (one per line)</label>
-    <textarea class="input mb" id="repos" rows="4" bind:value={reposText} placeholder="owner/repo&#10;owner/other-repo"></textarea>
-    <label for="ghToken">GitHub token (optional — needed for private repos)</label>
-    <PasswordInput bind:value={githubToken} id="ghToken" label="GitHub token" autocomplete="new-password" required={false} />
-    <p class="muted small mt">Leave blank to use the global <span class="mono">GITHUB_TOKEN</span> (if configured).</p>
-    <div class="mt" style="display:flex; align-items:center; gap:12px;">
-      <button class="btn ghost" on:click={testToken} disabled={testingToken || !githubToken.trim()}>{testingToken ? 'Testing…' : 'Test token'}</button>
-      {#if tokenResult}<span class="small muted">{tokenResult}</span>{/if}
-    </div>
-    <div class="mt" style="display:flex; gap:12px;">
-      <button class="btn ghost" on:click={() => (step = 2)}>Back</button>
-      <button class="btn solid" on:click={() => (step = 4)}>Next</button>
-    </div>
-  </div>
-{:else}
-  <div class="card mb">
-    <div class="eyebrow blue mb">Step 4 · Data source (optional)</div>
-    <label for="dstype">Type</label>
-    <input class="input mb" id="dstype" bind:value={datasourceType} placeholder="postgres / mongo / …" />
-    <label for="dsconn">Connection string</label>
-    <input class="input mb" id="dsconn" bind:value={datasourceConn} placeholder="(stored encrypted in the credentials vault)" />
-    <div class="mt" style="display:flex; gap:12px;">
-      <button class="btn ghost" on:click={() => (step = 3)}>Back</button>
-      <button class="btn solid" on:click={create} disabled={busy}>{busy ? 'Creating…' : 'Create agent'}</button>
+      <button class="btn solid" on:click={create} disabled={busy}>{busy ? 'Creating…' : 'Create SMA'}</button>
     </div>
   </div>
 {/if}
 
-<div class="eyebrow blue mb mt2">Agents</div>
+<div class="eyebrow blue mb mt2">Subject Matter Experts</div>
 <div class="panel" style="overflow-x:auto;">
   <table>
-    <thead><tr><th>Name</th><th>Technologies</th><th>Namespace</th><th>Port</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Name</th><th>Focus</th><th>Technologies</th><th></th></tr></thead>
     <tbody>
-      {#each agents as a}
+      {#each smas as s}
         <tr>
-          <td class="mono">{a.name}</td>
-          <td>{a.technologies?.join(', ') || '—'}</td>
-          <td class="mono">{a.namespace}</td>
-          <td>{a.port ?? '—'}</td>
-          <td><span class="tag" class:signal={a.status === 'ready'}>{a.status}</span></td>
+          <td class="mono">{s.name}</td>
+          <td>{s.focusTags?.join(', ') || '—'}</td>
+          <td>{s.technologies?.join(', ') || '—'}</td>
           <td>
-            <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
-              {#if a.status === 'ready' && a.port}
-                <a href="{origin}:{a.port}" target="_blank" class="btn solid" style="padding:6px 12px;">Open →</a>
-              {/if}
-              <button class="btn ghost" on:click={() => remove(a)} disabled={deleting === a.slug} style="padding:6px 12px;">
-                {deleting === a.slug ? 'Deleting…' : 'Delete'}
+            {#if s.slug !== 'base'}
+              <button class="btn ghost" on:click={() => remove(s)} disabled={deleting === s.slug} style="padding:6px 12px;">
+                {deleting === s.slug ? 'Deleting…' : 'Delete'}
               </button>
-            </div>
+            {/if}
           </td>
         </tr>
       {/each}
-      {#if agents.length === 0}
-        <tr><td colspan="6" class="faint">No architects yet — create your first one above.</td></tr>
+      {#if smas.length === 0}
+        <tr><td colspan="4" class="faint">No SMAs yet — create your first one above.</td></tr>
       {/if}
     </tbody>
   </table>
@@ -268,5 +196,4 @@
 
 <style>
   .tile.on { border-color: var(--signal); background: rgba(91,110,245,0.08); }
-  .tag.signal { color: var(--good); border-color: var(--good); }
 </style>

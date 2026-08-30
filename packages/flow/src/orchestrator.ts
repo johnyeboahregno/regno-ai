@@ -10,7 +10,7 @@ import { remember, recallBest, shouldServe } from '@regno/cortex';
 import { DEFAULT_AGENT, loadAgent, routePrompt } from './agent.js';
 import { createPlanFromAgent, selectComposeFirstDepth } from './plan.js';
 import { buildTools } from './tools.js';
-import { buildContext } from './context.js';
+import { buildContext, loadSma } from './context.js';
 import { gradeOutput } from './quality.js';
 import { documentExecution } from './documentation.js';
 import type { AgentDef, ExecutionResult, ExecutionSettings } from './types.js';
@@ -52,6 +52,10 @@ export async function runExecution(
   const tools = buildTools(repoRoot, agent.capabilities?.tools ?? []);
   const toolHelp = tools.map((t) => `${t.name}: ${t.description}`).join('\n');
 
+  // 3.4. Subject Matter Expert — the lens for this job (focus area + knowledge centering).
+  const sma = await loadSma(settings.sma);
+  if (sma) emit('v2_sma', { sma: sma.slug, focusTags: sma.focusTags ?? [] });
+
   // 3.5. Recall & Serve — decision layer (docs/architecture/RECALL_SERVE_DECISION_LAYER.md).
   const serveEnabled = settings.serveEnabled ?? process.env.CORTEX_SERVE_ENABLED !== 'false';
   const serveMinScore = settings.serveMinScore ?? Number(process.env.CORTEX_SERVE_MIN_SCORE ?? 0.86);
@@ -67,7 +71,8 @@ export async function runExecution(
   let taskServed = false;
   const servedFrom: Record<string, string> = {};
   const servedPromptHashes = new Set<string>();
-  const serveOpts = { developer: settings.developer, minScore: serveMinScore, maxAgeDays: serveMaxAgeDays };
+  const developer = settings.developer ?? sma?.developer;
+  const serveOpts = { developer, minScore: serveMinScore, maxAgeDays: serveMaxAgeDays };
 
   // 4a. Whole-task short-circuit (opt-in) — serve the entire task from memory.
   if (serveEnabled && settings.serveWholeTask) {
@@ -114,7 +119,7 @@ export async function runExecution(
       }
 
       if (output === null) {
-        const ctx = await buildContext(phase.needs, settings.developer, agent.technologies);
+        const ctx = await buildContext(phase.needs, { developer, technologies: agent.technologies, sma, prompt });
         output = await chatWithFallback(
           [
             {

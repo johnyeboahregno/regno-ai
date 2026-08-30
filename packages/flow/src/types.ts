@@ -37,6 +37,8 @@ export interface ExecutionSettings {
   analysisDepth?: AnalysisDepth;
   forceAgent?: string;
   developer?: string;
+  /** Subject Matter Expert (SMA) slug — centers this job's knowledge on the SMA's focus area. */
+  sma?: string;
   provider?: 'openai' | 'anthropic' | 'google' | 'deepseek';
   /** When true (default), failed provider calls fall through to the next configured provider. */
   fallback?: boolean;

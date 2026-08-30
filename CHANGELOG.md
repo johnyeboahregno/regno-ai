@@ -3,6 +3,22 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — SMA: "Architects" corrected to Subject Matter Experts
+
+Correcting the "Regno Architects" concept: there is **one** architect (the whole app), and what
+was a per-"architect" k3s namespace spawner is now **SMA** — a selectable expert profile.
+
+- **`/app/agents`** — rewritten from "create a new stack" to **SMA management** (name → focus
+  tags → disciplines/languages). No namespace spawning; sidebar label "Architects" → "SMA".
+- **`/api/agents`** — GET returns `{ smas }` (base SMA always present) for any session; POST
+  creates an SMA record (owner-only); `[slug]` DELETE removes it (no kubectl).
+- **Knowledge tags** — `ingestDocument` accepts `tags`; `keywordSearch(query, limit, boostTags)`
+  boosts docs whose tags match an SMA's focus tags (all knowledge stays reachable).
+- **Flow** — `ExecutionSettings.sma`; `buildContext` injects the SMA (description + focus areas)
+  and centers `knowledgeFacts` retrieval on the focus tags; `loadSma()` loads the profile.
+- **Chat** — the "Persona" selector is now an **SMA** selector (developer flavour is an SMA field).
+- Docs: new `docs/engineering/20-sma-subject-matter-experts.md`; corrected 13/17/18/19 + VISION.
+
 ## 2026-08-30 — Recall & Serve, Phase C: observability (served vs LLM-call counters)
 
 Surfacing the savings so the compounding brain is measurable:

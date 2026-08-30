@@ -1,11 +1,17 @@
-# Agent Wizard & Spawner
+# Agent Wizard & Spawner (deprecated — superseded by SMA)
 
-> Status: stable · Last updated: 2026-08-29
+> Status: deprecated · Last updated: 2026-08-30
 
-## What it is
+> The "Regno Architects" spawner was corrected on 2026-08-30. The admin screen at `/app/agents`
+> no longer spawns k3s namespaces — it creates **SMAs** (Subject Matter Experts): selectable
+> expert profiles, not new stacks. See [`20-sma-subject-matter-experts.md`](./20-sma-subject-matter-experts.md).
+> The namespace spawner (`scripts/spawn-agent.mjs`) is now dormant; the only way to create a new
+> architect is to deploy a whole new copy of the repo (see [`15-per-developer-cloning.md`](./15-per-developer-cloning.md)).
 
-An admin UI (`/app/agents`) to create specialist architect agents. Each agent gets a name,
-a set of technologies (whose best-practice standards are compiled into the agent), optional repo
+## What it was
+
+An admin UI (`/app/agents`) that created specialist "architect agents". Each agent got a name,
+a set of technologies (whose best-practice standards were compiled into the agent), optional repo
 connections and data sources — and a **fresh k3s namespace** running the full stack.
 
 ## Why

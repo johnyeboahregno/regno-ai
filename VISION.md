@@ -2,10 +2,12 @@
 
 > Locked-in fundamentals. North star for everything we build next.
 
-## What an SMA is (from regnoai-sma-proposal.html)
+## What an SMA is
 
-> **Subject Matter Agent** — "an SMA becomes a role on your team — trained on your systems,
-> held to your standards, and directed by your people."
+> **Subject Matter Expert (SMA)** — a selectable expert profile for architect jobs, centered on
+> a focus area (e.g. an F1 Race Engineer centered on F1, telemetry and aero). Knowledge is shared
+> across all jobs, but an SMA *centers* its knowledge on its focus tags. An SMA is **not** a new
+> stack — there is exactly **one** architect (this application).
 
 ## The goal
 
@@ -60,13 +62,14 @@ flowchart TB
 
 ## Cloning model
 
-- Each **Regno Architect** is a **complete new stack** (a k3s namespace) with its **own brain**
-  (Mongo/Qdrant/Neo4j) — its own context, docs, and knowledge.
-- Each architect has a **read-only connection to the shared base knowledge** (docs + standards),
-  so it can gain new knowledge from the base while keeping its own private knowledge.
-- An admin **parent page** ("Regno Architects") walks through creating a whole new stack:
-  name → technologies → repos → datasource.
-- The base is shared/versioned; the flavour is per-architect.
+- There is **one architect** — this application. To create another architect, **deploy a whole new
+  copy of this repo** (a k3s namespace with its own brain) — see `clone-developer.sh` /
+  [`docs/engineering/15-per-developer-cloning.md`](docs/engineering/15-per-developer-cloning.md).
+- **SMAs** are *not* new stacks — they are selectable expert profiles created at `/app/agents`
+  (name → focus tags → disciplines/languages). Knowledge is shared across all jobs; an SMA
+  centers retrieval on its focus tags.
+- The base standards are shared/versioned; the developer **flavour** is an overlay (now the
+  `developer` field on an SMA).
 
 ## Documentation telemetry (everything is documented)
 

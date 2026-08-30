@@ -30,6 +30,8 @@ export interface SourceDocument {
   title: string;
   content: string;
   domain: string;
+  /** Topic tags — used by Subject Matter Experts to center knowledge on their focus area. */
+  tags?: string[];
 }
 
 /**
@@ -42,7 +44,7 @@ export async function ingestDocument(doc: SourceDocument): Promise<{ chunks: num
 
   await db.collection(Collections.CORTEX_INDEX).updateOne(
     { sourceUrl: doc.sourceUrl },
-    { $set: { ...doc, status: 'indexed', indexedAt: now, _factsExtracted: false } },
+    { $set: { ...doc, tags: doc.tags ?? [], status: 'indexed', indexedAt: now, _factsExtracted: false } },
     { upsert: true },
   );
 
@@ -61,6 +63,7 @@ export async function ingestDocument(doc: SourceDocument): Promise<{ chunks: num
             sourceUrl: doc.sourceUrl,
             title: doc.title,
             rel: doc.domain,
+            tags: doc.tags ?? [],
             heading: doc.title,
             version: 1,
             isLatest: true,

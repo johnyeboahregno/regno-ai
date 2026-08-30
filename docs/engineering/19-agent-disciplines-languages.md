@@ -1,6 +1,6 @@
-# Agent Disciplines & Languages
+# SMA Disciplines & Languages
 
-The **Regno Architects** creation wizard (`/app/agents`) originally offered a single flat
+The **SMA** creation wizard (`/app/agents`) originally offered a single flat
 "Technologies" picker with five entries. It now splits the catalog into **Disciplines**
 (practice areas) and **Languages** (implementations), and greatly expands the options.
 
