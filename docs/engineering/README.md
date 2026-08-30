@@ -52,6 +52,7 @@
 | 18 | [`18-architect-brain-model.md`](./18-architect-brain-model.md) | Architect = full stack + own brain + base knowledge |
 | 19 | [`19-cicd.md`](./19-cicd.md) | GitHub Actions → k3s deploy + validation |
 | 20 | [`20-sma-subject-matter-experts.md`](./20-sma-subject-matter-experts.md) | SMA = selectable expert profile for architect jobs |
+| 21 | [`21-key-rotation.md`](./21-key-rotation.md) | Rotating/add the AI provider API keys |
 
 ## Golden rule
 
