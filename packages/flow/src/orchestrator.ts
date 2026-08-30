@@ -192,7 +192,7 @@ export async function runExecution(
       agentSlug: agent.slug,
       category: 'insight',
       content: finalOutput.slice(0, 2000),
-      developer: settings.developer,
+      developer,
       prompt,
       promptHash,
       phase: 'whole',

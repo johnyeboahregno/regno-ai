@@ -74,6 +74,11 @@ Defaults are overridable per-execution (`serveMinScore`, `serveMaxAgeDays`) or v
 5. **Reinforcement** — served memories get `relevanceScore += 1` (`reinforceWisdom`), so
    repeatedly-served knowledge gets stronger, exactly like the "compounding" thesis.
 
+**SMA composition** — the orchestrator resolves `developer = settings.developer ?? sma.developer`
+and uses it for both context injection and Recall & Serve isolation. A job run under an SMA with a
+developer flavour writes and serves wisdom tagged with that developer, so one developer's learned
+style is never served to another. Knowledge itself is shared; SMA focus tags only boost retrieval.
+
 ### Persistence (`@regno/db`)
 
 `writeWisdom` now stores `prompt`, `promptHash` (short sha-256), `phase`, `score`. Writing a

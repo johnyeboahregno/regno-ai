@@ -34,11 +34,11 @@ flowchart TD
   into the architect's Secret (cross-namespace, read-only).
 - **Search** — `POST /api/nexus/search` queries the architect's **own** Qdrant *and* the **base**
   Qdrant, merges, dedupes, and tags each result `source: 'own' | 'base'`.
-- **Learning + serving (2026-08-30)** — each architect's own brain also powers **Recall & Serve**
-  (`docs/architecture/RECALL_SERVE_DECISION_LAYER.md`): executions write wisdom tagged with the
-  architect's `agentSlug`/`developer`, and the orchestrator serves high-confidence matches from
-  that architect's own `cortex_wisdom` instead of calling the LLM. Base knowledge is read-only;
-  learned flavour is architect-scoped.
+- **Learning + serving (2026-08-30)** — in the current single-brain/SMA model, **Recall & Serve**
+  (`docs/architecture/RECALL_SERVE_DECISION_LAYER.md`) still applies: executions write wisdom to
+  `cortex_wisdom` (shared knowledge, boosted by SMA focus tags), and the orchestrator serves
+  high-confidence matches instead of calling the LLM. Developer isolation keeps one developer's
+  learned flavour from being served to another.
 
 ## Files involved
 

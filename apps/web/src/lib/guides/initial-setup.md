@@ -56,17 +56,28 @@ npm run db:init && npm run db:seed
 
 **Verify:** `/app/cortex` shows a non-zero **KNOWLEDGE DOCS** count; `/app/oracle` returns results.
 
-## Step 2 — Teach it a developer's flavour
+## Step 2 — Teach it a developer's flavour (via an SMA)
 
-Point it at your code so it learns your conventions (the "learn their code" model):
+Your learned style is a **developer flavour** — a style overlay that emulates your code but
+**never** overrides base standards. In the SMA model, the flavour lives on a **Subject Matter
+Expert** profile (see `docs/engineering/20-sma-subject-matter-experts.md`):
+
+1. In **System → SMA** (`/app/agents`), create an SMA (e.g. "F1 Race Engineer").
+2. Give it **focus tags** (e.g. `F1`, `telemetry`, `aerodynamics`) — retrieval **boosts** docs
+   matching those tags (re-ranks, never filters; all knowledge stays shared).
+3. Optionally set a **developer** on the SMA (your learned flavour) plus **disciplines /
+   languages** (injects the matching best-practice standards).
+4. In `/app/chat`, select the SMA for a job — a `v2_sma` event fires and the context includes a
+   "Subject Matter Expert" + focused-knowledge block.
+
+To ingest your code as a developer flavour:
 
 ```bash
 DEVELOPER=<your-name> node scripts/seed-history.mjs   # uses profile/repos.json → C:/repos/regno-ai
 ```
 
-**Verify:** search returns code chunks tagged with your developer name. Spawning a new Architect
-via `/app/agents` does this automatically for the repos you list (tagged with the architect's
-slug), plus gives it its own brain + read-only access to the shared base.
+**Verify:** search returns code chunks tagged with your developer name; SMA focus tags re-rank
+results (all knowledge remains reachable).
 
 ## Step 3 — Curate: teach it directly
 
@@ -121,4 +132,5 @@ auto-writes an insight memory the *next* run reads back.
 | Three-store sync | `packages/db/src/sync.ts` |
 | Recall & Serve decision layer | `packages/cortex/src/recall.ts` |
 | Code ingestion | `scripts/seed-history.mjs`, `scripts/seed-github.mjs` |
-| Architect spawner | `scripts/spawn-agent.mjs` + `/api/agents` |
+| SMA profiles (focus + flavour) | `/app/agents` + `/api/agents` |
+| Subject Matter Expert model | `docs/engineering/20-sma-subject-matter-experts.md` |
