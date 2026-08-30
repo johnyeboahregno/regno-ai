@@ -464,6 +464,14 @@ tr:hover td { background: var(--signal-hover); }
 }
 .sidebar .item.sub { padding-left: 30px; font-size: 12.5px; }
 .sidebar .sub-body { display: flex; flex-direction: column; gap: 2px; }
+.sidebar .sub-group {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 8px 10px 2px 30px;
+}
 
 .sidebar .spacer { flex: 1; }
 

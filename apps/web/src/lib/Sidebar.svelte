@@ -2,16 +2,72 @@
   import Brand from '$lib/Brand.svelte';
   import Icon from '$lib/Icon.svelte';
   import ArchitectAgeWidget from '$lib/ArchitectAgeWidget.svelte';
-  import { buildNav, groupContainsPath, type NavGroup } from '$lib/nav';
+  import { buildNav, groupContainsPath, type NavGroup, type NavItem } from '$lib/nav';
   import { theme, collapsed, nextTheme, type Theme } from '$lib/ui';
+  import { onMount } from 'svelte';
 
   export let user: { email: string; role: string };
   export let path: string;
   export let onLogout: () => void;
 
-  const nav = buildNav(user.role);
+  const baseNav = buildNav(user.role);
+  let docsChildren: NavItem[] = [];
+
+  // Inject the dynamic Docs submenu (artifacts + ingested docs) once it loads.
+  $: nav = baseNav.map((group) =>
+    group.id === 'system'
+      ? {
+          ...group,
+          items: group.items.map((item) =>
+            item.href === '/app/docs' ? { ...item, children: docsChildren } : item,
+          ),
+        }
+      : group,
+  );
 
   let open: Record<string, boolean> = {};
+
+  function basename(p: string): string {
+    return p.split('/').pop() ?? p;
+  }
+
+  function isActive(item: NavItem): boolean {
+    if (path === item.href || path.startsWith(item.href + '?')) return true;
+    return (item.children ?? []).length > 0 && path.startsWith(item.href + '/');
+  }
+
+  onMount(async () => {
+    try {
+      const [dr, ar] = await Promise.all([
+        fetch('/api/docs').then((r) => r.json()),
+        fetch('/api/artifacts').then((r) => r.json()),
+      ]);
+      const next: NavItem[] = [];
+      for (const a of ar.artifacts ?? []) {
+        if (!a.taskId) continue;
+        next.push({
+          href: `/app/docs?artifact=${encodeURIComponent(a.taskId)}`,
+          label: a.title ?? a.taskId,
+          icon: 'docs',
+          group: 'Artifacts',
+        });
+      }
+      for (const g of dr.groups ?? []) {
+        for (const d of g.docs ?? []) {
+          if (!d.sourceUrl) continue;
+          next.push({
+            href: `/app/docs?doc=${encodeURIComponent(d.sourceUrl)}`,
+            label: basename(d.title ?? d.sourceUrl),
+            icon: 'docs',
+            group: g.domain,
+          });
+        }
+      }
+      docsChildren = next;
+    } catch {
+      /* ignore */
+    }
+  });
 
   // Auto-open the section that contains the current path on navigation.
   $: path, ensureActiveSectionOpen(path);
@@ -114,14 +170,17 @@
         {#if !$collapsed && open[group.id]}
           <div class="section-body">
             {#each group.items as item}
-              <a href={item.href} class="item" class:active={item.href === path} title={item.label} aria-current={item.href === path ? 'page' : undefined}>
+              <a href={item.href} class="item" class:active={isActive(item)} title={item.label} aria-current={isActive(item) ? 'page' : undefined}>
                 <span class="ic-wrap"><Icon name={item.icon} size={16} /></span>
                 <span class="label">{item.label}</span>
               </a>
               {#if item.children}
                 <div class="sub-body">
-                  {#each item.children as child}
-                    <a href={child.href} class="item sub" class:active={child.href === path} title={child.label}>
+                  {#each item.children as child, i}
+                    {#if child.group && child.group !== item.children[i - 1]?.group}
+                      <div class="sub-group">{child.group}</div>
+                    {/if}
+                    <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
                       <span class="label">{child.label}</span>
                     </a>
                   {/each}

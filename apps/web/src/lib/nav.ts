@@ -1,11 +1,14 @@
 // App-shell navigation model — single source of truth for the sidebar menu.
 // Groups act as the expandable "parents" (matching the reference menu's parent→child concept);
 // the NavItem.children field additionally supports nested submenus for future routes.
+import { guides } from '$lib/guides';
 
 export interface NavItem {
   href: string;
   label: string;
   icon: string;
+  /** Optional submenu section header (used by the dynamic Docs submenu). */
+  group?: string;
   children?: NavItem[];
 }
 
@@ -48,7 +51,12 @@ export function buildNav(role: string): NavGroup[] {
       icon: 'gear',
       items: [
         { href: '/app', label: 'Dashboard', icon: 'dashboard' },
-        { href: '/app/guides', label: 'User Guides', icon: 'guide' },
+        {
+          href: '/app/guides',
+          label: 'User Guides',
+          icon: 'guide',
+          children: guides.map((g) => ({ href: `/app/guides/${g.slug}`, label: g.title, icon: 'guide' })),
+        },
         { href: '/app/docs', label: 'Docs', icon: 'docs' },
         { href: '/app/credentials', label: 'Credentials', icon: 'credentials' },
         { href: '/app/health', label: 'Health', icon: 'health' },
@@ -64,6 +72,8 @@ export function groupContainsPath(group: NavGroup, path: string): boolean {
 }
 
 function itemMatchesPath(item: NavItem, path: string): boolean {
-  if (item.href === path) return true;
-  return (item.children ?? []).some((child) => itemMatchesPath(child, path));
+  if (item.href === path || path.startsWith(item.href + '?')) return true;
+  const kids = item.children ?? [];
+  if (kids.length > 0 && path.startsWith(item.href + '/')) return true;
+  return kids.some((child) => itemMatchesPath(child, path));
 }

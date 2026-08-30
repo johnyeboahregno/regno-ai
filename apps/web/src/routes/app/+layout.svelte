@@ -17,7 +17,7 @@
 <svelte:head><title>Regno Architect Me</title></svelte:head>
 
 <div class="shell" class:collapsed={$collapsed}>
-  <Sidebar user={data.user} path={$page.url.pathname} onLogout={logout} />
+  <Sidebar user={data.user} path={$page.url.pathname + $page.url.search} onLogout={logout} />
   <main class="content">
     <slot />
   </main>
