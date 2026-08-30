@@ -50,4 +50,4 @@ you@regno:~$ goto canvas
 
 - `ask` enqueues the same Cortex Flow execution used by the Architect chat page and polls for the result.
 - Your active SMA is remembered across sessions in `localStorage` (`regno.cli.sma`).
-- The terminal ignores the app theme and always renders as a phosphor green CRT, complete with scanlines and a subtle flicker.
+- The terminal follows the active app theme — switch to the **Matrix** theme for the full phosphor-green CRT look. Scanlines and a subtle flicker are always on.

@@ -578,22 +578,22 @@
 <style>
   .cli-wrap {
     position: relative;
-    height: calc(100vh - 80px);
+    height: calc(100vh - 32px);
     min-height: 420px;
     min-width: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     cursor: text;
-    border: 1px solid #0c3a1e;
+    border: 1px solid var(--line);
     border-radius: 10px;
-    background: radial-gradient(ellipse at 50% 0%, #04180d 0%, #020a05 68%, #010603 100%);
+    background: var(--bg-deep);
     box-shadow:
-      inset 0 0 60px rgba(0, 0, 0, 0.75),
-      0 0 46px rgba(0, 255, 120, 0.08);
+      inset 0 0 60px rgba(0, 0, 0, 0.35),
+      0 0 46px var(--signal-glow);
   }
 
-  /* scanlines + subtle phosphor flicker */
+  /* scanlines + subtle vignette flicker (theme-neutral CRT effect) */
   .crt {
     position: absolute;
     inset: 0;
@@ -601,8 +601,8 @@
     pointer-events: none;
     background: repeating-linear-gradient(
       0deg,
-      rgba(0, 0, 0, 0.22) 0px,
-      rgba(0, 0, 0, 0.22) 1px,
+      rgba(0, 0, 0, 0.18) 0px,
+      rgba(0, 0, 0, 0.18) 1px,
       transparent 1px,
       transparent 3px
     );
@@ -613,7 +613,7 @@
     inset: 0;
     z-index: 3;
     pointer-events: none;
-    background: rgba(0, 255, 120, 0.015);
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.32) 100%);
     animation: flicker 6s infinite;
   }
   @keyframes flicker {
@@ -642,37 +642,36 @@
     overflow-y: auto;
     padding-bottom: 10px;
     scrollbar-width: thin;
-    scrollbar-color: #0c3a1e transparent;
+    scrollbar-color: var(--ink-faint) transparent;
   }
   .output::-webkit-scrollbar { width: 10px; }
-  .output::-webkit-scrollbar-thumb { background: #0c3a1e; border-radius: 6px; }
+  .output::-webkit-scrollbar-thumb { background: var(--ink-faint); border-radius: 6px; }
 
   .line {
     white-space: pre-wrap;
     word-break: break-word;
     font-size: 13.5px;
     line-height: 1.65;
-    color: #3bff8a;
-    text-shadow: 0 0 6px rgba(59, 255, 138, 0.35);
+    color: var(--ink);
   }
-  .line.cmd { color: #d9ffe6; text-shadow: 0 0 6px rgba(217, 255, 230, 0.35); }
-  .line.ok { color: #8affb8; }
-  .line.err { color: #ff6b6b; text-shadow: 0 0 6px rgba(255, 80, 80, 0.4); }
-  .line.muted { color: #4f9a6b; text-shadow: none; }
-  .line.banner { color: #4dffa0; text-shadow: 0 0 10px rgba(77, 255, 160, 0.55); }
+  .line.cmd { color: var(--ink); font-weight: 600; }
+  .line.ok { color: var(--good); }
+  .line.err { color: var(--danger); }
+  .line.muted { color: var(--ink-faint); }
+  .line.banner { color: var(--signal); text-shadow: 0 0 10px var(--signal-glow); }
 
   .input-row {
     display: flex;
     align-items: center;
     gap: 10px;
     padding-top: 12px;
-    border-top: 1px solid #0c3a1e;
+    border-top: 1px solid var(--line);
   }
   .prompt {
-    color: #4dffa0;
+    color: var(--signal);
     font-size: 13.5px;
     white-space: nowrap;
-    text-shadow: 0 0 8px rgba(77, 255, 160, 0.6);
+    text-shadow: 0 0 8px var(--signal-glow);
   }
   .cmd-input {
     flex: 1;
@@ -680,13 +679,12 @@
     background: transparent;
     border: none;
     outline: none;
-    color: #3bff8a;
+    color: var(--ink);
     font-family: var(--mono);
     font-size: 13.5px;
-    caret-color: #4dffa0;
-    text-shadow: 0 0 6px rgba(59, 255, 138, 0.35);
+    caret-color: var(--signal);
   }
-  .cmd-input::placeholder { color: #2a7a47; text-shadow: none; }
+  .cmd-input::placeholder { color: var(--ink-faint); }
 
   .blink { animation: blink 1s steps(2, start) infinite; }
   @keyframes blink { to { visibility: hidden; } }

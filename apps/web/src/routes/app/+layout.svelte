@@ -2,6 +2,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import Sidebar from '$lib/Sidebar.svelte';
+  import ArchitectAgeModal from '$lib/ArchitectAgeModal.svelte';
   import { collapsed } from '$lib/ui';
   import type { LayoutData } from './$types.js';
 
@@ -20,4 +21,5 @@
   <main class="content">
     <slot />
   </main>
+  <ArchitectAgeModal />
 </div>

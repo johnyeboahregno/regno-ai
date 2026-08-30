@@ -3,6 +3,26 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — Architect Age & Intelligence sidebar gimmick + popup
+
+A playful "how old / how smart is the Architect" widget as the last item in the sidebar's
+**Intelligence** group, with a full breakdown popup:
+
+- **New `GET /api/architect`** — computes the Architect's **human years** (real wall-clock time
+  since the earliest recorded activity across `cortex_executions`, `cortex_patterns`,
+  `cortex_agent_memories`, `cortex_memories`, `cortex_index`, `ai_usage`) and **AI years**
+  (`human years × (60 + log-scaled learning bonus)` from knowledge docs, patterns, memories,
+  executions, tokens). Returns `bornAt`, both ages, `factors[]`, `knowledge[]`, and `usage`
+  (30-day tokens + top models). Best-effort — degrades gracefully when Mongo is empty or down.
+- **Sidebar widget** — `$lib/ArchitectAgeWidget.svelte` (rendered by `$lib/Sidebar.svelte`
+  inside the Intelligence section): two theme-aware horizontal bars with inline-SVG evolution
+  icons (ape → walker → astronaut for human; abacus → terminal → robot → neural-net for AI).
+- **Popup** — `$lib/ArchitectAgeModal.svelte` (rendered by `routes/app/+layout.svelte`): big
+  readouts, the formula breakdown, intelligence-makeup bars, and a 30-day token chart.
+- **Icons** — new `currentColor` glyphs in `$lib/icons.ts` (`architect-age`, `evo-h-*`, `evo-ai-*`)
+  so coloring follows whichever theme is active.
+- **Docs** — `docs/architect-age.md` + in-app guide `apps/web/src/lib/guides/architect-age.md`.
+
 ## 2026-08-30 — User Guides section + Recall & Serve docs (Phase E)
 
 A dedicated, markdown-driven **User Guides** area so every explanation lives where new devs and

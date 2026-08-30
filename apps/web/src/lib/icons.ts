@@ -46,4 +46,26 @@ export const ICONS: Record<string, string> = {
   moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>',
   palette:
     '<circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>',
+
+  // ── Architect age gimmick (theme-aware via stroke="currentColor") ─────────────────────
+  'architect-age':
+    '<path d="M5 3h14"></path><path d="M5 21h14"></path><path d="M6.5 3v3.2c0 1.4 1 2.6 2 3.4L11 12l-2.5 2.4c-1 .8-2 2-2 3.4V21"></path><path d="M17.5 3v3.2c0 1.4-1 2.6-2 3.4L13 12l2.5 2.4c1 .8 2 2 2 3.4V21"></path>',
+
+  // Human evolution — ape → upright walker → astronaut
+  'evo-h-ape':
+    '<circle cx="12" cy="6.5" r="3"></circle><path d="M9 9.5c-2.5 1.5-3.5 5-3.5 8.5"></path><path d="M15 9.5c2.5 1.5 3.5 5 3.5 8.5"></path><path d="M5.5 18h2"></path><path d="M16.5 18h2"></path><path d="M12 9.5c-3 1.5-4.5 4.5-4.5 7.5h9c0-3-1.5-6-4.5-7.5z"></path>',
+  'evo-h-walker':
+    '<circle cx="12" cy="5" r="3"></circle><path d="M12 8v4"></path><path d="M8.5 10.5L12 9l3.5 1.5"></path><path d="M9.5 21l2.5-6 2.5 6"></path>',
+  'evo-h-astronaut':
+    '<circle cx="12" cy="6" r="4"></circle><path d="M9 5.2a4 4 0 0 1 6 0"></path><rect x="8.5" y="10" width="7" height="7" rx="2.5"></rect><path d="M10.5 17v2.5"></path><path d="M13.5 17v2.5"></path><path d="M9.5 21.5h5"></path>',
+
+  // AI evolution — abacus → terminal → robot → neural net
+  'evo-ai-abacus':
+    '<rect x="5" y="3" width="14" height="18" rx="2"></rect><line x1="5" y1="8" x2="19" y2="8"></line><line x1="5" y1="13" x2="19" y2="13"></line><line x1="5" y1="18" x2="19" y2="18"></line><circle cx="8" cy="10.5" r="1"></circle><circle cx="12" cy="15.5" r="1"></circle><circle cx="16" cy="10.5" r="1"></circle><circle cx="8" cy="15.5" r="1"></circle><circle cx="16" cy="15.5" r="1"></circle>',
+  'evo-ai-terminal':
+    '<rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><polyline points="6 9 9 12 6 15"></polyline><line x1="12" y1="15" x2="16" y2="15"></line>',
+  'evo-ai-robot':
+    '<rect x="4" y="7" width="16" height="13" rx="3"></rect><line x1="12" y1="3" x2="12" y2="7"></line><circle cx="12" cy="2.5" r="1"></circle><circle cx="9.5" cy="12" r="1.3"></circle><circle cx="14.5" cy="12" r="1.3"></circle><line x1="9.5" y1="16" x2="14.5" y2="16"></line>',
+  'evo-ai-brain':
+    '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="5.5" r="1.5"></circle><circle cx="6.5" cy="16" r="1.5"></circle><circle cx="17.5" cy="16" r="1.5"></circle><line x1="12" y1="5.5" x2="6.5" y2="16"></line><line x1="12" y1="5.5" x2="17.5" y2="16"></line><line x1="6.5" y1="16" x2="17.5" y2="16"></line>',
 };

@@ -1,6 +1,7 @@
 <script lang="ts">
   import Brand from '$lib/Brand.svelte';
   import Icon from '$lib/Icon.svelte';
+  import ArchitectAgeWidget from '$lib/ArchitectAgeWidget.svelte';
   import { buildNav, groupContainsPath, type NavGroup } from '$lib/nav';
   import { theme, collapsed, nextTheme, type Theme } from '$lib/ui';
 
@@ -127,6 +128,10 @@
                 </div>
               {/if}
             {/each}
+
+            {#if group.id === 'intelligence'}
+              <ArchitectAgeWidget />
+            {/if}
           </div>
         {/if}
       </div>

@@ -557,7 +557,7 @@ tr:hover td { background: var(--signal-hover); }
   margin-top: 6px;
 }
 
-.content { padding: 40px 44px; min-width: 0; width: 100%; }
+.content { padding: 16px 20px; min-width: 0; width: 100%; }
 .page-head { margin-bottom: 28px; }
 .page-head h1 { font-size: 30px; }
 .page-head p { color: var(--ink-dim); margin-top: 8px; }
