@@ -31,6 +31,7 @@
   --signal-active-glow: rgba(108, 92, 231, 0.30);
   --brand-glow: rgba(108, 92, 231, 0.40);
   --nav-bg: rgba(10, 12, 22, 0.90);
+  --on-signal: #ffffff;
 }
 
 /* light theme (data-theme is set on <html> by app.html + $lib/ui.ts) */
@@ -53,6 +54,7 @@
   --signal-active-glow: rgba(91, 75, 224, 0.22);
   --brand-glow: rgba(91, 75, 224, 0.30);
   --nav-bg: rgba(243, 245, 250, 0.92);
+  --on-signal: #ffffff;
 }
 
 /* Tactical — sci-fi naval HUD: near-black, orange/green status accents, terminal type. */
@@ -80,6 +82,7 @@
   --signal-active-glow: rgba(255, 157, 46, 0.25);
   --brand-glow: rgba(255, 157, 46, 0.30);
   --nav-bg: rgba(7, 9, 7, 0.92);
+  --on-signal: #0b0f0a;
   --r: 6px;
   --r-sm: 4px;
   --display: 'Orbitron', 'JetBrains Mono', sans-serif;
@@ -121,6 +124,7 @@
   --signal-active-glow: rgba(79, 141, 255, 0.30);
   --brand-glow: rgba(79, 141, 255, 0.40);
   --nav-bg: rgba(10, 14, 26, 0.92);
+  --on-signal: #ffffff;
 }
 
 /* Nova — black & gold with a premium, knightly feel. */
@@ -148,6 +152,7 @@
   --signal-active-glow: rgba(227, 184, 74, 0.25);
   --brand-glow: rgba(227, 184, 74, 0.30);
   --nav-bg: rgba(10, 9, 6, 0.92);
+  --on-signal: #1a1406;
   --r: 8px;
   --r-sm: 6px;
   --display: 'Cinzel', 'Georgia', serif;
@@ -180,6 +185,7 @@
   --signal-active-glow: rgba(212, 175, 55, 0.22);
   --brand-glow: rgba(212, 175, 55, 0.30);
   --nav-bg: rgba(12, 18, 11, 0.92);
+  --on-signal: #1a1506;
   --r: 10px;
   --r-sm: 8px;
   --display: 'Marcellus', 'Georgia', serif;
@@ -219,10 +225,11 @@ img { max-width: 100%; display: block; }
   background: transparent; cursor: pointer; border-radius: var(--r-sm);
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
-.btn:hover { background: var(--signal); }
+.btn:hover { background: var(--signal); color: var(--on-signal); }
 .btn.solid {
   background: linear-gradient(135deg, var(--signal) 0%, var(--signal-2) 100%);
   border-color: transparent; box-shadow: 0 6px 20px var(--signal-glow);
+  color: var(--on-signal);
 }
 .btn.solid:hover { filter: brightness(1.08); background: linear-gradient(135deg, var(--signal) 0%, var(--signal-2) 100%); }
 .btn.ghost { border-color: var(--line); color: var(--ink-dim); background: var(--panel); }
@@ -401,7 +408,7 @@ tr:hover td { background: var(--signal-hover); }
 }
 .sidebar .item:hover { color: var(--ink); background: var(--panel-2); }
 .sidebar .item.active {
-  color: #fff;
+  color: var(--on-signal);
   background: linear-gradient(135deg, var(--signal) 0%, var(--signal-2) 100%);
   box-shadow: 0 4px 14px var(--signal-active-glow);
 }
@@ -468,7 +475,7 @@ tr:hover td { background: var(--signal-hover); }
   font-family: var(--display);
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-signal);
   background: linear-gradient(135deg, var(--signal), var(--signal-2));
 }
 .sidebar .profile-meta { display: flex; flex-direction: column; min-width: 0; }

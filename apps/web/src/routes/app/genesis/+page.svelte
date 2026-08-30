@@ -1308,13 +1308,13 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  .empty-hint { position: absolute; width: 380px; padding: 26px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; background: rgba(18,21,42,0.6); }
+  .empty-hint { position: absolute; width: 380px; padding: 26px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; background: var(--panel); }
   .eh-title { font-family: var(--display); font-weight: 600; color: var(--ink); font-size: 15px; }
   .eh-sub { color: var(--ink-dim); font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
   .eh-btn { margin-top: 16px; background: linear-gradient(135deg, var(--signal), var(--signal-2)); border: none; color: #fff; padding: 9px 16px; border-radius: 8px; font-family: var(--display); font-size: 13px; cursor: pointer; }
   .eh-btn:hover { filter: brightness(1.1); }
 
-  .view-controls { position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 4px; background: rgba(10,12,22,0.85); border: 1px solid var(--line); border-radius: 9px; padding: 4px; backdrop-filter: blur(8px); }
+  .view-controls { position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 4px; background: var(--nav-bg); border: 1px solid var(--line); border-radius: 9px; padding: 4px; backdrop-filter: blur(8px); }
   .vc { background: transparent; border: none; color: var(--ink-dim); width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 14px; }
   .vc:hover { background: var(--panel-2); color: var(--ink); }
   .vc-zoom { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); min-width: 40px; text-align: center; }
@@ -1396,7 +1396,7 @@
   .tb-select:focus, .tb-input:focus { outline: none; border-color: var(--signal-2); }
 
   /* groups */
-  .group { position: absolute; border: 1.5px dashed; border-radius: 12px; pointer-events: none; background: rgba(18,21,42,0.35); }
+  .group { position: absolute; border: 1.5px dashed; border-radius: 12px; pointer-events: none; background: var(--panel); background: color-mix(in srgb, var(--panel) 40%, transparent); }
   .group.locked { background: rgba(251,191,36,0.06); border-style: solid; }
   .group-head {
     position: absolute; top: -30px; left: -1px; display: flex; align-items: center; gap: 6px;
