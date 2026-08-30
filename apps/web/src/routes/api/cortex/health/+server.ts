@@ -10,12 +10,18 @@ function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
 }
 
 export async function GET() {
-  const db = await getDb();
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
 
+  let db: Awaited<ReturnType<typeof getDb>> | null = null;
+  try {
+    db = await getDb();
+  } catch {
+    db = null;
+  }
+
   // --- Knowledge store counts (best-effort per collection) ---
-  const count = (coll: string) => db.collection(coll).countDocuments().catch(() => 0);
+  const count = (coll: string) => (db ? db.collection(coll).countDocuments().catch(() => 0) : Promise.resolve(0));
   const [documents, facts, wisdom, memories, entities, patterns, evaluations, executions, staging, showcases] =
     await Promise.all([
       count(Collections.CORTEX_INDEX),
@@ -44,51 +50,58 @@ export async function GET() {
   ];
   const knowledgeTotal = knowledge.reduce((n, k) => n + k.value, 0);
 
-  // --- Service status ---
-  const mongoPing = await withTimeout(db.command({ ping: 1 }).then(() => true).catch(() => false), 6000, false);
-  const qdrantCount = await withTimeout(
-    getQdrant()
-      .count(QdrantCollections.CORTEX_PATTERNS)
-      .then((r) => r.count)
-      .catch(() => null as number | null),
-    5000,
-    null as number | null,
-  );
-  const neo4jNodes = await withTimeout(
-    neo4jRun('MATCH (p:Pattern) RETURN count(p) AS c')
-      .then((rows) => {
-        const r = rows as Array<{ c: number | { toNumber?: () => number } }>;
-        const v = r[0]?.c;
-        if (typeof v === 'number') return v;
-        if (v && typeof v.toNumber === 'function') return v.toNumber();
-        return 0;
-      })
-      .catch(() => null as number | null),
-    5000,
-    null as number | null,
-  );
-  const redisPing = await withTimeout(getRedis().ping().then(() => true).catch(() => false), 5000, false);
+  // --- Service status (independent probes run in parallel to bound latency) ---
+  const mongoPing = db
+    ? await withTimeout(db.command({ ping: 1 }).then(() => true).catch(() => false), 6000, false)
+    : false;
+
+  const [qdrantCount, neo4jNodes, redisPing] = await Promise.all([
+    withTimeout(
+      getQdrant()
+        .count(QdrantCollections.CORTEX_PATTERNS)
+        .then((r) => r.count)
+        .catch(() => null as number | null),
+      5000,
+      null as number | null,
+    ),
+    withTimeout(
+      neo4jRun('MATCH (p:Pattern) RETURN count(p) AS c')
+        .then((rows) => {
+          const r = rows as Array<{ c: number | { toNumber?: () => number } }>;
+          const v = r[0]?.c;
+          if (typeof v === 'number') return v;
+          if (v && typeof v.toNumber === 'function') return v.toNumber();
+          return 0;
+        })
+        .catch(() => null as number | null),
+      5000,
+      null as number | null,
+    ),
+    withTimeout(getRedis().ping().then(() => true).catch(() => false), 5000, false),
+  ]);
 
   let bullmq = { active: 0, queued: 0 };
-  try {
-    const r = getRedis();
-    let active = 0;
-    let queued = 0;
-    for (const q of Object.values(Queues)) {
-      active += await r.llen(`bull:${q}:active`).catch(() => 0);
-      queued += await r.llen(`bull:${q}:wait`).catch(() => 0);
-      queued += await r.zcard(`bull:${q}:delayed`).catch(() => 0);
+  if (redisPing) {
+    try {
+      const r = getRedis();
+      let active = 0;
+      let queued = 0;
+      for (const q of Object.values(Queues)) {
+        active += await r.llen(`bull:${q}:active`).catch(() => 0);
+        queued += await r.llen(`bull:${q}:wait`).catch(() => 0);
+        queued += await r.zcard(`bull:${q}:delayed`).catch(() => 0);
+      }
+      bullmq = { active, queued };
+    } catch {
+      /* redis unreachable — report empty */
     }
-    bullmq = { active, queued };
-  } catch {
-    /* redis unreachable — report empty */
   }
 
   const qdrantSync =
     qdrantCount === null ? null : qdrantCount === patterns ? 'in-sync' : 'out-of-sync';
 
   const services = [
-    { key: 'mongo', name: 'MongoDB', role: 'Primary Store', status: mongoPing ? 'online' : 'offline', detail: `${patterns} patterns` },
+    { key: 'mongo', name: 'MongoDB', role: 'Primary Store', status: mongoPing ? 'online' : 'offline', detail: mongoPing ? `${patterns} patterns` : 'unreachable' },
     {
       key: 'qdrant',
       name: 'Qdrant',
@@ -103,15 +116,19 @@ export async function GET() {
   ];
 
   // --- Learning metrics ---
-  const [created7d, used7d, totalSuccesses, totalFailures] = await Promise.all([
-    db.collection(Collections.CORTEX_PATTERNS).countDocuments({ createdAt: { $gte: weekAgo } }).catch(() => 0),
-    db.collection(Collections.CORTEX_PATTERNS).countDocuments({ lastUsedAt: { $gte: weekAgo } }).catch(() => 0),
-    db.collection(Collections.CORTEX_EXECUTIONS).countDocuments({ status: 'success' }).catch(() => 0),
-    db.collection(Collections.CORTEX_EXECUTIONS).countDocuments({ status: { $in: ['failed', 'error'] } }).catch(() => 0),
-  ]);
+  const [created7d, used7d, totalSuccesses, totalFailures] = db
+    ? await Promise.all([
+        db.collection(Collections.CORTEX_PATTERNS).countDocuments({ createdAt: { $gte: weekAgo } }).catch(() => 0),
+        db.collection(Collections.CORTEX_PATTERNS).countDocuments({ lastUsedAt: { $gte: weekAgo } }).catch(() => 0),
+        db.collection(Collections.CORTEX_EXECUTIONS).countDocuments({ status: 'success' }).catch(() => 0),
+        db.collection(Collections.CORTEX_EXECUTIONS).countDocuments({ status: { $in: ['failed', 'error'] } }).catch(() => 0),
+      ])
+    : [0, 0, 0, 0];
 
   // --- Pattern quality + patterns-by-domain (from Mongo patterns) ---
-  const patternDocs = await db.collection(Collections.CORTEX_PATTERNS).find({}).limit(2000).toArray().catch(() => []);
+  const patternDocs = db
+    ? await db.collection(Collections.CORTEX_PATTERNS).find({}).limit(2000).toArray().catch(() => [])
+    : [];
   let active7d = 0;
   let highPerformers = 0;
   let lowConfidence = 0;
