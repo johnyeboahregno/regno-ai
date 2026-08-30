@@ -3,6 +3,26 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — Recall & Serve, Phase B: the decision layer (serve known answers, cut LLM calls)
+
+The CORTEX brain can now answer known tasks **from memory with zero LLM calls**, instead of
+re-calling the model every time. Full design: `docs/architecture/RECALL_SERVE_DECISION_LAYER.md`.
+
+- **`@regno/cortex` `recallBest()`** (new `packages/cortex/src/recall.ts`) — semantic search over
+  Qdrant `cortex_wisdom` when a key is present, always-on zero-cost TF-IDF keyword over Mongo
+  `cortex_agent_memories`, pattern fallback via `patternSearch`, merged + backfilled with
+  metadata (age / relevanceScore / developer / promptHash), developer-isolated.
+- **`@regno/cortex` `shouldServe()`** — conservative gate: score ≥ 0.86, age ≤ 180 days,
+  category ∈ {insight, pattern}, same developer, **or** exact `promptHash` repeat (always served).
+- **`@regno/flow` orchestrator** — whole-task short-circuit (opt-in `serveWholeTask`, off by
+  default), per-phase recall before each LLM call, refine loop skipped when any phase is served,
+  `llmCalls`/`servedPhases`/`servedFrom` recorded on each execution, `v2_served` SSE event with
+  decision reason, and served memories are **reinforced** (`reinforceWisdom`) instead of duplicated.
+- **`@regno/flow` settings** — `serveEnabled` / `serveMinScore` / `serveMaxAgeDays` /
+  `serveWholeTask` on `ExecutionSettings`; env defaults `CORTEX_SERVE_ENABLED` (true),
+  `CORTEX_SERVE_MIN_SCORE` (0.86), `CORTEX_SERVE_MAX_AGE_DAYS` (180).
+- Build verified: `npm run build -w @regno/cortex` + `@regno/flow` = 0 errors.
+
 ## 2026-08-30 — Recall & Serve, Phase A: richer wisdom writes (foundation for LLM-call reduction)
 
 First step of the "decision layer" that lets the CORTEX brain serve known answers from memory

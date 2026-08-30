@@ -3,10 +3,10 @@
  *   route → plan → phase loop (tools + context) → refine loop → persist + wisdom.
  */
 import { randomUUID, createHash } from 'node:crypto';
-import { getDb } from '@regno/db';
+import { getDb, reinforceWisdom } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { chatWithFallback } from '@regno/ai';
-import { remember } from '@regno/cortex';
+import { remember, recallBest, shouldServe } from '@regno/cortex';
 import { DEFAULT_AGENT, loadAgent, routePrompt } from './agent.js';
 import { createPlanFromAgent, selectComposeFirstDepth } from './plan.js';
 import { buildTools } from './tools.js';
@@ -52,47 +52,114 @@ export async function runExecution(
   const tools = buildTools(repoRoot, agent.capabilities?.tools ?? []);
   const toolHelp = tools.map((t) => `${t.name}: ${t.description}`).join('\n');
 
-  // 4. Phase loop — single strong pass per phase with context injection
+  // 3.5. Recall & Serve — decision layer (docs/architecture/RECALL_SERVE_DECISION_LAYER.md).
+  const serveEnabled = settings.serveEnabled ?? process.env.CORTEX_SERVE_ENABLED !== 'false';
+  const serveMinScore = settings.serveMinScore ?? Number(process.env.CORTEX_SERVE_MIN_SCORE ?? 0.86);
+  const serveMaxAgeDays = settings.serveMaxAgeDays ?? Number(process.env.CORTEX_SERVE_MAX_AGE_DAYS ?? 180);
+  const promptHash = createHash('sha256').update(prompt).digest('hex').slice(0, 16);
+
+  // 4. Phase loop — serve from memory when confident, else a single strong LLM pass per phase.
   const phaseResults: Array<{ name: string; output: string }> = [];
   let finalOutput = '';
-  for (const phase of plan.phases) {
-    emit('v2_phase_progress', { phase: phase.name, status: 'running' });
-    const ctx = await buildContext(phase.needs, settings.developer, agent.technologies);
-    const output = await chatWithFallback(
-      [
-        {
-          role: 'system',
-          content: `You are the agent "${agent.name}". Complete the phase "${phase.name}" using any tools you are given (describe tool calls as needed).\nAvailable tools:\n${toolHelp}`,
-        },
-        {
-          role: 'user',
-          content: `${ctx ? `Context:\n${ctx}\n\n` : ''}Task: ${prompt}\nPhase: ${phase.name}`,
-        },
-      ],
-      { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
+  let finalScore = 0;
+  let servedPhases = 0;
+  let llmCalls = 0;
+  let taskServed = false;
+  const servedFrom: Record<string, string> = {};
+  const servedPromptHashes = new Set<string>();
+  const serveOpts = { developer: settings.developer, minScore: serveMinScore, maxAgeDays: serveMaxAgeDays };
+
+  // 4a. Whole-task short-circuit (opt-in) — serve the entire task from memory.
+  if (serveEnabled && settings.serveWholeTask) {
+    const dec = shouldServe(
+      (await recallBest(prompt, { ...serveOpts, limit: 3, exactPromptHash: promptHash }))[0],
+      { ...serveOpts, exactPromptHash: promptHash },
     );
-    finalOutput = output;
-    phaseResults.push({ name: phase.name, output });
-    emit('v2_phase_progress', { phase: phase.name, status: 'done' });
+    if (dec.served && dec.candidate) {
+      taskServed = true;
+      servedPhases = plan.phases.length;
+      finalOutput = dec.candidate.content;
+      finalScore =
+        dec.candidate.storedScore ?? (dec.candidate.score >= 0.8 ? 100 : Math.round(dec.candidate.score * 100));
+      servedFrom.recall = dec.candidate.id;
+      if (dec.candidate.promptHash) servedPromptHashes.add(dec.candidate.promptHash);
+      emit('v2_served', { scope: 'task', candidateId: dec.candidate.id, score: dec.candidate.score, reason: dec.reason });
+      await reinforceWisdom(dec.candidate.promptHash ?? promptHash).catch(() => {});
+    }
   }
 
-  // 5. Refine loop (QualityAuditor)
+  if (!taskServed) {
+    for (const phase of plan.phases) {
+      emit('v2_phase_progress', { phase: phase.name, status: 'running' });
+      let output: string | null = null;
+
+      // Per-phase recall: a strong prior answer for this task+phase skips the LLM.
+      if (serveEnabled) {
+        const phaseQuery = `${prompt} — ${phase.name}`;
+        const dec = shouldServe((await recallBest(phaseQuery, { ...serveOpts, limit: 3 }))[0], serveOpts);
+        if (dec.served && dec.candidate) {
+          output = dec.candidate.content;
+          servedPhases++;
+          servedFrom[phase.name] = dec.candidate.id;
+          if (dec.candidate.promptHash) servedPromptHashes.add(dec.candidate.promptHash);
+          finalScore = Math.max(finalScore, dec.candidate.storedScore ?? Math.round(dec.candidate.score * 100));
+          emit('v2_served', {
+            scope: 'phase',
+            phase: phase.name,
+            candidateId: dec.candidate.id,
+            score: dec.candidate.score,
+            reason: dec.reason,
+          });
+        }
+      }
+
+      if (output === null) {
+        const ctx = await buildContext(phase.needs, settings.developer, agent.technologies);
+        output = await chatWithFallback(
+          [
+            {
+              role: 'system',
+              content: `You are the agent "${agent.name}". Complete the phase "${phase.name}" using any tools you are given (describe tool calls as needed).\nAvailable tools:\n${toolHelp}`,
+            },
+            {
+              role: 'user',
+              content: `${ctx ? `Context:\n${ctx}\n\n` : ''}Task: ${prompt}\nPhase: ${phase.name}`,
+            },
+          ],
+          { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
+        );
+        llmCalls++;
+      }
+
+      finalOutput = output;
+      phaseResults.push({ name: phase.name, output });
+      emit('v2_phase_progress', { phase: phase.name, status: 'done' });
+    }
+  }
+
+  // 5. Refine loop (QualityAuditor) — skipped when served from memory (saves LLM calls).
   const target = settings.targetScore ?? 80;
   const maxPasses = settings.maxPasses ?? 2;
-  let graded = await gradeOutput(RUBRIC, finalOutput, settings);
-  for (let pass = 0; pass < maxPasses && graded.score < target; pass++) {
-    emit('v2_refine', { pass, score: graded.score });
-    finalOutput = await chatWithFallback(
-      [
-        { role: 'system', content: 'Refine the output to address the critique. Return only the improved output.' },
-        { role: 'user', content: `Output:\n${finalOutput}\n\nCritique:\n${graded.critique}` },
-      ],
-      { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
-    );
-    graded = await gradeOutput(RUBRIC, finalOutput, settings);
+  if (!taskServed && servedPhases === 0) {
+    let graded = await gradeOutput(RUBRIC, finalOutput, settings);
+    llmCalls++;
+    for (let pass = 0; pass < maxPasses && graded.score < target; pass++) {
+      emit('v2_refine', { pass, score: graded.score });
+      finalOutput = await chatWithFallback(
+        [
+          { role: 'system', content: 'Refine the output to address the critique. Return only the improved output.' },
+          { role: 'user', content: `Output:\n${finalOutput}\n\nCritique:\n${graded.critique}` },
+        ],
+        { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
+      );
+      llmCalls++;
+      graded = await gradeOutput(RUBRIC, finalOutput, settings);
+      llmCalls++;
+    }
+    finalScore = graded.score;
   }
 
-  // 6. Persist execution + wisdom memory
+  // 6. Persist execution + wisdom memory (or reinforce what we served).
   const db = await getDb();
   await db.collection(Collections.CORTEX_EXECUTIONS).insertOne({
     taskId: executionId,
@@ -100,14 +167,21 @@ export async function runExecution(
     prompt,
     depth,
     phases: phaseResults,
-    finalScore: graded.score,
+    finalScore,
     output: finalOutput,
     status: 'complete',
+    llmCalls,
+    servedPhases,
+    servedFrom,
     createdAt: new Date(),
   });
 
-  if (graded.score >= target) {
-    const promptHash = createHash('sha256').update(prompt).digest('hex').slice(0, 16);
+  if (taskServed || servedPhases > 0) {
+    // Served path — reinforce the memories we served from instead of duplicating them.
+    for (const h of servedPromptHashes) {
+      await reinforceWisdom(h).catch(() => {});
+    }
+  } else if (finalScore >= target) {
     await remember({
       id: executionId,
       agentSlug: agent.slug,
@@ -117,7 +191,7 @@ export async function runExecution(
       prompt,
       promptHash,
       phase: 'whole',
-      score: graded.score,
+      score: finalScore,
     });
   }
 
@@ -126,7 +200,7 @@ export async function runExecution(
     agentSlug: agent.slug,
     depth,
     output: finalOutput,
-    finalScore: graded.score,
+    finalScore,
     phases: phaseResults,
   };
 
@@ -137,6 +211,6 @@ export async function runExecution(
     console.warn('[orchestrator] documentation skipped:', (e as Error).message);
   }
 
-  emit('v2_execution_result', result);
+  emit('v2_execution_result', { ...result, llmCalls, servedPhases });
   return result;
 }

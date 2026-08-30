@@ -43,6 +43,14 @@ export interface ExecutionSettings {
   model?: string;
   targetScore?: number;
   maxPasses?: number;
+  /** Recall & Serve — serve known answers from memory instead of calling the LLM. Default: enabled (env CORTEX_SERVE_ENABLED). */
+  serveEnabled?: boolean;
+  /** Minimum match score (0..1) to serve from memory. Default 0.86 (env CORTEX_SERVE_MIN_SCORE). */
+  serveMinScore?: number;
+  /** Maximum memory age (days) to serve. Default 180 (env CORTEX_SERVE_MAX_AGE_DAYS). */
+  serveMaxAgeDays?: number;
+  /** Whole-task short-circuit: serve the entire task from memory when confident. Default false. */
+  serveWholeTask?: boolean;
 }
 
 export interface ExecutionResult {
