@@ -58,6 +58,7 @@ if [ ! -f .env.prod ]; then
   read -r -p "OpenAI API key (blank to skip): " OPENAI_KEY
   read -r -p "Anthropic API key (blank to skip): " ANTHROPIC_KEY
   read -r -p "Google AI API key (blank to skip): " GOOGLE_KEY
+  read -r -p "DeepSeek API key (blank to skip): " DEEPSEEK_KEY
   SMTP_HOST="${SMTP_HOST:-mail.postale.io}"
   SMTP_PORT="${SMTP_PORT:-587}"
   SMTP_USERNAME="${SMTP_USERNAME:-admin@regnocloud.com}"
@@ -82,6 +83,7 @@ REDIS_URL=redis://redis:6379
 ANTHROPIC_API_KEY=$ANTHROPIC_KEY
 OPENAI_API_KEY=$OPENAI_KEY
 GOOGLE_AI_API_KEY=$GOOGLE_KEY
+DEEPSEEK_API_KEY=$DEEPSEEK_KEY
 JWT_SECRET=$JWT_SECRET
 ALLOWED_ORIGINS=https://$DOMAIN
 SMTP_HOST=$SMTP_HOST

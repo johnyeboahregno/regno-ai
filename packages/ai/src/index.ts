@@ -1,10 +1,11 @@
 /**
- * @regno/ai — multi-provider LLM gateway (Anthropic / OpenAI / Google) + embeddings.
+ * @regno/ai — multi-provider LLM gateway (Anthropic / OpenAI / Google / DeepSeek)
+ * + embeddings, with an optional cross-provider fallback chain.
  * Mirrors the live regno.ai "Multi-Provider LLM Access" feature.
  * Zero external deps — uses native fetch against each provider's REST API.
  */
 
-export type Provider = 'openai' | 'anthropic' | 'google';
+export type Provider = 'openai' | 'anthropic' | 'google' | 'deepseek';
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -16,6 +17,8 @@ export interface ChatOptions {
   provider?: Provider;
   /** Optional execution id to attribute usage to a Cortex Flow run. */
   taskId?: string;
+  /** When false, chatWithFallback won't fall through to other providers. Default true. */
+  fallback?: boolean;
 }
 
 export interface UsageRecord {
@@ -37,12 +40,15 @@ const PRICING: Record<string, { input: number; output: number }> = {
   'openai:text-embedding-3-small': { input: 0.02, output: 0 },
   'anthropic:claude-sonnet-4-20250514': { input: 3, output: 15 },
   'google:gemini-2.0-flash': { input: 0.1, output: 0.4 },
+  'deepseek:deepseek-chat': { input: 0.27, output: 1.1 },
+  'deepseek:deepseek-reasoner': { input: 0.55, output: 2.19 },
 };
 
 const PROVIDER_DEFAULT: Record<Provider, { input: number; output: number }> = {
   openai: { input: 0.15, output: 0.6 },
   anthropic: { input: 3, output: 15 },
   google: { input: 0.1, output: 0.4 },
+  deepseek: { input: 0.27, output: 1.1 },
 };
 
 /** Estimate USD cost from token counts (per-model pricing, provider fallback). */
@@ -105,23 +111,38 @@ export async function chat(messages: ChatMessage[], opts: ChatOptions = {}): Pro
   if (provider === 'openai') return chatOpenAI(messages, opts);
   if (provider === 'anthropic') return chatAnthropic(messages, opts);
   if (provider === 'google') return chatGoogle(messages, opts);
+  if (provider === 'deepseek') return chatDeepSeek(messages, opts);
   throw new Error(`Unknown provider: ${provider}`);
 }
 
-async function chatOpenAI(messages: ChatMessage[], opts: ChatOptions): Promise<string> {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) throw new Error('OPENAI_API_KEY is not set');
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+/** Shared OpenAI-compatible chat client (used by OpenAI and DeepSeek). */
+interface OpenAICompatConfig {
+  provider: Provider;
+  key: string;
+  baseUrl: string;
+  defaultModel: string;
+  label: string;
+  missingKeyError: string;
+}
+
+async function chatOpenAICompat(
+  messages: ChatMessage[],
+  opts: ChatOptions,
+  cfg: OpenAICompatConfig,
+): Promise<string> {
+  if (!cfg.key) throw new Error(cfg.missingKeyError);
+  const model = opts.model ?? cfg.defaultModel;
+  const res = await fetch(`${cfg.baseUrl}/chat/completions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` },
     body: JSON.stringify({
-      model: opts.model ?? 'gpt-4o-mini',
+      model,
       messages,
       max_tokens: opts.maxTokens,
       temperature: opts.temperature ?? 0.4,
     }),
   });
-  if (!res.ok) throw new Error(`OpenAI chat error ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`${cfg.label} chat error ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     choices: Array<{ message: { content: string } }>;
     usage?: { prompt_tokens?: number; completion_tokens?: number };
@@ -129,12 +150,34 @@ async function chatOpenAI(messages: ChatMessage[], opts: ChatOptions): Promise<s
   const u = json.usage;
   if (u) {
     emitUsage(
-      { provider: 'openai', model: opts.model ?? 'gpt-4o-mini', kind: 'chat', taskId: opts.taskId },
+      { provider: cfg.provider, model, kind: 'chat', taskId: opts.taskId },
       u.prompt_tokens ?? 0,
       u.completion_tokens ?? 0,
     );
   }
   return json.choices[0].message.content;
+}
+
+async function chatOpenAI(messages: ChatMessage[], opts: ChatOptions): Promise<string> {
+  return chatOpenAICompat(messages, opts, {
+    provider: 'openai',
+    key: process.env.OPENAI_API_KEY ?? '',
+    baseUrl: 'https://api.openai.com/v1',
+    defaultModel: 'gpt-4o-mini',
+    label: 'OpenAI',
+    missingKeyError: 'OPENAI_API_KEY is not set',
+  });
+}
+
+async function chatDeepSeek(messages: ChatMessage[], opts: ChatOptions): Promise<string> {
+  return chatOpenAICompat(messages, opts, {
+    provider: 'deepseek',
+    key: process.env.DEEPSEEK_API_KEY ?? '',
+    baseUrl: 'https://api.deepseek.com/v1',
+    defaultModel: 'deepseek-chat',
+    label: 'DeepSeek',
+    missingKeyError: 'DEEPSEEK_API_KEY is not set',
+  });
 }
 
 async function chatAnthropic(messages: ChatMessage[], opts: ChatOptions): Promise<string> {
@@ -199,4 +242,40 @@ async function chatGoogle(messages: ChatMessage[], opts: ChatOptions): Promise<s
     );
   }
   return json.candidates[0].content.parts.map((p) => p.text).join('');
+}
+
+/**
+ * Fallback chain — tries `opts.provider` first (defaults to openai), then the
+ * remaining providers in order. Skips providers whose API key isn't configured
+ * and falls through on any request/API error. Set `opts.fallback = false` to
+ * disable (single-provider behavior).
+ */
+const FALLBACK_ORDER: Provider[] = ['openai', 'deepseek', 'anthropic', 'google'];
+
+const KEY_FOR_PROVIDER: Record<Provider, string | undefined> = {
+  openai: process.env.OPENAI_API_KEY,
+  anthropic: process.env.ANTHROPIC_API_KEY,
+  google: process.env.GOOGLE_AI_API_KEY,
+  deepseek: process.env.DEEPSEEK_API_KEY,
+};
+
+export async function chatWithFallback(
+  messages: ChatMessage[],
+  opts: ChatOptions = {},
+): Promise<string> {
+  if (opts.fallback === false) return chat(messages, opts);
+  const preferred = opts.provider ?? 'openai';
+  const order = [preferred, ...FALLBACK_ORDER.filter((p) => p !== preferred)];
+  const tried: Provider[] = [];
+  for (const provider of order) {
+    if (!KEY_FOR_PROVIDER[provider]) continue; // skip providers without a key
+    tried.push(provider);
+    try {
+      return await chat(messages, { ...opts, provider });
+    } catch (err) {
+      console.warn(`[ai] ${provider} failed (${(err as Error).message}) — trying next provider`);
+    }
+  }
+  const detail = tried.length ? `tried: ${tried.join(', ')}` : 'no API keys configured';
+  throw new Error(`All providers failed (${detail})`);
 }

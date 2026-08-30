@@ -2,7 +2,7 @@
  * QualityAuditor — grades output against a rubric and returns a critique.
  * Docs: cortex-flow-design.md §2.3 (Orchestrator.runRefineLoop).
  */
-import { chat } from '@regno/ai';
+import { chatWithFallback } from '@regno/ai';
 import type { ExecutionSettings } from './types.js';
 
 export async function gradeOutput(
@@ -19,10 +19,11 @@ export async function gradeOutput(
     `Output:\n${output}`,
   ].join('\n');
 
-  const text = await chat([{ role: 'user', content: prompt }], {
+  const text = await chatWithFallback([{ role: 'user', content: prompt }], {
     provider: settings.provider,
     model: settings.model,
     temperature: 0.2,
+    fallback: settings.fallback,
   });
 
   const match = text.match(/\{[\s\S]*\}/);

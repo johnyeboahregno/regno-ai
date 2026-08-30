@@ -37,7 +37,9 @@ export interface ExecutionSettings {
   analysisDepth?: AnalysisDepth;
   forceAgent?: string;
   developer?: string;
-  provider?: 'openai' | 'anthropic' | 'google';
+  provider?: 'openai' | 'anthropic' | 'google' | 'deepseek';
+  /** When true (default), failed provider calls fall through to the next configured provider. */
+  fallback?: boolean;
   model?: string;
   targetScore?: number;
   maxPasses?: number;

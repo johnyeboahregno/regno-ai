@@ -5,7 +5,7 @@
 import { randomUUID } from 'node:crypto';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
-import { chat } from '@regno/ai';
+import { chatWithFallback } from '@regno/ai';
 import { remember } from '@regno/cortex';
 import { DEFAULT_AGENT, loadAgent, routePrompt } from './agent.js';
 import { createPlanFromAgent, selectComposeFirstDepth } from './plan.js';
@@ -58,7 +58,7 @@ export async function runExecution(
   for (const phase of plan.phases) {
     emit('v2_phase_progress', { phase: phase.name, status: 'running' });
     const ctx = await buildContext(phase.needs, settings.developer, agent.technologies);
-    const output = await chat(
+    const output = await chatWithFallback(
       [
         {
           role: 'system',
@@ -69,7 +69,7 @@ export async function runExecution(
           content: `${ctx ? `Context:\n${ctx}\n\n` : ''}Task: ${prompt}\nPhase: ${phase.name}`,
         },
       ],
-      { provider: settings.provider, model: settings.model, taskId: executionId },
+      { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
     );
     finalOutput = output;
     phaseResults.push({ name: phase.name, output });
@@ -82,12 +82,12 @@ export async function runExecution(
   let graded = await gradeOutput(RUBRIC, finalOutput, settings);
   for (let pass = 0; pass < maxPasses && graded.score < target; pass++) {
     emit('v2_refine', { pass, score: graded.score });
-    finalOutput = await chat(
+    finalOutput = await chatWithFallback(
       [
         { role: 'system', content: 'Refine the output to address the critique. Return only the improved output.' },
         { role: 'user', content: `Output:\n${finalOutput}\n\nCritique:\n${graded.critique}` },
       ],
-      { provider: settings.provider, model: settings.model, taskId: executionId },
+      { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
     );
     graded = await gradeOutput(RUBRIC, finalOutput, settings);
   }
