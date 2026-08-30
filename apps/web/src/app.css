@@ -193,6 +193,48 @@
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* Matrix — black & phosphor green, terminal aesthetic. */
+:root[data-theme='matrix'] {
+  --bg: #010502;
+  --bg-deep: #000200;
+  --bg-alt: #041006;
+  --panel: #061006;
+  --panel-2: #0a180a;
+  --line: #14301c;
+  --line-soft: #0c1f12;
+  --ink: #d9ffdd;
+  --ink-dim: #8fbf94;
+  --ink-faint: #4f7a56;
+  --signal: #00ff66;          /* matrix green */
+  --signal-2: #22ff88;
+  --signal-blue: #00ff66;
+  --brand-purple: #00ff66;
+  --telemetry: #ffcc00;
+  --good: #00ff66;
+  --danger: #ff4d4d;
+  --signal-glow: rgba(0, 255, 102, 0.30);
+  --signal-bg: rgba(0, 255, 102, 0.12);
+  --signal-hover: rgba(0, 255, 102, 0.06);
+  --signal-active-glow: rgba(0, 255, 102, 0.25);
+  --brand-glow: rgba(0, 255, 102, 0.30);
+  --nav-bg: rgba(1, 5, 2, 0.92);
+  --on-signal: #001604;
+  --r: 4px;
+  --r-sm: 2px;
+  --display: 'Share Tech Mono', 'JetBrains Mono', monospace;
+  --body: 'Share Tech Mono', 'JetBrains Mono', monospace;
+  --mono: 'Share Tech Mono', ui-monospace, monospace;
+}
+
+/* subtle grid backdrop for the matrix theme */
+:root[data-theme='matrix'] body {
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {

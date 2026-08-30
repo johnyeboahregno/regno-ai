@@ -24,6 +24,7 @@ export function buildNav(role: string): NavGroup[] {
       icon: 'genesis',
       items: [
         { href: '/app/chat', label: 'Architect', icon: 'architect' },
+        { href: '/app/cli', label: 'CLI', icon: 'cli' },
         { href: '/app/canvas', label: 'Canvas', icon: 'canvas' },
         { href: '/app/stage', label: 'Stage', icon: 'stage' },
         { href: '/app/genesis', label: 'Genesis', icon: 'genesis' },

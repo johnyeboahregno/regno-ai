@@ -7,7 +7,7 @@
       // Apply the persisted theme before first paint to avoid a flash of the wrong theme.
       try {
         var t = localStorage.getItem('regno.theme');
-        var valid = t === 'light' || t === 'dark' || t === 'tactical' || t === 'aurora' || t === 'nova' || t === 'emerald';
+        var valid = t === 'light' || t === 'dark' || t === 'tactical' || t === 'aurora' || t === 'nova' || t === 'emerald' || t === 'matrix';
         document.documentElement.dataset.theme = valid ? t : 'dark';
       } catch (e) {
         document.documentElement.dataset.theme = 'dark';

@@ -53,6 +53,8 @@
         return 'Nova';
       case 'emerald':
         return 'Emerald';
+      case 'matrix':
+        return 'Matrix';
       default:
         return 'Midnight';
     }

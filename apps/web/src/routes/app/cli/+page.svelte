@@ -1,0 +1,693 @@
+<script lang="ts">
+  import { onMount, tick } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { theme, THEMES, type Theme } from '$lib/ui';
+  import type { PageData } from './$types.js';
+
+  export let data: PageData;
+
+  type LineKind = 'cmd' | 'info' | 'ok' | 'err' | 'muted' | 'banner';
+
+  interface Line {
+    id: number;
+    kind: LineKind;
+    text: string;
+  }
+
+  let lines: Line[] = [];
+  let input = '';
+  let history: string[] = [];
+  let histIdx = -1;
+  let busy = false;
+  let nextId = 1;
+
+  let out: HTMLDivElement;
+  let inputEl: HTMLInputElement;
+
+  // Active SMA for architect jobs — persisted across sessions.
+  let sma = 'base';
+  let smas: Array<{ slug: string; name: string; developer?: string }> = [
+    { slug: 'base', name: 'Base Regno Architect', developer: 'base' },
+  ];
+
+  const local = (data.user.email.split('@')[0] || 'you').toLowerCase();
+  const promptText = `${local}@regno:~$`;
+
+  // ---- helpers -------------------------------------------------------------
+  function push(kind: LineKind, text: string) {
+    lines = [...lines, { id: nextId++, kind, text }];
+  }
+  function pushMany(kind: LineKind, text: string) {
+    for (const t of text.split('\n')) push(kind, t);
+  }
+  async function scrollToBottom() {
+    await tick();
+    if (out) out.scrollTop = out.scrollHeight;
+  }
+  function fmtTokens(n: number | undefined): string {
+    const v = n ?? 0;
+    if (v >= 1_000_000) return (v / 1_000_000).toFixed(2) + 'M';
+    if (v >= 1_000) return (v / 1_000).toFixed(1) + 'k';
+    return String(v);
+  }
+  function fmtDate(ts: unknown): string {
+    if (!ts) return '—';
+    const d = new Date(ts as string | number);
+    if (isNaN(d.getTime())) return '—';
+    return d.toISOString().slice(0, 16).replace('T', ' ');
+  }
+
+  // ---- ASCII banner --------------------------------------------------------
+  const FONT: Record<string, string[]> = {
+    R: ['#####', '#   #', '#   #', '#####', '#  # ', '#   #'],
+    E: ['#####', '#    ', '#### ', '#    ', '#    ', '#####'],
+    G: [' ####', '#    ', '#  ##', '#   #', ' #  #', ' ####'],
+    N: ['#   #', '##  #', '# # #', '#  ##', '#   #', '#   #'],
+    O: [' ### ', '#   #', '#   #', '#   #', '#   #', ' ### '],
+    A: [' ### ', '#   #', '#####', '#   #', '#   #', '#   #'],
+    I: ['#####', '  #  ', '  #  ', '  #  ', '  #  ', '#####'],
+    ' ': ['     ', '     ', '     ', '     ', '     ', '     '],
+  };
+  function banner(text: string): string {
+    const rows = ['', '', '', '', '', ''];
+    for (const ch of text.toUpperCase()) {
+      const glyph = FONT[ch] ?? FONT[' '];
+      glyph.forEach((row, i) => {
+        rows[i] += row + '  ';
+      });
+    }
+    return rows.join('\n');
+  }
+
+  // ---- command registry ----------------------------------------------------
+  interface Cmd {
+    usage: string;
+    desc: string;
+    detail: string;
+    run: (args: string[], raw: string) => Promise<void> | void;
+  }
+
+  const commands: Record<string, Cmd> = {
+    help: {
+      usage: '[command]',
+      desc: 'list commands or show help for one',
+      detail:
+        'List every available command, or show detailed usage for a single command.\n\n  help            list all commands\n  help <command>  detailed usage for one command',
+      run(args) {
+        if (args[0]) {
+          const name = resolve(args[0].toLowerCase());
+          const c = name ? commands[name] : undefined;
+          if (c) {
+            push('info', '');
+            push('cmd', `  ${name} ${c.usage}`.replace(/\s+/g, ' ').trim());
+            push('info', `  ${c.desc}`);
+            push('muted', '');
+            pushMany('muted', c.detail);
+          } else {
+            push('err', `no help for: ${args[0]}`);
+            push('muted', 'type "help" to list available commands.');
+          }
+          return;
+        }
+        push('info', 'Available commands:');
+        const names = Object.keys(commands).sort();
+        for (const n of names) {
+          push('cmd', `  ${n.padEnd(12)} ${commands[n].desc}`);
+        }
+        push('muted', '');
+        push('muted', 'Tips:  ↑/↓ recall history   ·   Tab autocomplete   ·   Ctrl+L clear   ·   "help <cmd>" for details');
+      },
+    },
+    clear: {
+      usage: '',
+      desc: 'clear the terminal screen',
+      detail: 'Clear the screen.\n\n  clear\n\nAliases: cls · Shortcut: Ctrl+L.',
+      run() {
+        lines = [];
+      },
+    },
+    banner: {
+      usage: '',
+      desc: 're-print the REGNO banner',
+      detail: 'Re-print the ASCII banner.\n\n  banner',
+      run() {
+        pushMany('banner', banner('REGNO'));
+      },
+    },
+    whoami: {
+      usage: '',
+      desc: 'print current session identity',
+      detail: 'Show the logged-in user, role and active SMA.\n\n  whoami',
+      run() {
+        push('info', `user    ${data.user.email}`);
+        push('info', `role    ${data.user.role}`);
+        push('info', `sma     ${sma}`);
+      },
+    },
+    date: {
+      usage: '',
+      desc: 'print current date and time',
+      detail: 'Show the current date and time.\n\n  date',
+      run() {
+        push('info', new Date().toString());
+      },
+    },
+    echo: {
+      usage: '<text…>',
+      desc: 'echo text back to the screen',
+      detail: 'Echo text back.\n\n  echo hello world',
+      run(args, raw) {
+        const rest = raw.includes(' ') ? raw.slice(raw.indexOf(' ') + 1).trim() : '';
+        push('info', rest || '');
+      },
+    },
+    health: {
+      usage: '',
+      desc: 'report system, database and usage status',
+      detail:
+        'Report database / queue / SMTP status plus AI usage & cost.\n\n  health\n\nAliases: status.',
+      async run() {
+        push('info', '» checking system health…');
+        try {
+          const r = await fetch('/api/health');
+          const d = await r.json();
+          if (!d.ok) {
+            push('err', 'health check failed');
+            return;
+          }
+          const mark = (v: boolean) => (v ? 'ok' : 'err');
+          const ok = (v: boolean) => (v ? 'OK' : 'DOWN');
+          push(mark(!!d.redis), `  redis      ${ok(!!d.redis)}`);
+          push(mark(!!d.mongo), `  mongo      ${ok(!!d.mongo)}`);
+          push(mark(!!d.qdrant), `  qdrant     ${ok(!!d.qdrant)}`);
+          push(mark(!!d.neo4j), `  neo4j      ${ok(!!d.neo4j)}`);
+          const smtp = d.smtp ?? {};
+          push('info', `  smtp       ${smtp.configured ? 'configured' : 'not configured'} (${smtp.host || '—'}:${smtp.port})`);
+          const totals = d.usage?.totals;
+          if (totals) {
+            push('info', `  usage      ${totals.calls} calls · ${fmtTokens(totals.totalTokens)} tokens · $${(totals.cost ?? 0).toFixed(2)}`);
+          }
+        } catch {
+          push('err', 'cannot reach the server');
+        }
+      },
+    },
+    agents: {
+      usage: '',
+      desc: 'list Subject Matter Experts (SMAs)',
+      detail: 'List the available SMAs — expert lenses for architect jobs.\n\n  agents\n\nAliases: smas.',
+      async run() {
+        try {
+          const r = await fetch('/api/agents');
+          const d = await r.json();
+          if (!d.ok || !Array.isArray(d.smas)) {
+            push('err', 'could not load SMAs');
+            return;
+          }
+          smas = d.smas;
+          push('info', `Subject Matter Experts (${smas.length}):`);
+          for (const s of smas) {
+            const active = s.slug === sma;
+            push(active ? 'ok' : 'info', `  ${s.slug.padEnd(16)} ${s.name}${active ? '  ◄ active' : ''}`);
+          }
+        } catch {
+          push('err', 'cannot reach the server');
+        }
+      },
+    },
+    execs: {
+      usage: '[limit]',
+      desc: 'list recent executions',
+      detail: 'List recent architect executions, newest first.\n\n  execs        last 10\n  execs 5      last 5\n\nAliases: history.',
+      async run(args) {
+        const limit = args[0] && /^\d+$/.test(args[0]) ? args[0] : '10';
+        try {
+          const r = await fetch(`/api/executions?limit=${limit}`);
+          const d = await r.json();
+          if (!d.ok || !Array.isArray(d.executions)) {
+            push('err', 'could not load executions');
+            return;
+          }
+          if (!d.executions.length) {
+            push('muted', 'no executions yet — try: ask "build me something"');
+            return;
+          }
+          push('info', `Recent executions (${d.executions.length}):`);
+          for (const e of d.executions) {
+            const status = e.status === 'complete' ? 'ok' : e.status === 'failed' ? 'err' : 'muted';
+            const label = String(e.status ?? 'pending');
+            push(status, `  ${fmtDate(e.createdAt)}  ${label.padEnd(9)}  ${String(e.prompt ?? '').slice(0, 64)}`);
+          }
+        } catch {
+          push('err', 'cannot reach the server');
+        }
+      },
+    },
+    sma: {
+      usage: '[slug]',
+      desc: 'view or switch the active SMA',
+      detail:
+        'View or switch the SMA used by architect jobs.\n\n  sma          show active SMA\n  sma <slug>   switch SMA (run "agents" to list)',
+      async run(args) {
+        if (!args[0]) {
+          push('info', `active SMA: ${sma}`);
+          return;
+        }
+        try {
+          const r = await fetch('/api/agents');
+          const d = await r.json();
+          if (d.ok && Array.isArray(d.smas)) smas = d.smas;
+        } catch {
+          /* fall through to local list */
+        }
+        const target = smas.find((s) => s.slug === args[0]);
+        if (!target) {
+          push('err', `unknown SMA: ${args[0]}`);
+          push('muted', 'run "agents" to list available SMAs.');
+          return;
+        }
+        sma = target.slug;
+        localStorage.setItem('regno.cli.sma', sma);
+        push('ok', `active SMA → ${sma} (${target.name})`);
+      },
+    },
+    ask: {
+      usage: '<prompt…>',
+      desc: 'send a prompt to your Regno Architect',
+      detail:
+        'Send a prompt to your Regno Architect and stream the result back.\n\n  ask build me a small notes API with auth\n\nAliases: architect, run.',
+      async run(args, raw) {
+        const prompt = raw.includes(' ') ? raw.slice(raw.indexOf(' ') + 1).trim() : '';
+        if (!prompt) {
+          push('err', 'usage: ask <prompt…>');
+          return;
+        }
+        if (busy) {
+          push('err', 'a job is already running — wait for it to finish');
+          return;
+        }
+        busy = true;
+        push('info', `» enqueueing execution (sma: ${sma})…`);
+        try {
+          const r = await fetch('/api/executions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt,
+              settings: { forceAgent: 'regno-architect', analysisDepth: 'standard', sma },
+            }),
+          });
+          const d = await r.json();
+          if (!d.ok) {
+            push('err', 'enqueue rejected: ' + (d.error ?? 'unknown error'));
+            return;
+          }
+          const jobId = d.jobId;
+          push('info', `» job ${jobId} queued — polling for result…`);
+          let result: { status?: string; output?: string; error?: string } | null = null;
+          for (let i = 0; i < 90; i++) {
+            await new Promise((res) => setTimeout(res, 2000));
+            const rr = await fetch(`/api/executions/${jobId}`);
+            const rd = await rr.json();
+            if (rd.ok && rd.execution) {
+              result = rd.execution;
+              break;
+            }
+          }
+          if (result?.status === 'complete') {
+            push('ok', '✔ complete');
+            pushMany('info', result.output || '(done — no output)');
+          } else if (result?.status === 'failed') {
+            push('err', '✖ failed: ' + (result.error || 'execution failed'));
+          } else {
+            push('err', '✖ no result yet — is the execution worker running and API keys set?');
+          }
+        } catch {
+          push('err', 'cannot reach the server');
+        } finally {
+          busy = false;
+        }
+      },
+    },
+    goto: {
+      usage: '<page>',
+      desc: 'navigate to another page in the app',
+      detail:
+        'Navigate to another page in the app.\n\n  goto dashboard\n\nPages: dashboard, chat, canvas, stage, genesis, launchpad, oracle, cortex, sentinel, executions, guides, docs, credentials, health, agents, settings, cli.\n\nAliases: open.',
+      async run(args) {
+        const pages: Record<string, string> = {
+          dashboard: '',
+          chat: 'chat',
+          architect: 'chat',
+          canvas: 'canvas',
+          stage: 'stage',
+          genesis: 'genesis',
+          launchpad: 'launchpad',
+          oracle: 'oracle',
+          cortex: 'cortex',
+          sentinel: 'sentinel',
+          executions: 'executions',
+          guides: 'guides',
+          docs: 'docs',
+          credentials: 'credentials',
+          health: 'health',
+          agents: 'agents',
+          settings: 'settings',
+          cli: 'cli',
+        };
+        const key = (args[0] ?? '').toLowerCase();
+        if (!key || !(key in pages)) {
+          push('err', 'usage: goto <page>');
+          push('muted', 'pages: ' + Object.keys(pages).join(', '));
+          return;
+        }
+        const dest = '/app' + (pages[key] ? '/' + pages[key] : '');
+        push('info', `» navigating to ${dest || '/app'} …`);
+        await goto(dest);
+      },
+    },
+    theme: {
+      usage: '[name]',
+      desc: 'view or switch the UI theme',
+      detail:
+        'View or switch the UI theme.\n\n  theme            show current theme\n  theme tactical   switch theme\n\nThemes: dark, light, tactical, aurora, nova, emerald.',
+      run(args) {
+        const current = $theme;
+        if (!args[0]) {
+          push('info', `current theme: ${current}`);
+          push('muted', `available: ${THEMES.join(', ')}`);
+          return;
+        }
+        const next = args[0].toLowerCase();
+        if (!THEMES.includes(next as Theme)) {
+          push('err', `unknown theme: ${args[0]}`);
+          push('muted', `available: ${THEMES.join(', ')}`);
+          return;
+        }
+        theme.set(next as Theme);
+        push('ok', `theme set to ${next}`);
+      },
+    },
+    version: {
+      usage: '',
+      desc: 'print the CLI version',
+      detail: 'Print the CLI version.\n\n  version',
+      run() {
+        push('info', 'Regno AI · CLI v1.0.0');
+        push('muted', 'single-architect command console');
+      },
+    },
+    exit: {
+      usage: '',
+      desc: 'leave the terminal (hint: you can’t)',
+      detail: 'There is no escape. Try "goto dashboard" to leave.\n\n  exit',
+      run() {
+        push('muted', 'there is no escape — but "goto dashboard" will get you out of here.');
+      },
+    },
+  };
+
+  const ALIASES: Record<string, string> = {
+    cls: 'clear',
+    status: 'health',
+    smas: 'agents',
+    history: 'execs',
+    architect: 'ask',
+    run: 'ask',
+    open: 'goto',
+  };
+
+  function resolve(name: string): string | undefined {
+    if (commands[name]) return name;
+    const canon = ALIASES[name];
+    if (canon && commands[canon]) return canon;
+    return undefined;
+  }
+
+  // ---- input handling ------------------------------------------------------
+  async function run(rawInput: string) {
+    const raw = rawInput.trim();
+    if (!raw) {
+      push('cmd', promptText + ' ');
+      scrollToBottom();
+      return;
+    }
+    if (raw === 'sudo' || raw.startsWith('sudo ')) {
+      push('cmd', promptText + ' ' + raw);
+      push('err', 'nice try — you already have root.');
+      input = '';
+      history = [...history, raw];
+      histIdx = -1;
+      scrollToBottom();
+      return;
+    }
+    const [first = '', ...rest] = raw.split(/\s+/);
+    const name = resolve(first.toLowerCase());
+    push('cmd', promptText + ' ' + raw);
+    input = '';
+    history = [...history, raw];
+    histIdx = -1;
+    if (!name) {
+      push('err', `command not found: ${first}`);
+      push('muted', 'type "help" to list available commands.');
+      scrollToBottom();
+      return;
+    }
+    try {
+      await commands[name].run(rest, raw);
+    } catch (err) {
+      push('err', 'error: ' + (err instanceof Error ? err.message : String(err)));
+    }
+    scrollToBottom();
+  }
+
+  function recallUp() {
+    if (!history.length) return;
+    if (histIdx === -1) histIdx = history.length - 1;
+    else histIdx = Math.max(0, histIdx - 1);
+    input = history[histIdx];
+  }
+  function recallDown() {
+    if (histIdx === -1) return;
+    histIdx += 1;
+    if (histIdx >= history.length) {
+      histIdx = -1;
+      input = '';
+    } else {
+      input = history[histIdx];
+    }
+  }
+  function autocomplete() {
+    const val = input;
+    if (/\s/.test(val)) return;
+    const matches = Object.keys(commands)
+      .filter((c) => c.startsWith(val.toLowerCase()))
+      .sort();
+    if (matches.length === 1) {
+      input = matches[0] + ' ';
+    } else if (matches.length > 1) {
+      push('cmd', promptText + ' ' + val);
+      push('info', matches.join('    '));
+      scrollToBottom();
+    }
+  }
+
+  async function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      await run(input);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      recallUp();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      recallDown();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      autocomplete();
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      lines = [];
+    }
+  }
+
+  function focusInput() {
+    inputEl?.focus();
+  }
+
+  onMount(async () => {
+    const saved = localStorage.getItem('regno.cli.sma');
+    try {
+      const r = await fetch('/api/agents');
+      const d = await r.json();
+      if (d.ok && Array.isArray(d.smas)) smas = d.smas;
+    } catch {
+      /* offline — keep the base list */
+    }
+    if (saved && smas.some((s) => s.slug === saved)) sma = saved;
+
+    pushMany('banner', banner('REGNO'));
+    push('banner', '');
+    push('info', 'AI Command Console — v1.0.0');
+    push('info', `session  ${data.user.email} (${data.user.role})`);
+    push('info', `sma      ${sma} — switch with: sma <slug>`);
+    push('muted', '');
+    push('info', 'type "help" to list commands · "help <command>" for details');
+    push('muted', '');
+    focusInput();
+    scrollToBottom();
+  });
+</script>
+
+<svelte:head><title>CLI — Regno Architect</title></svelte:head>
+
+<div
+  class="cli-wrap"
+  role="application"
+  aria-label="Regno command line interface"
+  on:click={focusInput}
+>
+  <div class="crt" aria-hidden="true"></div>
+  <div class="term">
+    <div class="output" bind:this={out}>
+      {#each lines as line}
+        <div class="line {line.kind}">{line.text || ' '}</div>
+      {/each}
+      {#if busy}
+        <div class="line info"><span class="blink">▌</span> working…</div>
+      {/if}
+    </div>
+
+    <div class="input-row">
+      <span class="prompt">{promptText}</span>
+      <input
+        class="cmd-input"
+        bind:value={input}
+        bind:this={inputEl}
+        on:keydown={onKeydown}
+        placeholder="type a command — help for hints"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Terminal input"
+      />
+    </div>
+  </div>
+</div>
+
+<style>
+  .cli-wrap {
+    position: relative;
+    height: calc(100vh - 80px);
+    min-height: 420px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    cursor: text;
+    border: 1px solid #0c3a1e;
+    border-radius: 10px;
+    background: radial-gradient(ellipse at 50% 0%, #04180d 0%, #020a05 68%, #010603 100%);
+    box-shadow:
+      inset 0 0 60px rgba(0, 0, 0, 0.75),
+      0 0 46px rgba(0, 255, 120, 0.08);
+  }
+
+  /* scanlines + subtle phosphor flicker */
+  .crt {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.22) 0px,
+      rgba(0, 0, 0, 0.22) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  .cli-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: rgba(0, 255, 120, 0.015);
+    animation: flicker 6s infinite;
+  }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    91% { opacity: 1; }
+    92% { opacity: 0.55; }
+    93% { opacity: 1; }
+    96% { opacity: 0.75; }
+    97% { opacity: 1; }
+  }
+
+  .term {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 20px 14px;
+    font-family: var(--mono);
+  }
+
+  .output {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #0c3a1e transparent;
+  }
+  .output::-webkit-scrollbar { width: 10px; }
+  .output::-webkit-scrollbar-thumb { background: #0c3a1e; border-radius: 6px; }
+
+  .line {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #3bff8a;
+    text-shadow: 0 0 6px rgba(59, 255, 138, 0.35);
+  }
+  .line.cmd { color: #d9ffe6; text-shadow: 0 0 6px rgba(217, 255, 230, 0.35); }
+  .line.ok { color: #8affb8; }
+  .line.err { color: #ff6b6b; text-shadow: 0 0 6px rgba(255, 80, 80, 0.4); }
+  .line.muted { color: #4f9a6b; text-shadow: none; }
+  .line.banner { color: #4dffa0; text-shadow: 0 0 10px rgba(77, 255, 160, 0.55); }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #0c3a1e;
+  }
+  .prompt {
+    color: #4dffa0;
+    font-size: 13.5px;
+    white-space: nowrap;
+    text-shadow: 0 0 8px rgba(77, 255, 160, 0.6);
+  }
+  .cmd-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #3bff8a;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    caret-color: #4dffa0;
+    text-shadow: 0 0 6px rgba(59, 255, 138, 0.35);
+  }
+  .cmd-input::placeholder { color: #2a7a47; text-shadow: none; }
+
+  .blink { animation: blink 1s steps(2, start) infinite; }
+  @keyframes blink { to { visibility: hidden; } }
+</style>

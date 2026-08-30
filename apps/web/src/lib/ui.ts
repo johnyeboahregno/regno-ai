@@ -2,9 +2,9 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-export type Theme = 'dark' | 'light' | 'tactical' | 'aurora' | 'nova' | 'emerald';
+export type Theme = 'dark' | 'light' | 'tactical' | 'aurora' | 'nova' | 'emerald' | 'matrix';
 
-export const THEMES: Theme[] = ['dark', 'light', 'tactical', 'aurora', 'nova', 'emerald'];
+export const THEMES: Theme[] = ['dark', 'light', 'tactical', 'aurora', 'nova', 'emerald', 'matrix'];
 
 const THEME_KEY = 'regno.theme';
 const COLLAPSED_KEY = 'regno.sidebar.collapsed';
@@ -16,7 +16,8 @@ function isTheme(t: string | null): t is Theme {
     t === 'tactical' ||
     t === 'aurora' ||
     t === 'nova' ||
-    t === 'emerald'
+    t === 'emerald' ||
+    t === 'matrix'
   );
 }
 

@@ -8,6 +8,7 @@
     { id: 'aurora', name: 'Aurora', desc: 'Deep blue productivity HUD with glowing blue & purple accents.', swatch: ['#0a0e1a', '#4f8dff', '#8d7bff'] },
     { id: 'nova', name: 'Nova', desc: 'Black & gold with a premium, knightly feel.', swatch: ['#0a0906', '#e3b84a', '#f2d47e'] },
     { id: 'emerald', name: 'Emerald', desc: 'Dark olive green with gold, mystical tarot feel.', swatch: ['#0c120b', '#d4af37', '#b8d48a'] },
+    { id: 'matrix', name: 'Matrix', desc: 'Black & phosphor green, terminal aesthetic.', swatch: ['#010502', '#00ff66', '#22ff88'] },
   ];
 
   function apply(id: Theme) {
