@@ -2,15 +2,22 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-export type Theme = 'dark' | 'light' | 'tactical';
+export type Theme = 'dark' | 'light' | 'tactical' | 'aurora' | 'nova' | 'emerald';
 
-export const THEMES: Theme[] = ['dark', 'light', 'tactical'];
+export const THEMES: Theme[] = ['dark', 'light', 'tactical', 'aurora', 'nova', 'emerald'];
 
 const THEME_KEY = 'regno.theme';
 const COLLAPSED_KEY = 'regno.sidebar.collapsed';
 
 function isTheme(t: string | null): t is Theme {
-  return t === 'dark' || t === 'light' || t === 'tactical';
+  return (
+    t === 'dark' ||
+    t === 'light' ||
+    t === 'tactical' ||
+    t === 'aurora' ||
+    t === 'nova' ||
+    t === 'emerald'
+  );
 }
 
 function initialTheme(): Theme {
@@ -21,7 +28,7 @@ function initialTheme(): Theme {
   return 'dark';
 }
 
-/** Cycle to the next theme (dark → light → tactical → dark). */
+/** Cycle to the next theme. */
 export function nextTheme(t: Theme): Theme {
   const i = THEMES.indexOf(t);
   return THEMES[(i + 1) % THEMES.length];

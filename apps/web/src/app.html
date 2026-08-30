@@ -7,7 +7,8 @@
       // Apply the persisted theme before first paint to avoid a flash of the wrong theme.
       try {
         var t = localStorage.getItem('regno.theme');
-        document.documentElement.dataset.theme = t === 'light' || t === 'dark' || t === 'tactical' ? t : 'dark';
+        var valid = t === 'light' || t === 'dark' || t === 'tactical' || t === 'aurora' || t === 'nova' || t === 'emerald';
+        document.documentElement.dataset.theme = valid ? t : 'dark';
       } catch (e) {
         document.documentElement.dataset.theme = 'dark';
       }
@@ -16,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@500;600;700&family=Share+Tech+Mono&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@500;600;700&family=Share+Tech+Mono&family=Cinzel:wght@600;700&family=Marcellus&display=swap"
       rel="stylesheet"
     />
     %sveltekit.head%

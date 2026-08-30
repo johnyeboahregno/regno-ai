@@ -42,7 +42,20 @@
   }
 
   function themeName(t: Theme): string {
-    return t === 'dark' ? 'Midnight' : t === 'light' ? 'Daylight' : 'Tactical';
+    switch (t) {
+      case 'light':
+        return 'Daylight';
+      case 'tactical':
+        return 'Tactical';
+      case 'aurora':
+        return 'Aurora';
+      case 'nova':
+        return 'Nova';
+      case 'emerald':
+        return 'Emerald';
+      default:
+        return 'Midnight';
+    }
   }
 
   // Identity helpers — the app has no `name` field, so derive a display name and initials from email.

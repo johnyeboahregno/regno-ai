@@ -5,6 +5,9 @@
     { id: 'dark', name: 'Midnight', desc: 'Deep navy with a purple-blue signal.', swatch: ['#0a0c16', '#6c5ce7', '#8d7bff'] },
     { id: 'light', name: 'Daylight', desc: 'Clean light interface with a violet accent.', swatch: ['#f3f5fa', '#5b4be0', '#7b6bff'] },
     { id: 'tactical', name: 'Tactical', desc: 'Near-black HUD with orange & green status accents.', swatch: ['#070907', '#ff9d2e', '#3ddc84'] },
+    { id: 'aurora', name: 'Aurora', desc: 'Deep blue productivity HUD with glowing blue & purple accents.', swatch: ['#0a0e1a', '#4f8dff', '#8d7bff'] },
+    { id: 'nova', name: 'Nova', desc: 'Black & gold with a premium, knightly feel.', swatch: ['#0a0906', '#e3b84a', '#f2d47e'] },
+    { id: 'emerald', name: 'Emerald', desc: 'Dark olive green with gold, mystical tarot feel.', swatch: ['#0c120b', '#d4af37', '#b8d48a'] },
   ];
 
   function apply(id: Theme) {

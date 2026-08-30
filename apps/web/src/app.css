@@ -96,6 +96,97 @@
   background-position: -1px -1px;
 }
 
+/* Aurora — deep blue productivity HUD with glowing blue/purple accents. */
+:root[data-theme='aurora'] {
+  --bg: #0a0e1a;
+  --bg-deep: #060910;
+  --bg-alt: #0d1222;
+  --panel: #121830;
+  --panel-2: #171e3a;
+  --line: #232c4c;
+  --line-soft: #1a2138;
+  --ink: #eaf0ff;
+  --ink-dim: #a3b2dc;
+  --ink-faint: #64749f;
+  --signal: #4f8dff;          /* glowing blue */
+  --signal-2: #8d7bff;        /* purple */
+  --signal-blue: #4f8dff;
+  --brand-purple: #8d7bff;
+  --telemetry: #ffb020;
+  --good: #38d9a9;
+  --danger: #f0555a;
+  --signal-glow: rgba(79, 141, 255, 0.35);
+  --signal-bg: rgba(79, 141, 255, 0.10);
+  --signal-hover: rgba(79, 141, 255, 0.06);
+  --signal-active-glow: rgba(79, 141, 255, 0.30);
+  --brand-glow: rgba(79, 141, 255, 0.40);
+  --nav-bg: rgba(10, 14, 26, 0.92);
+}
+
+/* Nova — black & gold with a premium, knightly feel. */
+:root[data-theme='nova'] {
+  --bg: #0a0906;
+  --bg-deep: #060502;
+  --bg-alt: #100e08;
+  --panel: #15120b;
+  --panel-2: #1c180f;
+  --line: #2c2514;
+  --line-soft: #201a0e;
+  --ink: #f5edd6;
+  --ink-dim: #b9aa7f;
+  --ink-faint: #7d704d;
+  --signal: #e3b84a;          /* gold */
+  --signal-2: #f2d47e;
+  --signal-blue: #e3b84a;
+  --brand-purple: #e3b84a;
+  --telemetry: #e3b84a;
+  --good: #a8c86a;
+  --danger: #e05a5a;
+  --signal-glow: rgba(227, 184, 74, 0.30);
+  --signal-bg: rgba(227, 184, 74, 0.12);
+  --signal-hover: rgba(227, 184, 74, 0.06);
+  --signal-active-glow: rgba(227, 184, 74, 0.25);
+  --brand-glow: rgba(227, 184, 74, 0.30);
+  --nav-bg: rgba(10, 9, 6, 0.92);
+  --r: 8px;
+  --r-sm: 6px;
+  --display: 'Cinzel', 'Georgia', serif;
+  --body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Emerald — dark olive green with gold, mystical tarot feel. */
+:root[data-theme='emerald'] {
+  --bg: #0c120b;
+  --bg-deep: #070b06;
+  --bg-alt: #10170e;
+  --panel: #141d11;
+  --panel-2: #1a2416;
+  --line: #2a3823;
+  --line-soft: #1f2b1a;
+  --ink: #f0f3e7;
+  --ink-dim: #aebfa3;
+  --ink-faint: #6f8163;
+  --signal: #d4af37;          /* gold */
+  --signal-2: #b8d48a;        /* light olive */
+  --signal-blue: #d4af37;
+  --brand-purple: #d4af37;
+  --telemetry: #d4af37;
+  --good: #a8d48a;
+  --danger: #e0605a;
+  --signal-glow: rgba(212, 175, 55, 0.28);
+  --signal-bg: rgba(212, 175, 55, 0.12);
+  --signal-hover: rgba(212, 175, 55, 0.06);
+  --signal-active-glow: rgba(212, 175, 55, 0.22);
+  --brand-glow: rgba(212, 175, 55, 0.30);
+  --nav-bg: rgba(12, 18, 11, 0.92);
+  --r: 10px;
+  --r-sm: 8px;
+  --display: 'Marcellus', 'Georgia', serif;
+  --body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
