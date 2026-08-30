@@ -7,7 +7,7 @@ import { getDb } from './mongo.js';
 import { Collections } from '@regno/shared';
 
 export interface AiUsageRecord {
-  provider: 'openai' | 'anthropic' | 'google';
+  provider: 'openai' | 'anthropic' | 'google' | 'deepseek';
   model: string;
   kind: 'chat' | 'embed';
   inputTokens: number;
