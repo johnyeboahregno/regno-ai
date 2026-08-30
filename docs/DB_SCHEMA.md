@@ -43,7 +43,7 @@ Redis 7      → queues (BullMQ), pub/sub, cache, SSE event bus
 | `cortex_memories` | Execution memories / insights | `taskId`, `agentSlug`, `insights`, `contexts[]` |
 | `cortex_checkpoints` | Session checkpoints (TTL 24h) | `sessionId`, `state`, `createdAt` |
 | `cortex_executions` | Execution logs | `taskId`, `agentSlug`, `phases[]`, `cost`, `duration`, `status`, `evaluation` |
-| `cortex_agent_memories` | Operational wisdom (compounding) | `agentSlug`, `category`, `content`, `contexts[]`, `relevanceScore` |
+| `cortex_agent_memories` | Operational wisdom (compounding) | `agentSlug`, `category`, `content`, `contexts[]`, `relevanceScore`, `prompt`, `promptHash`, `phase`, `score` |
 
 ### 2.3 Knowledge system
 
@@ -99,7 +99,7 @@ Redis 7      → queues (BullMQ), pub/sub, cache, SSE event bus
 | Collection | Embedding model | Metric | Purpose |
 |---|---|---|---|
 | `cortex_patterns` | text-embedding-3-small | Cosine | Semantic pattern retrieval |
-| `cortex_wisdom` | text-embedding-3-small | Cosine | Agent memories, near-dup merge, conflict detection |
+| `cortex_wisdom` | text-embedding-3-small | Cosine | Agent memories, near-dup merge, conflict detection; payload carries `prompt`, `phase`, `score`, `developer` for Recall & Serve |
 | `cortex_execution_memories` | — | Cosine | Execution memories |
 | `knowledge_vectors` | — | Cosine | Knowledge facts vectors |
 | `doc_search` | — | Cosine | Ask-the-docs RAG chunks |

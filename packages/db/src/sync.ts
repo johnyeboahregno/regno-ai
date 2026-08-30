@@ -80,33 +80,92 @@ export async function writePattern(pattern: PatternInput, embed: EmbedFn): Promi
 /**
  * Write an operational wisdom memory (compound over time) to Mongo + Qdrant.
  * Mirrors AgentMemoryService + WisdomSynthesizer from docs/cortex-flow-design.md.
+ *
+ * Since 2026-08-30 (Recall & Serve): memories also carry `prompt`, `promptHash`,
+ * `phase` and `score` so the decision layer can match future tasks against past
+ * outcomes. When a memory with the same `promptHash` (+ agentSlug/developer)
+ * already exists, it is REINFORCED (relevanceScore += 1, content refreshed)
+ * instead of duplicated — so repeated successful runs strengthen a single memory.
  */
-export async function writeWisdom(
-  memory: { id: string; agentSlug: string; category: string; content: string; contexts?: string[]; developer?: string },
-  embed: EmbedFn,
-): Promise<{ id: string }> {
-  const db = await getDb();
-  const now = new Date();
-  const { id, agentSlug, category, content, contexts = [], developer } = memory;
+export interface WisdomMemory {
+  id: string;
+  agentSlug: string;
+  category: string;
+  content: string;
+  contexts?: string[];
+  developer?: string;
+  prompt?: string;
+  promptHash?: string;
+  phase?: string;
+  score?: number;
+}
 
-  await db.collection(Collections.CORTEX_AGENT_MEMORIES).updateOne(
-    { _id: id as unknown as ObjectId },
-    {
-      $set: { agentSlug, category, content, contexts, developer, updatedAt: now },
-      $setOnInsert: { createdAt: now, relevanceScore: 0 },
-    },
-    { upsert: true },
-  );
-
+async function syncWisdomToQdrant(memory: WisdomMemory, embed: EmbedFn, id: string): Promise<void> {
+  const { agentSlug, category, content, contexts = [], developer, prompt, phase, score } = memory;
   try {
     const vector = await embed(content);
     await getQdrant().upsert(QdrantCollections.CORTEX_WISDOM, {
       wait: true,
-      points: [{ id, vector, payload: { agentSlug, category, content, contexts, developer } }],
+      points: [
+        {
+          id,
+          vector,
+          payload: { agentSlug, category, content, contexts, developer, prompt, phase, score },
+        },
+      ],
     });
   } catch (e) {
     console.warn('[sync] wisdom qdrant write skipped:', (e as Error).message);
   }
+}
 
+export async function writeWisdom(memory: WisdomMemory, embed: EmbedFn): Promise<{ id: string }> {
+  const db = await getDb();
+  const now = new Date();
+  const { id, agentSlug, category, content, contexts = [], developer, prompt, promptHash, phase, score } = memory;
+
+  // Dedupe + reinforce: same prompt (+ agent/developer) strengthens one memory.
+  if (promptHash) {
+    const filter: Record<string, unknown> = { promptHash, agentSlug };
+    if (developer) filter.developer = developer;
+    const existing = await db.collection(Collections.CORTEX_AGENT_MEMORIES).findOne(filter);
+    if (existing) {
+      await db.collection(Collections.CORTEX_AGENT_MEMORIES).updateOne(
+        { _id: existing._id },
+        {
+          $set: { agentSlug, category, content, contexts, developer, prompt, phase, score, updatedAt: now },
+          $inc: { relevanceScore: 1 },
+        },
+      );
+      const existingId = String(existing._id);
+      await syncWisdomToQdrant(memory, embed, existingId);
+      return { id: existingId };
+    }
+  }
+
+  await db.collection(Collections.CORTEX_AGENT_MEMORIES).updateOne(
+    { _id: id as unknown as ObjectId },
+    {
+      $set: { agentSlug, category, content, contexts, developer, prompt, promptHash, phase, score, updatedAt: now },
+      $setOnInsert: { createdAt: now, relevanceScore: 1 },
+    },
+    { upsert: true },
+  );
+
+  await syncWisdomToQdrant(memory, embed, id);
   return { id };
+}
+
+/**
+ * Reinforcement — bump relevanceScore of the memory matching a promptHash.
+ * Used by the orchestrator when a task is served from memory (repeated success).
+ * Returns true when a memory was found and updated.
+ */
+export async function reinforceWisdom(promptHash: string, by = 1): Promise<boolean> {
+  const db = await getDb();
+  const res = await db.collection(Collections.CORTEX_AGENT_MEMORIES).updateOne(
+    { promptHash },
+    { $inc: { relevanceScore: by }, $set: { updatedAt: new Date() } },
+  );
+  return res.modifiedCount > 0;
 }

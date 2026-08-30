@@ -3,6 +3,27 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — Recall & Serve, Phase A: richer wisdom writes (foundation for LLM-call reduction)
+
+First step of the "decision layer" that lets the CORTEX brain serve known answers from memory
+instead of calling the LLM every time. This phase makes stored memories matchable and
+reinforceable:
+
+- **`@regno/db` `writeWisdom`** — wisdom memories now carry `prompt`, `promptHash` (short
+  sha-256), `phase`, and `score`. When a memory with the same `promptHash` (+ `agentSlug` /
+  `developer`) already exists, it is **reinforced** (`relevanceScore += 1`, content refreshed)
+  instead of duplicated — repeated successful runs strengthen a single memory. New `relevanceScore`
+  starts at 1.
+- **`@regno/db` `reinforceWisdom(promptHash, by)`** — explicit reinforcement bump (used by the
+  orchestrator when a task is served from memory).
+- **`@regno/cortex` `remember()`** — `Memory` interface extended with `prompt`, `promptHash`,
+  `phase`, `score`; passes through to `writeWisdom`.
+- **`@regno/flow` orchestrator** — the post-execution insight write now stores `prompt`,
+  `promptHash`, `phase: 'whole'`, and the final score.
+- **Docs** — `docs/DB_SCHEMA.md` updated: `cortex_agent_memories` fields + `cortex_wisdom`
+  payload notes.
+- Build verified: `npm run build` for `@regno/db`, `@regno/cortex`, `@regno/flow` = 0 errors.
+
 ## 2026-08-29 — CORTEX parity (health dashboard, tabs, pattern catalog, Oracle brain search)
 
 Closing the gap between `/app/cortex` and Zaeem's `regno.ai/cortex` (the reference CORTEX

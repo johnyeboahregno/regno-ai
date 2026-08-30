@@ -2,7 +2,7 @@
  * Orchestrator — the Cortex Flow execution pipeline (docs/cortex-flow-design.md §2):
  *   route → plan → phase loop (tools + context) → refine loop → persist + wisdom.
  */
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { chatWithFallback } from '@regno/ai';
@@ -107,12 +107,17 @@ export async function runExecution(
   });
 
   if (graded.score >= target) {
+    const promptHash = createHash('sha256').update(prompt).digest('hex').slice(0, 16);
     await remember({
       id: executionId,
       agentSlug: agent.slug,
       category: 'insight',
       content: finalOutput.slice(0, 2000),
       developer: settings.developer,
+      prompt,
+      promptHash,
+      phase: 'whole',
+      score: graded.score,
     });
   }
 
