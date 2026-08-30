@@ -33,7 +33,9 @@ list — matching Zaeem's reference CORTEX Architecture screen:
   panel (`$lib/cortex/CortexVectorDbModal.svelte`): Configure/Browse tabs, a blue **Test
   Connection** button (probes `GET /api/cortex/health`), the Qdrant connection form (Select
   Credential, Provider, Host, Port, Collection Name), and a footer with `Last saved` + a
-  bright-orange **Save** button (white gear icon).
+  bright-orange **Save** button (white gear icon). The Browse tab is a live two-pane Qdrant
+  browser backed by new `GET /api/cortex/qdrant/browse` (collections sidebar with point
+  counts + points pane with keyset pagination and colour-coded payload JSON).
 - **Docs** — extended `docs/cortex/CORTEX_PARITY_IMPLEMENTATION.md` with an Architecture tab
   section.
 

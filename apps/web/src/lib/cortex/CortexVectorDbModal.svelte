@@ -22,13 +22,116 @@
   let testResult: '' | 'ok' | 'fail' = '';
   let savedFlash = false;
 
-  const collections = [
-    'cortex_patterns',
-    'cortex_wisdom',
-    'cortex_execution_memories',
-    'knowledge_vectors',
-    'doc_search',
-  ];
+  // --- Browse tab state (live Qdrant data via GET /api/cortex/qdrant/browse) ---
+  const PAGE = 20;
+  let collections: Array<{ name: string; points: number }> = [];
+  let selected = '';
+  let points: Array<{ id: number | string; payload: Record<string, unknown> }> = [];
+  let total = 0;
+  let nextOffset: number | string | Record<string, unknown> | null = null;
+  let offsetStack: Array<number | string | Record<string, unknown> | null> = [null];
+  let loading = false;
+  let browseError = '';
+
+  async function loadCollections() {
+    loading = true;
+    browseError = '';
+    try {
+      const r = await fetch('/api/cortex/qdrant/browse');
+      const d = await r.json();
+      if (d.ok) {
+        collections = d.collections ?? [];
+        if (collections.length && !selected) {
+          selected = collections[0].name;
+          loadPoints();
+        }
+      } else {
+        browseError = d.error ?? 'Qdrant unreachable';
+      }
+    } catch {
+      browseError = 'Qdrant unreachable';
+    }
+    loading = false;
+  }
+
+  async function loadPoints() {
+    if (!selected) return;
+    loading = true;
+    browseError = '';
+    try {
+      const offset = offsetStack[offsetStack.length - 1];
+      const qs = new URLSearchParams({ collection: selected, limit: String(PAGE) });
+      if (offset !== null && offset !== undefined) qs.set('offset', JSON.stringify(offset));
+      const r = await fetch(`/api/cortex/qdrant/browse?${qs.toString()}`);
+      const d = await r.json();
+      if (d.ok) {
+        points = d.points ?? [];
+        total = d.total ?? 0;
+        nextOffset = d.nextOffset ?? null;
+      } else {
+        browseError = d.error ?? 'Qdrant unreachable';
+      }
+    } catch {
+      browseError = 'Qdrant unreachable';
+    }
+    loading = false;
+  }
+
+  function selectCollection(name: string) {
+    selected = name;
+    offsetStack = [null];
+    points = [];
+    total = 0;
+    nextOffset = null;
+    loadPoints();
+  }
+
+  function nextPage() {
+    if (nextOffset === null || nextOffset === undefined) return;
+    offsetStack = [...offsetStack, nextOffset];
+    loadPoints();
+  }
+
+  function prevPage() {
+    if (offsetStack.length <= 1) return;
+    offsetStack = offsetStack.slice(0, -1);
+    loadPoints();
+  }
+
+  function openBrowse() {
+    tab = 'browse';
+    if (!collections.length) loadCollections();
+  }
+
+  $: pageStart = (offsetStack.length - 1) * PAGE + 1;
+  $: pageEnd = Math.min(pageStart + points.length - 1, total);
+
+  // JSON syntax highlighting for payloads (keys white, strings teal, numbers blue).
+  function esc(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function pretty(value: unknown, depth = 0): string {
+    const pad = '  '.repeat(depth);
+    const pad2 = '  '.repeat(depth + 1);
+    if (value === null) return '<span class="j-null">null</span>';
+    if (typeof value === 'string') return `<span class="j-str">"${esc(value)}"</span>`;
+    if (typeof value === 'number') return `<span class="j-num">${value}</span>`;
+    if (typeof value === 'boolean') return `<span class="j-bool">${value}</span>`;
+    if (Array.isArray(value)) {
+      if (value.length === 0) return '<span class="j-punct">[]</span>';
+      const inner = value.map((v) => pretty(v, depth + 1)).join('<span class="j-punct">, </span>');
+      return '<span class="j-punct">[</span>' + inner + '<span class="j-punct">]</span>';
+    }
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) return '<span class="j-punct">{}</span>';
+    const inner = entries
+      .map(([k, v]) => `${pad2}<span class="j-key">"${esc(k)}"</span><span class="j-punct">:</span> ${pretty(v, depth + 1)}`)
+      .join('<span class="j-punct">,</span>\n');
+    return '<span class="j-punct">{</span>\n' + inner + '\n' + pad + '<span class="j-punct">}</span>';
+  }
+  function formatId(id: number | string): string {
+    return String(id);
+  }
 
   function onKey(e: KeyboardEvent) {
     if (e.key === 'Escape') onClose();
@@ -90,7 +193,7 @@
           role="tab"
           aria-selected={tab === 'browse'}
           type="button"
-          on:click={() => (tab = 'browse')}
+          on:click={openBrowse}
         >Browse</button>
       </div>
       <div class="head-icons">
@@ -142,19 +245,62 @@
         </div>
       </div>
     {:else}
-      <div class="modal-body">
-        <div class="config-head">
-          <h3>Collections</h3>
-        </div>
-        <div class="browse">
-          {#each collections as c}
-            <div class="row">
-              <span class="row-name">{c}</span>
-              <span class="row-count">— vectors</span>
+      <div class="browse-body">
+        <aside class="side">
+          <div class="side-head">Collections ({collections.length})</div>
+          <div class="side-list">
+            {#each collections as c}
+              <button
+                class="coll"
+                class:active={selected === c.name}
+                type="button"
+                on:click={() => selectCollection(c.name)}
+              >
+                <span class="coll-name">{c.name}</span>
+                <span class="coll-count">{c.points.toLocaleString()} points</span>
+              </button>
+            {/each}
+          </div>
+          {#if !collections.length && browseError}
+            <p class="faint small pad">{browseError}</p>
+          {/if}
+        </aside>
+
+        <section class="main">
+          {#if !selected}
+            <p class="faint small">Select a collection to browse its points.</p>
+          {:else}
+            <div class="main-head">
+              <h3>{selected}</h3>
+              <div class="pager">
+                <button class="pg" type="button" disabled={offsetStack.length <= 1} on:click={prevPage}>‹</button>
+                <span class="pg-text">{PAGE} {pageStart}-{pageEnd}/{total.toLocaleString()}</span>
+                <button class="pg" type="button" disabled={nextOffset === null || nextOffset === undefined} on:click={nextPage}>›</button>
+              </div>
             </div>
-          {/each}
-        </div>
-        <p class="faint small">Start the stack to load live vector counts.</p>
+
+            {#if loading}
+              <p class="faint small">Loading…</p>
+            {:else if browseError}
+              <p class="faint small">{browseError}</p>
+            {:else}
+              <div class="points">
+                {#each points as p}
+                  <div class="point">
+                    <div class="p-head">
+                      <span class="p-id">ID: {formatId(p.id)}</span>
+                      <span class="p-label">Payload</span>
+                    </div>
+                    <pre class="p-json">{@html pretty(p.payload ?? {})}</pre>
+                  </div>
+                {/each}
+                {#if !points.length}
+                  <p class="faint small">No points in this collection.</p>
+                {/if}
+              </div>
+            {/if}
+          {/if}
+        </section>
       </div>
     {/if}
 
@@ -184,14 +330,14 @@
     background: var(--panel-2);
     border: 1px solid var(--line);
     border-radius: 14px;
-    width: min(600px, 94vw);
+    width: min(760px, 94vw);
     max-height: 88vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
   }
-  .modal.wide { width: min(820px, 97vw); }
+  .modal.wide { width: min(1120px, 97vw); }
 
   /* header bar — warm orange accent matching the reference */
   .modal-head {
@@ -323,20 +469,121 @@
   input:focus, select:focus { outline: none; border-color: var(--signal); }
 
   /* browse tab */
-  .browse { display: flex; flex-direction: column; }
-  .row {
+  .browse-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+  }
+  .side {
+    border-right: 1px solid var(--line-soft);
+    padding: 14px 12px;
+    overflow-y: auto;
+    background: var(--bg-alt);
+  }
+  .side-head {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .side-list { display: flex; flex-direction: column; gap: 4px; }
+  .coll {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .coll:hover { background: var(--panel-2); }
+  .coll.active {
+    border-color: color-mix(in srgb, var(--signal-blue) 45%, transparent);
+    background: color-mix(in srgb, var(--signal-blue) 12%, transparent);
+  }
+  .coll-name { font-family: var(--mono); font-size: 12.5px; color: var(--ink); }
+  .coll-count { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+  .side .pad { padding: 8px 4px; }
+
+  .main {
+    padding: 14px 16px;
+    overflow-y: auto;
+    min-width: 0;
+    background: var(--bg-deep);
+  }
+  .main-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .main-head h3 { font-size: 15px; font-family: var(--mono); letter-spacing: 0; }
+  .pager { display: flex; align-items: center; gap: 8px; }
+  .pg {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .pg:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-faint); }
+  .pg:disabled { opacity: 0.4; cursor: default; }
+  .pg-text { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+
+  .points { display: flex; flex-direction: column; }
+  .point {
     border: 1px solid var(--line-soft);
     border-radius: var(--r-sm);
     background: var(--panel);
+    padding: 12px 14px;
     margin-bottom: 10px;
   }
-  .row-name { font-family: var(--mono); font-size: 13px; color: var(--ink); }
-  .row-count { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+  .p-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .p-id { font-family: var(--mono); font-size: 12px; color: var(--ink); font-weight: 600; }
+  .p-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+  }
+  .p-json {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  /* JSON syntax colors (matches reference: keys white, values teal/light blue) */
+  .p-json :global(.j-key) { color: var(--ink); }
+  .p-json :global(.j-str) { color: #7dd3c0; }
+  .p-json :global(.j-num) { color: #7cc4ff; }
+  .p-json :global(.j-bool) { color: #c4a7f0; }
+  .p-json :global(.j-null) { color: #f0a944; }
+  .p-json :global(.j-punct) { color: var(--ink-faint); }
 
   /* footer */
   .modal-foot {

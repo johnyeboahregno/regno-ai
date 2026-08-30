@@ -117,9 +117,20 @@ reference "Vector Db" panel:
 - **Configure** tab — `Vector Database Configuration` heading with a blue **Test Connection**
   button (probes `GET /api/cortex/health` and reports Connected/Failed), then the Qdrant
   connection form: Select Credential (select), Provider, Host, Port, Collection Name.
-- **Browse** tab — lists the known Qdrant collections (`cortex_patterns`, `cortex_wisdom`,
-  `cortex_execution_memories`, `knowledge_vectors`, `doc_search`).
+- **Browse** tab — a live two-pane browser backed by `GET /api/cortex/qdrant/browse`: a
+  collections sidebar (name + exact point count, selected highlighted) and a points pane
+  (collection name, keyset pagination `20 1-20/N`, and point cards showing `ID:` + a
+  colour-coded `Payload` JSON — keys white, strings teal, numbers blue). Degrades to
+  "Qdrant unreachable" when the store is down.
 - Footer — `Last saved: …` (updates to now on Save) and a bright-orange **Save** button with
   a white gear icon (reuses the existing `gear` icon).
 - Same modal chrome/a11y pattern as the Sources modal (backdrop target-check close, Escape,
   `role="dialog"`).
+
+### Qdrant browse endpoint (2026-08-30)
+
+`GET /api/cortex/qdrant/browse` (`apps/web/src/routes/api/cortex/qdrant/browse/+server.ts`):
+
+- No params → lists collections (`getCollections()` + per-collection `count(exact)`).
+- `?collection=X&limit=20&offset=<json>` → `scroll()`s points with payloads (no vectors);
+  `offset` is the JSON-encoded `next_page_offset` token for keyset pagination.
