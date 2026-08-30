@@ -29,6 +29,11 @@ list — matching Zaeem's reference CORTEX Architecture screen:
   cards in a 2×3 grid (Knowledge Ingestion / Watched Directories / External Connectors /
   SDK & API / Execution Learning / Conversations). Closes via `✕`, Escape, or backdrop click.
   Adds a `database` inline SVG to `$lib/icons.ts`.
+- **Vector DB config modal** — clicking the `Vector DB` node opens a reference "Vector Db"
+  panel (`$lib/cortex/CortexVectorDbModal.svelte`): Configure/Browse tabs, a blue **Test
+  Connection** button (probes `GET /api/cortex/health`), the Qdrant connection form (Select
+  Credential, Provider, Host, Port, Collection Name), and a footer with `Last saved` + a
+  bright-orange **Save** button (white gear icon).
 - **Docs** — extended `docs/cortex/CORTEX_PARITY_IMPLEMENTATION.md` with an Architecture tab
   section.
 

@@ -106,3 +106,20 @@ the reference "Sources" panel:
 - Subtle grid backdrop on the body; closes via `✕`, Escape, or clicking the backdrop.
 
 Also adds a `database` inline SVG icon to `$lib/icons.ts`.
+
+### Vector DB configuration modal (2026-08-30)
+
+Clicking the **Vector DB** node opens `$lib/cortex/CortexVectorDbModal.svelte`, mirroring the
+reference "Vector Db" panel:
+
+- Orange header bar — `Vector Db` title, **Configure / Browse** tabs (Configure active, solid
+  orange), expand + close icons.
+- **Configure** tab — `Vector Database Configuration` heading with a blue **Test Connection**
+  button (probes `GET /api/cortex/health` and reports Connected/Failed), then the Qdrant
+  connection form: Select Credential (select), Provider, Host, Port, Collection Name.
+- **Browse** tab — lists the known Qdrant collections (`cortex_patterns`, `cortex_wisdom`,
+  `cortex_execution_memories`, `knowledge_vectors`, `doc_search`).
+- Footer — `Last saved: …` (updates to now on Save) and a bright-orange **Save** button with
+  a white gear icon (reuses the existing `gear` icon).
+- Same modal chrome/a11y pattern as the Sources modal (backdrop target-check close, Escape,
+  `role="dialog"`).

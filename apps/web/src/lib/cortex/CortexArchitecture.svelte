@@ -5,6 +5,7 @@
   // All service state comes from GET /api/cortex/health (graceful when offline).
   import type { CortexHealthData, CortexService } from './types.js';
   import CortexSourcesModal from './CortexSourcesModal.svelte';
+  import CortexVectorDbModal from './CortexVectorDbModal.svelte';
 
   export let health: CortexHealthData | null = null;
   export let autoRefresh = true;
@@ -83,7 +84,13 @@
   // --- click to configure / view status ------------------------------------
   let selected: { title: string; sub: string; detail: string; status: string; color: string } | null = null;
   let sourcesOpen = false;
+  let vectorDbOpen = false;
   function open(node: { key: string; title: string; sub: string; color: string }) {
+    // Vector DB opens its dedicated configuration modal; other nodes show the status card.
+    if (node.key === 'qdrant') {
+      vectorDbOpen = true;
+      return;
+    }
     const s = svc(node.key);
     selected = {
       title: node.title,
@@ -275,6 +282,10 @@
 
 {#if sourcesOpen}
   <CortexSourcesModal onClose={() => (sourcesOpen = false)} />
+{/if}
+
+{#if vectorDbOpen}
+  <CortexVectorDbModal onClose={() => (vectorDbOpen = false)} />
 {/if}
 
 <style>
