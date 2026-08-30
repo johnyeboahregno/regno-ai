@@ -3,6 +3,33 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-29 — CORTEX parity (health dashboard, tabs, pattern catalog, Oracle brain search)
+
+Closing the gap between `/app/cortex` and Zaeem's `regno.ai/cortex` (the reference CORTEX
+Memory System):
+
+- **CORTEX Health dashboard** — new `GET /api/cortex/health`: knowledge-store counts across the
+  ten collections (documents, facts, wisdom, memories, entities, patterns, evaluations,
+  executions, staging, showcases) + total; three-store + infra **service status**
+  (MongoDB / Qdrant with in-sync-vs-out-of-sync vector diff / Neo4j node count / Redis ping /
+  BullMQ queue lengths); **learning metrics** (created/used 7d, successes, failures); and a
+  **patterns-by-domain** table (count, avg confidence, success rate).
+- **CORTEX tabs page** — new public route `/cortex` (Architecture / Knowledge / Patterns / Health
+  / About tabs) built from `docs/architecture/CORTEX_KNOWLEDGE_SYSTEM_ARCHITECTURE.md` and the
+  VISION card. `/app/cortex` now renders the same page (shared `$lib/cortex/CortexPage.svelte`),
+  auto-refreshing every 15s.
+- **Pattern catalog + browser** — `scripts/build-pattern-catalog.mjs` parses the 82 foundation
+  patterns from `docs/cortex/CORTEX_PATTERN_CATALOG.md` into a generated
+  `$lib/cortex/pattern-catalog.ts` module. New `GET /api/cortex/catalog` (filters/stats) and
+  `POST /api/cortex/patterns/provision` (dry-run cost/storage estimate + real three-store
+  provisioning via `createPattern`). Pattern Browser UI with search/category/priority/confidence/
+  foundation/sticky filters, selection, and dry-run → provision flow.
+- **CortexBrain-style retrieval** — new `patternSearch()` + `graphSearch()` in `@regno/cortex`
+  (Mongo keyword always, Qdrant semantic when a key is present, Neo4j `TAGGED_WITH` traversal
+  best-effort). Oracle search (`/api/oracle/search` + `/app/oracle`) now returns patterns and
+  graph nodes alongside document results and reports `method: semantic | keyword`.
+- Build verified: `npm run check -w @regno/web` = 0 errors; `npm run build -w @regno/web` clean.
+
 ## 2026-08-29 — GENESIS pipeline parity + UX (tools, groups, validation, sticky connectors, cursor zoom)
 
 Closing the gap toward Zaeem's regno.ai/pipelines (per honest gap analysis):

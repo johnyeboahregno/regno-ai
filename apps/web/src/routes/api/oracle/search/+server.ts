@@ -7,7 +7,7 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 import { getQdrant } from '@regno/db';
 import { QdrantCollections } from '@regno/shared';
 import { embed } from '@regno/ai';
-import { keywordSearch } from '@regno/cortex';
+import { keywordSearch, patternSearch, graphSearch } from '@regno/cortex';
 import { requireSession } from '$lib/server/auth.js';
 
 interface Payload {
@@ -29,10 +29,13 @@ export async function POST({ request, cookies }) {
     // search works even without an embedding key (Zaeem's zero-cost fallback).
     if (!process.env.OPENAI_API_KEY) {
       const kw = await keywordSearch(query, 8);
+      const [patterns, graph] = await Promise.all([patternSearch(query, 6), graphSearch(query, 6)]);
       return json({
         ok: true,
         method: 'keyword',
         results: kw.map((h) => ({ score: Number(h.score.toFixed(3)), title: h.title, sourceUrl: h.sourceUrl, text: h.text, source: h.source })),
+        patterns,
+        graph,
       });
     }
 
@@ -81,15 +84,19 @@ export async function POST({ request, cookies }) {
         source: h.source,
       }));
 
-    return json({ ok: true, method: 'semantic', results });
+    const [patterns, graph] = await Promise.all([patternSearch(query, 6), graphSearch(query, 6)]);
+    return json({ ok: true, method: 'semantic', results, patterns, graph });
   } catch (e) {
     // If semantic search fails for any reason (bad key, etc.), fall back to keyword.
     try {
       const kw = await keywordSearch(query, 8);
+      const [patterns, graph] = await Promise.all([patternSearch(query, 6), graphSearch(query, 6)]);
       return json({
         ok: true,
         method: 'keyword',
         results: kw.map((h) => ({ score: Number(h.score.toFixed(3)), title: h.title, sourceUrl: h.sourceUrl, text: h.text, source: h.source })),
+        patterns,
+        graph,
       });
     } catch {
       return json({ ok: false, error: `Search failed: ${(e as Error).message}` }, { status: 500 });
