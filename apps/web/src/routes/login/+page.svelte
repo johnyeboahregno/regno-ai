@@ -2,9 +2,13 @@
   import { goto } from '$app/navigation';
   import Brand from '$lib/Brand.svelte';
   import PasswordInput from '$lib/PasswordInput.svelte';
+  import type { PageData } from './$types.js';
+
+  export let data: PageData;
+
   let email = '';
   let password = '';
-  let error = '';
+  let error = data.error;
   let busy = false;
 
   async function submit(e: Event) {
@@ -19,7 +23,7 @@
       });
       const d = await r.json();
       if (d.ok) {
-        goto('/app');
+        goto(data.next);
         return;
       }
       error = d.error ?? 'Login failed';
@@ -40,7 +44,12 @@
     <h1 style="font-size:26px;">Welcome back.</h1>
     <p class="muted small mb">Access your self-hosted Regno platform.</p>
 
-    {#if error}<p class="error mb">{error}</p>{/if}
+    {#if error}
+      <div class="notice mb" role="alert">
+        <span class="notice-ico">⚠</span>
+        <span>{error}</span>
+      </div>
+    {/if}
 
     <form on:submit={submit}>
       <label for="email">Email</label>
@@ -57,3 +66,22 @@
     <p class="muted small mt">No account? <a href="/register" style="color:var(--signal);">Create one</a></p>
   </div>
 </div>
+
+<style>
+  .notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--danger, #e5484d);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--danger, #e5484d) 8%, transparent);
+    color: var(--danger, #e5484d);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .notice-ico {
+    flex: none;
+    line-height: 1.2;
+  }
+</style>

@@ -4,6 +4,7 @@
   // (Data Sources → stores → Cortex Flow → Redis/BullMQ), legend + metrics tiles.
   // All service state comes from GET /api/cortex/health (graceful when offline).
   import type { CortexHealthData, CortexService } from './types.js';
+  import CortexSourcesModal from './CortexSourcesModal.svelte';
 
   export let health: CortexHealthData | null = null;
   export let autoRefresh = true;
@@ -81,6 +82,7 @@
 
   // --- click to configure / view status ------------------------------------
   let selected: { title: string; sub: string; detail: string; status: string; color: string } | null = null;
+  let sourcesOpen = false;
   function open(node: { key: string; title: string; sub: string; color: string }) {
     const s = svc(node.key);
     selected = {
@@ -105,7 +107,20 @@
 <div class="boxes">
   {#each boxes as b}
     {@const s = svc(b.key)}
-    <div class="box" class:online={isUp(s)} style={`--accent: ${b.color};`} on:click={() => open({ key: b.key, title: b.title, sub: s?.role ?? '', color: b.color })}>
+    <div
+      class="box"
+      class:online={isUp(s)}
+      style={`--accent: ${b.color};`}
+      role="button"
+      tabindex="0"
+      on:click={() => open({ key: b.key, title: b.title, sub: s?.role ?? '', color: b.color })}
+      on:keydown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          open({ key: b.key, title: b.title, sub: s?.role ?? '', color: b.color });
+        }
+      }}
+    >
       <span class="swatch" style="background:{b.color};"></span>
       <div>
         <div class="b-name">{b.title}</div>
@@ -123,7 +138,19 @@
 
   <div class="flow">
     <!-- Data Sources -->
-    <div class="node data-src" style={`--accent: ${sources.color};`}>
+    <div
+      class="node data-src"
+      style={`--accent: ${sources.color};`}
+      role="button"
+      tabindex="0"
+      on:click={() => (sourcesOpen = true)}
+      on:keydown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          sourcesOpen = true;
+        }
+      }}
+    >
       <div class="n-title">{sources.title}</div>
       <div class="n-sub">{sources.sub}</div>
     </div>
@@ -143,7 +170,15 @@
           class="node"
           style={`--accent: ${n.color};`}
           class:dim={!isUp(s)}
+          role="button"
+          tabindex="0"
           on:click={() => open({ key: n.key, title: n.title, sub: s?.role ?? n.sub, color: n.color })}
+          on:keydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              open({ key: n.key, title: n.title, sub: s?.role ?? n.sub, color: n.color });
+            }
+          }}
         >
           <div class="n-title">{n.title}</div>
           <div class="n-sub">{n.sub}</div>
@@ -163,7 +198,7 @@
     </svg>
 
     <!-- Cortex Flow -->
-    <div class="node cortex" style={`--accent: ${flow.color};`}>
+    <div class="node plain cortex" style={`--accent: ${flow.color};`}>
       <div class="n-title">{flow.title}</div>
       <div class="n-sub">{flow.sub}</div>
     </div>
@@ -183,7 +218,15 @@
           class="node"
           style={`--accent: ${n.color};`}
           class:dim={!isUp(s)}
+          role="button"
+          tabindex="0"
           on:click={() => open({ key: n.key, title: n.title, sub: s?.role ?? n.sub, color: n.color })}
+          on:keydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              open({ key: n.key, title: n.title, sub: s?.role ?? n.sub, color: n.color });
+            }
+          }}
         >
           <div class="n-title">{n.title}</div>
           <div class="n-sub">{n.sub}</div>
@@ -229,6 +272,10 @@
     </div>
   {/each}
 </div>
+
+{#if sourcesOpen}
+  <CortexSourcesModal onClose={() => (sourcesOpen = false)} />
+{/if}
 
 <style>
   /* header bar */
@@ -342,7 +389,7 @@
   .flow { display: flex; flex-direction: column; align-items: stretch; }
   .conn { width: 100%; height: 26px; display: block; flex: none; }
   .conn path {
-    stroke: var(--ink-faint);
+    stroke: color-mix(in srgb, var(--ink) 42%, transparent);
     stroke-width: 1.4;
     stroke-dasharray: 4 5;
     fill: none;
@@ -360,6 +407,8 @@
     transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
   .node:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent), 0 8px 22px color-mix(in srgb, var(--accent) 22%, transparent); }
+  .node.plain { cursor: default; }
+  .node.plain:hover { transform: none; }
   .node.dim { border-color: var(--line); box-shadow: none; background: var(--panel-2); }
   .node .n-title { font-family: var(--display); font-size: 14px; font-weight: 700; }
   .node .n-sub { font-size: 11.5px; opacity: 0.82; margin-top: 2px; }

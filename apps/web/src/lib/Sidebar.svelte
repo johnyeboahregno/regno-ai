@@ -2,7 +2,8 @@
   import Brand from '$lib/Brand.svelte';
   import Icon from '$lib/Icon.svelte';
   import ArchitectAgeWidget from '$lib/ArchitectAgeWidget.svelte';
-  import { buildNav, groupContainsPath, type NavGroup, type NavItem } from '$lib/nav';
+  import { buildNav, groupContainsPath, itemMatchesPath, type NavGroup, type NavItem } from '$lib/nav';
+  import { guides } from '$lib/guides';
   import { theme, collapsed, nextTheme, type Theme } from '$lib/ui';
   import { onMount } from 'svelte';
 
@@ -28,23 +29,31 @@
 
   let open: Record<string, boolean> = {};
   let openItems: Record<string, boolean> = {};
+  let openSub: Record<string, boolean> = {};
 
   function basename(p: string): string {
     return p.split('/').pop() ?? p;
   }
 
   function isActive(item: NavItem, p = path): boolean {
-    if (p === item.href || p.startsWith(item.href + '?')) return true;
-    return (item.children ?? []).length > 0 && p.startsWith(item.href + '/');
+    return itemMatchesPath(item, p);
   }
 
   onMount(async () => {
+    // User Guides are static — always available, independent of the docs/artifacts APIs.
+    const guideItems: NavItem[] = guides.map((g) => ({
+      href: `/app/guides/${g.slug}`,
+      label: g.title,
+      icon: 'guide',
+      group: 'User Guides',
+    }));
+    docsChildren = guideItems;
     try {
       const [dr, ar] = await Promise.all([
         fetch('/api/docs').then((r) => r.json()),
         fetch('/api/artifacts').then((r) => r.json()),
       ]);
-      const next: NavItem[] = [];
+      const next: NavItem[] = [...guideItems];
       for (const a of ar.artifacts ?? []) {
         if (!a.taskId) continue;
         next.push({
@@ -72,7 +81,8 @@
   });
 
   // Auto-open the section that contains the current path on navigation.
-  $: path, ensureActiveSectionOpen(path);
+  // (docsChildren is included so deep links still resolve after the async Docs submenu loads.)
+  $: path, docsChildren, ensureActiveSectionOpen(path);
 
   function ensureActiveSectionOpen(p: string) {
     if (!p) return;
@@ -88,7 +98,7 @@
   }
 
   // Auto-open the submenu that contains the current path on navigation.
-  $: path, ensureActiveItemOpen(path);
+  $: path, docsChildren, ensureActiveItemOpen(path);
 
   function ensureActiveItemOpen(p: string) {
     if (!p) return;
@@ -105,6 +115,40 @@
     if (changed) openItems = next;
   }
 
+  // Auto-open the sub-section (User Guides / Artifacts / domain) containing the current path.
+  $: path, docsChildren, ensureActiveSubOpen(path);
+
+  function ensureActiveSubOpen(p: string) {
+    if (!p) return;
+    const nextItems = { ...openItems };
+    const nextSub = { ...openSub };
+    let changed = false;
+    for (const group of nav) {
+      for (const item of group.items) {
+        const kids = item.children ?? [];
+        if (!kids.length) continue;
+        for (const child of kids) {
+          if (!child.group) continue;
+          const match = child.href === p || p.startsWith(child.href + '/') || p.startsWith(child.href + '?');
+          if (!match) continue;
+          if (!nextItems[item.href]) {
+            nextItems[item.href] = true;
+            changed = true;
+          }
+          const key = subKey(item, child.group);
+          if (!nextSub[key]) {
+            nextSub[key] = true;
+            changed = true;
+          }
+        }
+      }
+    }
+    if (changed) {
+      openItems = nextItems;
+      openSub = nextSub;
+    }
+  }
+
   function toggleItem(item: NavItem) {
     if ($collapsed) {
       collapsed.set(false);
@@ -112,6 +156,32 @@
       return;
     }
     openItems = { ...openItems, [item.href]: !openItems[item.href] };
+  }
+
+  function toggleSub(item: NavItem, groupName: string) {
+    const key = subKey(item, groupName);
+    if ($collapsed) {
+      collapsed.set(false);
+      openItems = { ...openItems, [item.href]: true };
+      openSub = { ...openSub, [key]: true };
+      return;
+    }
+    openSub = { ...openSub, [key]: !openSub[key] };
+  }
+
+  function subKey(item: NavItem, groupName: string): string {
+    return item.href + '::' + groupName;
+  }
+
+  function groupChildren(children: NavItem[]): Array<{ name: string; items: NavItem[] }> {
+    const out: Array<{ name: string; items: NavItem[] }> = [];
+    for (const child of children) {
+      const name = child.group ?? '';
+      const last = out[out.length - 1];
+      if (last && last.name === name) last.items.push(child);
+      else out.push({ name, items: [child] });
+    }
+    return out;
   }
 
   function toggleSection(group: NavGroup) {
@@ -226,13 +296,34 @@
                 </button>
                 {#if openItems[item.href]}
                   <div class="sub-body">
-                    {#each item.children as child, i}
-                      {#if child.group && child.group !== item.children[i - 1]?.group}
-                        <div class="sub-group">{child.group}</div>
+                    {#each groupChildren(item.children) as g}
+                      {#if g.name}
+                        <button
+                          class="sub-group"
+                          class:open={!!openSub[subKey(item, g.name)]}
+                          on:click={() => toggleSub(item, g.name)}
+                          title={g.name}
+                          aria-expanded={!!openSub[subKey(item, g.name)]}
+                        >
+                          <span class="label">{g.name}</span>
+                          <span class="chev" class:open={!!openSub[subKey(item, g.name)]} aria-hidden="true"><Icon name="chevron" size={12} /></span>
+                        </button>
+                        {#if openSub[subKey(item, g.name)]}
+                          <div class="sub-group-body">
+                            {#each g.items as child}
+                              <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
+                                <span class="label">{child.label}</span>
+                              </a>
+                            {/each}
+                          </div>
+                        {/if}
+                      {:else}
+                        {#each g.items as child}
+                          <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
+                            <span class="label">{child.label}</span>
+                          </a>
+                        {/each}
                       {/if}
-                      <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
-                        <span class="label">{child.label}</span>
-                      </a>
                     {/each}
                   </div>
                 {/if}

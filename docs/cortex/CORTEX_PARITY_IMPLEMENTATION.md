@@ -61,3 +61,48 @@ Re-run whenever `docs/cortex/CORTEX_PATTERN_CATALOG.md` changes, and commit the 
 `evaluations=maestro_validations`, `executions=cortex_executions`, `staging=knowledge_staging`,
 `showcases=showcases`. Qdrant is marked **Out of Sync** when its `cortex_patterns` vector count
 differs from the Mongo `cortex_patterns` document count (same signal the reference shows).
+
+## Architecture tab — reference dashboard (2026-08-30)
+
+Rebuilt `apps/web/src/lib/cortex/CortexArchitecture.svelte` to match the reference CORTEX
+Architecture dashboard. It is no longer a static layer list — it is a live, health-driven
+overview:
+
+- **Header bar** — `Overall Status: ONLINE/OFFLINE/DEGRADED` pill (computed from the six
+  mapped services), an `Auto-refresh ON/OFF` toggle, a `↻ Refresh` button, and `Last check`
+  time. Auto-refresh is controlled by `CortexPage.svelte` (`autoRefresh` state + `toggleAutoRefresh`
+  pauses the 15s poll timer; passed down as props).
+- **Status boxes (6)** — Vector DB, Graph DB, Document DB, Embedding, Redis, BullMQ; each
+  shows its live `Connected / Offline` state and glows green when online.
+- **Flow diagram** — SVG connectors (dashed) join `Data Sources` → the four stores
+  (`Vector DB`/`Qdrant`, `Graph DB`/`Neo4j`, `Document DB`/`MongoDB`, `Embedding`/`LLM · Reasoning`)
+  → `Cortex Flow — Reasoning Layer` → `Redis` + `BullMQ`. Each node reads its status from
+  `GET /api/cortex/health` and dims when its backing service is down.
+- **Click to configure / view status** — clicking any status box or store node opens a detail
+  card (name, role, status, live health detail). Nodes are `role="button"` + keyboard
+  accessible (Enter/Space) to satisfy a11y.
+- **Legend** — Configured / Not Configured / Click to Configure.
+- **Metrics tiles (9)** — Documents, Facts, Wisdom, Memories, Entities, Patterns, **Learned**
+  (= `knowledgeTotal`), Evaluations, Executions from the health `knowledge` array.
+
+### Health endpoint addition
+
+`GET /api/cortex/health` now reports an **Embedding** service (derived from Qdrant: offline
+when the vector store is unreachable, detail `text-embedding-3-small`), so the six-box
+status row and the Health tab both list it.
+
+### Data Sources modal (2026-08-30)
+
+Clicking the **Data Sources** node opens `$lib/cortex/CortexSourcesModal.svelte`, mirroring
+the reference "Sources" panel:
+
+- Orange header bar — `Sources` title, a bright-orange **Configure** button (white text), a
+  toggle-size (expand) button, and a close `✕`.
+- `Data Sources` heading with a database icon, plus the intro line about how knowledge enters
+  CORTEX.
+- Six source cards in a 2×3 grid, each with a coloured title: **Knowledge Ingestion**
+  (orange), **Watched Directories** (light blue), **External Connectors** (green), **SDK & API**
+  (purple), **Execution Learning** (cyan), **Conversations** (gold).
+- Subtle grid backdrop on the body; closes via `✕`, Escape, or clicking the backdrop.
+
+Also adds a `database` inline SVG icon to `$lib/icons.ts`.

@@ -3,6 +3,35 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — CORTEX Architecture tab rebuilt to the reference dashboard
+
+`CortexArchitecture.svelte` is now a live, health-driven overview instead of a static layer
+list — matching Zaeem's reference CORTEX Architecture screen:
+
+- **Header bar** — `Overall Status: ONLINE/OFFLINE/DEGRADED` pill (from the six mapped
+  services), an `Auto-refresh ON/OFF` toggle, `↻ Refresh`, and a `Last check` time.
+  `CortexPage.svelte` owns the `autoRefresh` state (toggle pauses/resumes the 15s poll) and
+  passes it down with the refresh handler.
+- **Status boxes (6)** — Vector DB, Graph DB, Document DB, Embedding, Redis, BullMQ; glow
+  green when online, driven by `GET /api/cortex/health`.
+- **Flow diagram** — SVG dashed connectors joining `Data Sources` → four stores → `Cortex
+  Flow — Reasoning Layer` → `Redis`/`BullMQ`; each node dims when its backing service is down.
+- **Click to configure / view status** — clicking a box or store node opens a detail card
+  (role, status, live detail); nodes are `role="button"` + Enter/Space keyboard accessible.
+- **Legend + metrics tiles (9)** — Documents, Facts, Wisdom, Memories, Entities, Patterns,
+  Learned (= `knowledgeTotal`), Evaluations, Executions.
+- **Health endpoint** — `GET /api/cortex/health` now also reports an **Embedding** service
+  (derived from Qdrant; detail `text-embedding-3-small`), so the six-box row and Health tab
+  both list it.
+- **Data Sources modal** — clicking the `Data Sources` node opens a reference "Sources" panel
+  (`$lib/cortex/CortexSourcesModal.svelte`): orange header bar with a white-text **Configure**
+  button + expand/close icons, a `Data Sources` heading with a database icon, and six source
+  cards in a 2×3 grid (Knowledge Ingestion / Watched Directories / External Connectors /
+  SDK & API / Execution Learning / Conversations). Closes via `✕`, Escape, or backdrop click.
+  Adds a `database` inline SVG to `$lib/icons.ts`.
+- **Docs** — extended `docs/cortex/CORTEX_PARITY_IMPLEMENTATION.md` with an Architecture tab
+  section.
+
 ## 2026-08-30 — CLI keeps command history forever
 
 The `regno` CLI now records every command permanently, so nothing you type is ever lost:
