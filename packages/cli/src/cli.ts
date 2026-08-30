@@ -5,17 +5,27 @@
  */
 import { parseArgs } from 'node:util';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { createInterface } from 'node:readline';
 
 const REGNO_URL = process.env.REGNO_URL ?? 'http://localhost:5173';
 const ROOT = process.env.REGNO_ROOT ?? process.cwd();
 const AUTH_DIR = join(homedir(), '.regno');
 const AUTH_FILE = join(AUTH_DIR, 'auth.json');
+const HISTORY_FILE = join(AUTH_DIR, 'history.jsonl');
+// In-memory cap for arrow-key recall inside a session. The history file itself
+// is append-only and never trimmed — every command is kept forever.
+const HISTORY_SIZE = 100_000;
 
 interface Auth {
   cookie: string;
+}
+
+interface HistoryEntry {
+  ts: number; // epoch ms when the command ran
+  cmd: string;
 }
 
 function readAuth(): Auth | null {
@@ -29,6 +39,109 @@ function readAuth(): Auth | null {
 function writeAuth(auth: Auth): void {
   mkdirSync(AUTH_DIR, { recursive: true });
   writeFileSync(AUTH_FILE, JSON.stringify(auth, null, 2));
+}
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    const raw = readFileSync(HISTORY_FILE, 'utf8').trim();
+    if (!raw) return [];
+    return raw
+      .split('\n')
+      .map((l) => {
+        try {
+          return JSON.parse(l) as HistoryEntry;
+        } catch {
+          return null;
+        }
+      })
+      .filter((e): e is HistoryEntry => e !== null);
+  } catch {
+    return [];
+  }
+}
+
+/** Append a command to the forever-kept history file (best-effort). */
+function appendHistory(cmd: string): void {
+  try {
+    mkdirSync(AUTH_DIR, { recursive: true });
+    appendFileSync(HISTORY_FILE, JSON.stringify({ ts: Date.now(), cmd }) + '\n');
+  } catch {
+    /* never fail a command because history could not be written */
+  }
+}
+
+function printHistory(): void {
+  const entries = loadHistory();
+  if (!entries.length) {
+    console.log('(no history yet)');
+    return;
+  }
+  for (const e of entries) {
+    const d = new Date(e.ts);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    console.log(`${stamp}\t${e.cmd}`);
+  }
+}
+
+function clearHistoryWindow(window: string): boolean {
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  const windows: Record<string, number> = { '3d': 3 * day, '1w': 7 * day, '1m': 30 * day };
+  if (window === 'all') {
+    writeFileSync(HISTORY_FILE, '');
+    console.log('history cleared (all)');
+    return true;
+  }
+  const ms = windows[window];
+  if (!ms) {
+    console.error('usage: regno history clear <3d|1w|1m|all>');
+    return false;
+  }
+  const entries = loadHistory();
+  const kept = entries.filter((e) => e.ts < now - ms);
+  const removed = entries.length - kept.length;
+  writeFileSync(HISTORY_FILE, kept.map((e) => JSON.stringify(e)).join('\n') + (kept.length ? '\n' : ''));
+  console.log(`history cleared (${window}): removed ${removed} of ${entries.length} entries`);
+  return true;
+}
+
+/** Split a shell line into argv, honouring single/double quotes and backslash escapes. */
+function splitCommand(line: string): string[] {
+  const tokens: string[] = [];
+  let cur = '';
+  let quote: '"' | "'" | null = null;
+  let esc = false;
+  for (const ch of line) {
+    if (esc) {
+      cur += ch;
+      esc = false;
+      continue;
+    }
+    if (ch === '\\' && quote !== "'") {
+      esc = true;
+      continue;
+    }
+    if (quote) {
+      if (ch === quote) quote = null;
+      else cur += ch;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      continue;
+    }
+    if (/\s/.test(ch)) {
+      if (cur) {
+        tokens.push(cur);
+        cur = '';
+      }
+      continue;
+    }
+    cur += ch;
+  }
+  if (cur) tokens.push(cur);
+  return tokens;
 }
 
 function runScript(name: string): boolean {
@@ -63,6 +176,10 @@ function help(): void {
   console.log(`regno — Regno Architect Me CLI
 
 Usage: regno <command> [options]
+  regno                       Start an interactive shell (persistent history)
+  regno history               Show the full command history (kept forever)
+  regno history clear <w>     Clear history for the last <w>: 3d | 1w | 1m | all
+  regno history ingest        Ingest your repos (profile/repos.json)
 
 Commands:
   login --email <e> --password <p>     Sign in and store the session locally
@@ -73,7 +190,6 @@ Commands:
   credentials remove <name>            Delete a credential
   db init                              Bootstrap indexes / Qdrant / Neo4j constraints
   brain seed                           Ingest docs/ into the CORTEX brain
-  history ingest                       Ingest your repos (profile/repos.json)
   github ingest                        Ingest all repos in GITHUB_ORG
   profile seed                         Seed user conventions as userMemories
   standards seed                       Seed base coding standards (immutable core)
@@ -82,15 +198,23 @@ Commands:
   developer add --slug --name         Register a developer flavour identity
   persona create --slug --name       Create a persona (base + developer flavour)
 
+History:
+  Every command you run (interactive or one-shot) is appended to
+  ~/.regno/history.jsonl and kept forever. Clear it in chunks:
+    regno history clear 3d   # drop the last 3 days
+    regno history clear 1w   # drop the last week
+    regno history clear 1m   # drop the last month
+    regno history clear all  # wipe everything
+
 Env:
   REGNO_URL   API base (default http://localhost:5173)
   REGNO_ROOT  repo root for scripts (default cwd)
 `);
 }
 
-async function main(): Promise<void> {
+async function runCli(args: string[]): Promise<void> {
   const { positionals, values } = parseArgs({
-    args: process.argv.slice(2),
+    args,
     options: {
       email: { type: 'string' },
       password: { type: 'string' },
@@ -252,6 +376,14 @@ async function main(): Promise<void> {
         runScript('seed-history.mjs');
         return;
       }
+      if (sub === 'clear') {
+        clearHistoryWindow(positionals[2] ?? '');
+        return;
+      }
+      if (!sub) {
+        printHistory();
+        return;
+      }
       console.error('unknown history subcommand');
       help();
       return;
@@ -380,6 +512,66 @@ async function main(): Promise<void> {
     default:
       help();
   }
+}
+
+async function runInteractive(): Promise<void> {
+  const saved = loadHistory();
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: true,
+    historySize: HISTORY_SIZE,
+    prompt: 'regno> ',
+  });
+  // `history` / `historyIndex` are real runtime properties but aren't in the
+  // @types/node surface, so reach them through a narrow cast.
+  const rlHistory = rl as unknown as { history: string[]; historyIndex: number };
+  rlHistory.history = saved.slice(-HISTORY_SIZE).map((h) => h.cmd);
+  rlHistory.historyIndex = rlHistory.history.length;
+
+  rl.on('line', async (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      rl.prompt();
+      return;
+    }
+    appendHistory(trimmed);
+    if (trimmed === 'exit' || trimmed === 'quit') {
+      rl.close();
+      return;
+    }
+    if (trimmed === 'help') {
+      help();
+      rl.prompt();
+      return;
+    }
+    try {
+      await runCli(splitCommand(trimmed));
+    } catch (err) {
+      console.error(err);
+    }
+    rl.prompt();
+  });
+
+  rl.on('SIGINT', () => rl.close());
+
+  rl.on('close', () => {
+    console.log('bye');
+    process.exit(0);
+  });
+
+  rl.prompt();
+}
+
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    if (process.stdin.isTTY) return runInteractive();
+    return help();
+  }
+  // Keep every command forever, even one-shot invocations.
+  appendHistory(args.join(' '));
+  await runCli(args);
 }
 
 main().catch((err) => {

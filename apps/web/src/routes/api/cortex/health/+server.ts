@@ -111,6 +111,13 @@ export async function GET() {
       sync: qdrantSync,
     },
     { key: 'neo4j', name: 'Neo4j', role: 'Graph DB', status: neo4jNodes === null ? 'offline' : 'online', detail: neo4jNodes === null ? 'unavailable' : `${neo4jNodes} nodes` },
+    {
+      key: 'embedding',
+      name: 'Embedding',
+      role: 'LLM · Reasoning',
+      status: qdrantCount === null ? 'offline' : 'online',
+      detail: qdrantCount === null ? 'unavailable' : 'text-embedding-3-small',
+    },
     { key: 'redis', name: 'Redis', role: 'Cache + Pub/Sub', status: redisPing ? 'online' : 'offline', detail: redisPing ? 'Connected' : 'unreachable' },
     { key: 'bullmq', name: 'BullMQ', role: 'Job Queue', status: 'idle', detail: `${bullmq.active} active · ${bullmq.queued} queued` },
   ];

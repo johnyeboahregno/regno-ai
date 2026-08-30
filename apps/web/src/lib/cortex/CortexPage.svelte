@@ -13,6 +13,7 @@
   let active: Tab = 'Health';
   let health: CortexHealthData | null = null;
   let healthError = '';
+  let autoRefresh = true;
   let timer: ReturnType<typeof setInterval> | undefined;
 
   async function loadHealth() {
@@ -27,6 +28,17 @@
       }
     } catch {
       healthError = 'CORTEX health unavailable — is the knowledge base seeded?';
+    }
+  }
+
+  function toggleAutoRefresh() {
+    autoRefresh = !autoRefresh;
+    if (autoRefresh) {
+      loadHealth();
+      timer = setInterval(loadHealth, 15000);
+    } else {
+      if (timer) clearInterval(timer);
+      timer = undefined;
     }
   }
 
@@ -62,7 +74,7 @@
 {#if healthError}<p class="error mt">{healthError}</p>{/if}
 
 {#if active === 'Architecture'}
-  <CortexArchitecture />
+  <CortexArchitecture {health} {autoRefresh} onToggleAutoRefresh={toggleAutoRefresh} onRefresh={loadHealth} />
 {:else if active === 'Knowledge'}
   <CortexKnowledge {health} />
 {:else if active === 'Patterns'}

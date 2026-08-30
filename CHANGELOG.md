@@ -3,6 +3,21 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — CLI keeps command history forever
+
+The `regno` CLI now records every command permanently, so nothing you type is ever lost:
+
+- **Persistent, forever-kept history** — every command (one-shot or interactive) is appended to
+  `~/.regno/history.jsonl` (JSON-lines: `{"ts":...,"cmd":...}`). The file is append-only and never
+  trimmed, even when the command itself errors out.
+- **Interactive shell** — running `regno` with no args opens a `regno>` REPL (`node:readline`)
+  with arrow-key recall across all past sessions (`↑` / `↓`), and `exit` / `quit` / `Ctrl+C` to
+  leave. The last 100k commands are cached in memory for recall; the file keeps everything.
+- **Chunked clearing** — `regno history` shows the full log; `regno history clear <3d|1w|1m|all>`
+  removes only the last 3 days / week / month of entries, or wipes everything.
+- **Guide** — `apps/web/src/lib/guides/cli-history.md` (auto-discovered in User Guides) documents
+  the file location, interactive keys, viewing, and clearing.
+
 ## 2026-08-30 — Architect Age & Intelligence sidebar gimmick + popup
 
 A playful "how old / how smart is the Architect" widget as the last item in the sidebar's
