@@ -37,7 +37,8 @@ async function main() {
 
   for (const file of files) {
     const name = basename(file, '.md'); // coding, testing, tdd, ci-cd, go, rust, …
-    const isTech = file.includes('/technologies/');
+    const normalized = file.replace(/\\/g, '/');
+    const isTech = normalized.includes('/technologies/') || normalized.includes('/disciplines/');
     const content = readFileSync(file, 'utf8');
     const sourceUrl = `standards://${name}`;
     await db.collection('standards').updateOne(

@@ -4,10 +4,13 @@
  *   - lists repos via the GitHub API (token required)
  *   - clones each (shallow) into .pull/github/<repo>
  *   - ingests git log + code files → cortex_index + doc_search
+ *   - private repos are supported when GITHUB_TOKEN is set: the token authenticates the clone
+ *     and is scrubbed from the clone's .git/config afterwards
  *
  * Env:
- *   GITHUB_TOKEN    (required — read:org)
+ *   GITHUB_TOKEN    (required — read:org; also authenticates private repo clones)
  *   GITHUB_ORG      (default regno-platform)
+ *   GITHUB_REPOS    (explicit comma-separated owner/repo list — skips org listing)
  *   OPENAI_API_KEY  (for embeddings — omit to store raw docs only)
  *
  * Usage:  GITHUB_TOKEN=... node scripts/seed-github.mjs
@@ -93,6 +96,22 @@ function gitLog(dir) {
   }
 }
 
+/**
+ * Clone a repo (shallow) with optional auth for private repos.
+ * With a token we embed it as an x-access-token credential just for the clone, then scrub
+ * the remote URL so the token never persists in `.git/config` on disk.
+ */
+function cloneRepo(repo, dir, token) {
+  const cleanUrl = repo.clone_url;
+  if (!token) {
+    execSync(`git clone --depth 1 "${cleanUrl}" "${dir}"`, { stdio: 'ignore', timeout: 300_000 });
+    return;
+  }
+  const authed = cleanUrl.replace(/^https:\/\//, `https://x-access-token:${encodeURIComponent(token)}@`);
+  execSync(`git clone --depth 1 "${authed}" "${dir}"`, { stdio: 'ignore', timeout: 300_000 });
+  execSync(`git -C "${dir}" remote set-url origin "${cleanUrl}"`, { stdio: 'ignore' });
+}
+
 async function main() {
   let repos;
   if (process.env.GITHUB_REPOS) {
@@ -127,9 +146,9 @@ async function main() {
     if (!existsSync(join(dir, '.git'))) {
       mkdirSync(CACHE, { recursive: true });
       try {
-        execSync(`git clone --depth 1 "${repo.clone_url}" "${dir}"`, { stdio: 'ignore', timeout: 300_000 });
+        cloneRepo(repo, dir, TOKEN);
       } catch (e) {
-        console.warn(`  skip (clone failed — private?): ${repo.name}`);
+        console.warn(`  skip (clone failed — private or no access?): ${repo.name}`);
         continue;
       }
     }

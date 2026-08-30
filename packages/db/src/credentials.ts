@@ -35,6 +35,13 @@ export async function storeCredential(input: CredentialInput): Promise<string> {
   return String(res.insertedId);
 }
 
+/** Find a credential id by its unique name (null when absent). */
+export async function findCredentialByName(name: string): Promise<string | null> {
+  const db = await getDb();
+  const doc = await db.collection(Collections.CREDENTIALS).findOne({ name }, { projection: { _id: 1 } });
+  return doc ? String(doc._id) : null;
+}
+
 /** List credentials without their secrets. */
 export async function listCredentials(): Promise<CredentialSummary[]> {
   const db = await getDb();

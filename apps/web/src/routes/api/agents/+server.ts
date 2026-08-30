@@ -2,7 +2,7 @@
 // Creating an agent: registers it, compiles its standards, and spawns a namespace.
 import { json } from '@sveltejs/kit';
 import { spawn } from 'node:child_process';
-import { getDb, storeCredential } from '@regno/db';
+import { deleteCredential, findCredentialByName, getDb, storeCredential } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { requireSession } from '$lib/server/auth.js';
 
@@ -20,6 +20,8 @@ export async function GET({ cookies }) {
     slug: a.slug,
     name: a.name,
     technologies: a.technologies ?? [],
+    disciplines: a.disciplines ?? [],
+    languages: a.languages ?? [],
     repos: a.repos ?? [],
     datasources: a.datasources ?? [],
     namespace: a.namespace,
@@ -38,13 +40,25 @@ export async function POST({ request, cookies }) {
   const body = (await request.json().catch(() => ({}))) as {
     name?: string;
     technologies?: string[];
+    disciplines?: string[];
+    languages?: string[];
     repos?: string[];
     datasources?: unknown[];
+    githubToken?: string;
   };
   const name = String(body.name ?? '').trim();
-  const technologies = Array.isArray(body.technologies) ? body.technologies.map(String) : [];
+  const disciplines = Array.isArray(body.disciplines) ? body.disciplines.map(String) : [];
+  const languages = Array.isArray(body.languages) ? body.languages.map(String) : [];
+  const technologies = Array.from(
+    new Set([
+      ...(Array.isArray(body.technologies) ? body.technologies.map(String) : []),
+      ...disciplines,
+      ...languages,
+    ]),
+  );
   const repos = Array.isArray(body.repos) ? body.repos.map(String).filter(Boolean) : [];
   const datasources = Array.isArray(body.datasources) ? body.datasources : [];
+  const githubToken = String(body.githubToken ?? '').trim();
   if (!name) return json({ ok: false, error: 'name is required' }, { status: 400 });
 
   const slug = slugify(name);
@@ -55,9 +69,27 @@ export async function POST({ request, cookies }) {
   const port = 3100 + count * 10;
   const namespace = `dev-${slug}`;
 
+  // 0. Optional GitHub token for ingesting private repos — stored AES-encrypted in the
+  //    credentials vault (replaced idempotently, credentials.name is unique), then forwarded
+  //    to the spawn process via env (GITHUB_TOKEN_CRED) — never argv, so it stays out of `ps`.
+  let githubTokenCredId: string | null = null;
+  let githubTokenCred = '';
+  if (githubToken) {
+    const existing = await findCredentialByName(`${slug}-github-token`);
+    if (existing) await deleteCredential(existing);
+    githubTokenCredId = await storeCredential({
+      name: `${slug}-github-token`,
+      type: 'github',
+      provider: 'github',
+      secret: githubToken,
+    });
+    githubTokenCred = githubToken;
+  }
+
   // 1. Register the agent.
   await db.collection(Collections.AGENTS).insertOne({
     slug, name, technologies, repos, datasources, namespace, port,
+    githubTokenCredId,
     status: 'spawning', createdAt: new Date(),
   });
 
@@ -100,9 +132,11 @@ export async function POST({ request, cookies }) {
   }
 
   // 4. Spawn the namespace asynchronously (detached, updates status when done).
+  //    The per-agent GitHub token travels via env (GITHUB_TOKEN_CRED), not argv.
   spawn('node', ['/app/scripts/spawn-agent.mjs', slug, String(port), repos.join(',')], {
     detached: true,
     stdio: 'ignore',
+    env: { ...process.env, GITHUB_TOKEN_CRED: githubTokenCred },
   }).unref();
 
   return json({ ok: true, slug, name, namespace, port, status: 'spawning' });

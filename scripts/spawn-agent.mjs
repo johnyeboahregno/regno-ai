@@ -3,20 +3,26 @@
  * Spawn a full agent stack: a k3s namespace (dev-<slug>) with the whole platform,
  * seeded with the base standards + docs. Runs inside the web pod (has kubectl + RBAC).
  *
- * Usage: node scripts/spawn-agent.mjs <slug> <webPort>
+ * Usage: node scripts/spawn-agent.mjs <slug> <webPort> [reposCsv]
+ * Env:   GITHUB_TOKEN_CRED  optional per-agent GitHub PAT (for private repos), forwarded by
+ *        the API via env. When absent, seed-github inherits the global GITHUB_TOKEN from the
+ *        copied regno-env secret.
  */
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { MongoClient } from 'mongodb';
 
-const [slug, portStr] = process.argv.slice(2);
+const [slug, portStr, reposCsv = ''] = process.argv.slice(2);
 if (!slug || !portStr) {
-  console.error('usage: spawn-agent.mjs <slug> <webPort>');
+  console.error('usage: spawn-agent.mjs <slug> <webPort> [reposCsv]');
   process.exit(1);
 }
 const port = Number(portStr);
 const rtPort = port + 2;
 const ns = `dev-${slug}`;
+
+// Per-agent GitHub token (for private repos), forwarded by the API via env (never argv).
+const githubTokenCred = process.env.GITHUB_TOKEN_CRED ?? '';
 
 function sh(cmd, opts = {}) {
   return execSync(cmd, { stdio: 'inherit', ...opts });
@@ -71,13 +77,15 @@ async function main() {
   }
 
   // Ingest the agent's repos into its own brain, tagged with its flavour.
-  const repos = (process.argv[3] ?? '').split(',').map((r) => r.trim()).filter(Boolean);
+  // (repos arrive as argv[4] via the API — fixes a prior argv[3]/port mix-up)
+  const repos = (reposCsv ?? '').split(',').map((r) => r.trim()).filter(Boolean);
   if (repos.length) {
     console.log(`[spawn-agent] ingesting ${repos.length} repos as flavour ${slug}…`);
-    execSync(
-      `kubectl -n ${ns} exec ${wpod} -- env DEVELOPER=${slug} GITHUB_REPOS=${repos.join(',')} node scripts/seed-github.mjs`,
-      { stdio: 'inherit' },
-    );
+    const envParts = [`DEVELOPER=${slug}`, `GITHUB_REPOS=${repos.join(',')}`];
+    // Only override GITHUB_TOKEN when a per-agent token was provided, so an empty value
+    // doesn't clobber the global token inherited from the copied regno-env secret.
+    if (githubTokenCred) envParts.push(`GITHUB_TOKEN=${githubTokenCred}`);
+    execSync(`kubectl -n ${ns} exec ${wpod} -- env ${envParts.join(' ')} node scripts/seed-github.mjs`, { stdio: 'inherit' });
   }
 
   await mark('ready');
