@@ -87,7 +87,7 @@
   <p>Compose a pipeline from nodes, save it, and run it through Cortex Flow.</p>
 </div>
 
-<div class="grid" style="grid-template-columns: 240px 1fr; align-items:start;">
+<div class="grid canvas-layout">
   <div>
     <div class="card">
       <div class="faint mono small mb">NODE PALETTE</div>
@@ -171,3 +171,15 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .canvas-layout {
+    grid-template-columns: 240px 1fr;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .canvas-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -241,4 +241,10 @@
   .conf { display: flex; align-items: center; gap: 10px; }
   .conf-bar { flex: 1; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
   .conf-fill { height: 100%; background: linear-gradient(90deg, var(--signal), var(--signal-2)); }
+
+  @media (max-width: 640px) {
+    .row .input { flex: 1 1 100%; min-width: 0; }
+    .row select { flex: 1 1 100%; min-width: 0; }
+    .range input[type='range'] { width: 100%; }
+  }
 </style>

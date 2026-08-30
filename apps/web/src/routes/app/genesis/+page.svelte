@@ -1308,7 +1308,7 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  .empty-hint { position: absolute; width: 380px; padding: 26px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; background: var(--panel); }
+  .empty-hint { position: absolute; width: min(380px, 90vw); padding: 26px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; background: var(--panel); }
   .eh-title { font-family: var(--display); font-weight: 600; color: var(--ink); font-size: 15px; }
   .eh-sub { color: var(--ink-dim); font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
   .eh-btn { margin-top: 16px; background: linear-gradient(135deg, var(--signal), var(--signal-2)); border: none; color: #fff; padding: 9px 16px; border-radius: 8px; font-family: var(--display); font-size: 13px; cursor: pointer; }
@@ -1453,4 +1453,16 @@
   .debug-ts { color: var(--ink-faint); flex: none; }
   .debug-ev { color: #a855f7; flex: none; font-weight: 700; }
   .debug-data { margin: 0; color: var(--ink-dim); font-family: var(--mono); font-size: 10.5px; white-space: pre-wrap; word-break: break-word; flex: 1; }
+
+  @media (max-width: 900px) {
+    .genesis { height: auto; min-height: 100vh; }
+    .builder { grid-template-columns: 1fr; }
+    .canvas-wrap { min-height: 420px; }
+    .palette { max-height: 320px; }
+    .config { max-height: none; }
+    .dash-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .dash-grid { grid-template-columns: 1fr; }
+  }
 </style>

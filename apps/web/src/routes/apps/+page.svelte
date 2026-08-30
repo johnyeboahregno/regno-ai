@@ -118,4 +118,13 @@
     justify-content: center;
     font-weight: 700;
   }
+  @media (max-width: 640px) {
+    .chooser {
+      padding: 20px 16px;
+    }
+    .chooser-head {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  }
 </style>

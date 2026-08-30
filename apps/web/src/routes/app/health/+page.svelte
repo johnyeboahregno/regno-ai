@@ -227,7 +227,7 @@
   .u-table {
     border: 1px solid var(--line);
     border-radius: 10px;
-    overflow: hidden;
+    overflow-x: auto;
   }
   .u-row {
     display: grid;
@@ -255,6 +255,16 @@
   @media (max-width: 900px) {
     .u-grid {
       grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .u-row {
+      min-width: 480px;
+    }
+  }
+  @media (max-width: 480px) {
+    .u-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

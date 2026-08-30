@@ -449,6 +449,21 @@ tr:hover td { background: var(--signal-hover); }
   transition: background 0.15s ease, color 0.15s ease;
 }
 .sidebar .item:hover { color: var(--ink); background: var(--panel-2); }
+.sidebar button.item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.sidebar .item .chev {
+  margin-left: auto;
+  display: inline-flex;
+  color: var(--ink-faint);
+  transition: transform 0.18s ease;
+}
+.sidebar .item .chev.open { transform: rotate(180deg); }
 .sidebar .item.active {
   color: var(--on-signal);
   background: linear-gradient(135deg, var(--signal) 0%, var(--signal-2) 100%);
@@ -569,3 +584,117 @@ tr:hover td { background: var(--signal-hover); }
 .page-head { margin-bottom: 28px; }
 .page-head h1 { font-size: 30px; }
 .page-head p { color: var(--ink-dim); margin-top: 8px; }
+
+/* ── Responsive helpers ─────────────────────────────────────────── */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* mobile top bar for the app shell (visible ≤640px) */
+.mobile-bar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.mb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--panel);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+.mb-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 290;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  cursor: pointer;
+}
+
+/* sidebar close button — only used inside the mobile drawer */
+.sidebar .sb-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  margin-left: auto;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sidebar .sb-close:hover { background: var(--panel-2); color: var(--ink); }
+
+@media (max-width: 900px) {
+  .page-head h1 { font-size: 26px; }
+}
+
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+  .nav-inner { padding: 0 16px; height: 56px; }
+  .nav-links { gap: 14px; flex-wrap: wrap; }
+  .content { padding: 12px; }
+  .page-head { margin-bottom: 20px; }
+  .page-head h1 { font-size: 24px; }
+
+  /* app shell → single column, sidebar becomes an off-canvas drawer */
+  .mobile-bar { display: flex; }
+  .shell { display: block; }
+  .shell .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 85vw);
+    height: 100dvh;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+  .shell.mobile-open .sidebar { transform: translateX(0); box-shadow: 0 0 60px rgba(0, 0, 0, 0.5); }
+
+  /* the drawer always shows full labels, regardless of desktop collapse state */
+  .shell.collapsed .sidebar .label { display: inline; }
+  .shell.collapsed .sidebar .chev { display: inline-flex; }
+  .shell.collapsed .sidebar .profile-meta { display: flex; }
+  .shell.collapsed .sidebar .sb-head .brand { display: flex; }
+  .shell.collapsed .sidebar .sb-head {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px 14px;
+    min-height: 38px;
+  }
+  .shell.collapsed .sidebar .sb-toggle { margin-left: auto; }
+  .shell.collapsed .sidebar .section-head,
+  .shell.collapsed .sidebar .item,
+  .shell.collapsed .sidebar .foot-item { justify-content: flex-start; padding: 8px 10px; }
+  .shell.collapsed .sidebar .profile {
+    justify-content: flex-start;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 10px;
+    margin-top: 12px;
+  }
+
+  /* collapse is a desktop-only concept — hide the toggle, show a close button */
+  .sidebar .sb-toggle { display: none; }
+  .sidebar .sb-close { display: inline-flex; }
+}

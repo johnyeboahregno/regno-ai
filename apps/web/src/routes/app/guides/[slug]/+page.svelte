@@ -74,7 +74,7 @@
   .content :global(pre code) { background: transparent; border: 0; padding: 0; }
   .content :global(ul), .content :global(ol) { margin: 8px 0 8px 22px; }
   .content :global(li) { margin: 4px 0; }
-  .content :global(table) { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  .content :global(table) { border-collapse: collapse; width: 100%; margin: 12px 0; display: block; overflow-x: auto; }
   .content :global(th), .content :global(td) { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
   .content :global(a) { color: var(--signal); }
   .content :global(blockquote) { border-left: 2px solid var(--signal); padding-left: 12px; margin: 12px 0; }

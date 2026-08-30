@@ -427,7 +427,7 @@
   .u-table {
     border: 1px solid var(--line);
     border-radius: 10px;
-    overflow: hidden;
+    overflow-x: auto;
   }
   .u-row {
     display: grid;
@@ -474,6 +474,9 @@
     .f-total {
       flex-direction: column;
       align-items: flex-start;
+    }
+    .u-row {
+      min-width: 480px;
     }
   }
 </style>

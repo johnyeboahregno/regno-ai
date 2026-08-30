@@ -130,7 +130,7 @@
   </div>
 
   <form class="composer" on:submit={send}>
-    <div style="width:200px;">
+    <div style="width:200px; max-width:100%;">
       <label for="sma">SMA</label>
       <select class="input" id="sma" bind:value={sma}>
         {#each smas as p}
@@ -212,5 +212,13 @@
   .composer textarea {
     flex: 1;
     resize: none;
+  }
+  @media (max-width: 640px) {
+    .composer {
+      flex-wrap: wrap;
+    }
+    .composer textarea {
+      flex: 1 1 100%;
+    }
   }
 </style>

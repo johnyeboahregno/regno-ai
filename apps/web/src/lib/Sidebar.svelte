@@ -9,6 +9,7 @@
   export let user: { email: string; role: string };
   export let path: string;
   export let onLogout: () => void;
+  export let onNavigate: (() => void) | undefined = undefined;
 
   const baseNav = buildNav(user.role);
   let docsChildren: NavItem[] = [];
@@ -26,14 +27,15 @@
   );
 
   let open: Record<string, boolean> = {};
+  let openItems: Record<string, boolean> = {};
 
   function basename(p: string): string {
     return p.split('/').pop() ?? p;
   }
 
-  function isActive(item: NavItem): boolean {
-    if (path === item.href || path.startsWith(item.href + '?')) return true;
-    return (item.children ?? []).length > 0 && path.startsWith(item.href + '/');
+  function isActive(item: NavItem, p = path): boolean {
+    if (p === item.href || p.startsWith(item.href + '?')) return true;
+    return (item.children ?? []).length > 0 && p.startsWith(item.href + '/');
   }
 
   onMount(async () => {
@@ -85,6 +87,33 @@
     if (changed) open = next;
   }
 
+  // Auto-open the submenu that contains the current path on navigation.
+  $: path, ensureActiveItemOpen(path);
+
+  function ensureActiveItemOpen(p: string) {
+    if (!p) return;
+    const next = { ...openItems };
+    let changed = false;
+    for (const group of nav) {
+      for (const item of group.items) {
+        if ((item.children ?? []).length > 0 && isActive(item, p) && !next[item.href]) {
+          next[item.href] = true;
+          changed = true;
+        }
+      }
+    }
+    if (changed) openItems = next;
+  }
+
+  function toggleItem(item: NavItem) {
+    if ($collapsed) {
+      collapsed.set(false);
+      openItems = { ...openItems, [item.href]: true };
+      return;
+    }
+    openItems = { ...openItems, [item.href]: !openItems[item.href] };
+  }
+
   function toggleSection(group: NavGroup) {
     if ($collapsed) {
       collapsed.set(false);
@@ -96,6 +125,11 @@
 
   function toggleTheme() {
     theme.set(nextTheme($theme));
+  }
+
+  function handleClick(e: MouseEvent) {
+    const t = e.target as Element | null;
+    if (t && t.closest && t.closest('a')) onNavigate?.();
   }
 
   function themeName(t: Theme): string {
@@ -134,13 +168,21 @@
   })();
 </script>
 
-<aside class="sidebar">
+<aside class="sidebar" on:click={handleClick}>
   <div class="sb-head">
     {#if !$collapsed}
       <a class="brand" href="/app" aria-label="Regno home"><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
     {:else}
       <span class="brand-mark" aria-hidden="true"></span>
     {/if}
+    <button
+      class="sb-close"
+      on:click={() => onNavigate?.()}
+      title="Close menu"
+      aria-label="Close menu"
+    >
+      <Icon name="x" size={18} />
+    </button>
     <button
       class="sb-toggle"
       on:click={() => collapsed.set(!$collapsed)}
@@ -170,21 +212,35 @@
         {#if !$collapsed && open[group.id]}
           <div class="section-body">
             {#each group.items as item}
-              <a href={item.href} class="item" class:active={isActive(item)} title={item.label} aria-current={isActive(item) ? 'page' : undefined}>
-                <span class="ic-wrap"><Icon name={item.icon} size={16} /></span>
-                <span class="label">{item.label}</span>
-              </a>
               {#if item.children}
-                <div class="sub-body">
-                  {#each item.children as child, i}
-                    {#if child.group && child.group !== item.children[i - 1]?.group}
-                      <div class="sub-group">{child.group}</div>
-                    {/if}
-                    <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
-                      <span class="label">{child.label}</span>
-                    </a>
-                  {/each}
-                </div>
+                <button
+                  class="item item-toggle"
+                  class:active={isActive(item)}
+                  on:click={() => toggleItem(item)}
+                  title={item.label}
+                  aria-expanded={!!openItems[item.href]}
+                >
+                  <span class="ic-wrap"><Icon name={item.icon} size={16} /></span>
+                  <span class="label">{item.label}</span>
+                  <span class="chev" class:open={!!openItems[item.href]} aria-hidden="true"><Icon name="chevron" size={14} /></span>
+                </button>
+                {#if openItems[item.href]}
+                  <div class="sub-body">
+                    {#each item.children as child, i}
+                      {#if child.group && child.group !== item.children[i - 1]?.group}
+                        <div class="sub-group">{child.group}</div>
+                      {/if}
+                      <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
+                        <span class="label">{child.label}</span>
+                      </a>
+                    {/each}
+                  </div>
+                {/if}
+              {:else}
+                <a href={item.href} class="item" class:active={isActive(item)} title={item.label} aria-current={isActive(item) ? 'page' : undefined}>
+                  <span class="ic-wrap"><Icon name={item.icon} size={16} /></span>
+                  <span class="label">{item.label}</span>
+                </a>
               {/if}
             {/each}
 

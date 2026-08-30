@@ -68,7 +68,7 @@
   <label>Prompt</label>
   <textarea class="input" bind:value={prompt} rows="3" placeholder="e.g. Scaffold a small Node.js API for notes"></textarea>
   <div class="mt" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
-    <div style="width:180px;">
+    <div style="width:180px; max-width:100%;">
       <label>Depth</label>
       <select class="input" bind:value={depth}>
         <option value="quick">quick</option>

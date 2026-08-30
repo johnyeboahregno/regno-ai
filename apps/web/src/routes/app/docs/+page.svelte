@@ -167,7 +167,7 @@
   .content :global(a) { color: var(--signal); }
   .content :global(blockquote) { border-left: 2px solid var(--signal); padding-left: 12px; margin: 12px 0; }
   .content :global(hr) { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
-  .content :global(table) { border-collapse: collapse; margin: 12px 0; }
+  .content :global(table) { border-collapse: collapse; margin: 12px 0; display: block; overflow-x: auto; max-width: 100%; }
   .content :global(th), .content :global(td) { border: 1px solid var(--line); padding: 6px 10px; font-size: 13px; }
   .content :global(th) { color: var(--ink); background: var(--bg-alt); }
 </style>

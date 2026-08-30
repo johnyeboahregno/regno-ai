@@ -34,7 +34,7 @@
 <svelte:head><title>Sign in — Regno Architect Me</title></svelte:head>
 
 <div class="wrap" style="display:grid; place-items:center; min-height:100vh;">
-  <div class="card" style="width:100%; max-width:420px; padding:36px;">
+  <div class="card" style="width:100%; max-width:420px; padding:clamp(20px, 6vw, 36px);">
     <a class="brand mb" href="/"><Brand /></a>
     <div class="eyebrow blue mb">Sign in</div>
     <h1 style="font-size:26px;">Welcome back.</h1>

@@ -39,6 +39,7 @@ export const theme = writable<Theme>(initialTheme());
 export const collapsed = writable<boolean>(
   browser && localStorage.getItem(COLLAPSED_KEY) === '1'
 );
+export const mobileNavOpen = writable<boolean>(false);
 
 if (browser) {
   theme.subscribe((t) => {

@@ -32,4 +32,9 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+  @media (max-width: 640px) {
+    .topnav {
+      padding: 16px 16px;
+    }
+  }
 </style>
