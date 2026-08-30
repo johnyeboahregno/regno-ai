@@ -1,7 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  let overview = { patterns: 0, memories: 0, agents: 0, executions: 0, knowledge: 0 };
+  let overview: {
+    patterns: number;
+    memories: number;
+    agents: number;
+    executions: number;
+    knowledge: number;
+    served: { servedPhases: number; llmCalls: number };
+  } = { patterns: 0, memories: 0, agents: 0, executions: 0, knowledge: 0, served: { servedPhases: 0, llmCalls: 0 } };
   let loaded = false;
 
   onMount(async () => {
@@ -43,6 +50,11 @@
     <div class="faint mono small">EXECUTIONS</div>
     <div style="font-family:var(--display); font-size:34px; margin-top:8px;">{overview.executions}</div>
     <p class="muted small mt">Cortex Flow runs</p>
+  </div>
+  <div class="card">
+    <div class="faint mono small">SERVED PHASES</div>
+    <div style="font-family:var(--display); font-size:34px; margin-top:8px;">{overview.served.servedPhases}</div>
+    <p class="muted small mt">{overview.served.llmCalls} LLM calls avoided by Recall &amp; Serve</p>
   </div>
 </div>
 

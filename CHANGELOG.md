@@ -3,6 +3,21 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — Recall & Serve, Phase C: observability (served vs LLM-call counters)
+
+Surfacing the savings so the compounding brain is measurable:
+
+- **`GET /api/cortex/overview`** — now returns a `served` block (`servedPhases`, `llmCalls`
+  summed across executions). Dashboard (`/app`) shows a **SERVED PHASES** stat card
+  ("N LLM calls avoided").
+- **`GET /api/health`** — new `served` block (executions / servedPhases / llmCalls) alongside
+  AI usage & cost.
+- **`GET /api/executions`** — each execution now returns `llmCalls`, `servedPhases`, `servedFrom`
+  (provenance of what was served from memory).
+- **Executions page** (`/app/executions`) — new **Served** column (✓ N served badge) and
+  **LLM calls** column.
+- Build verified: `npm run check -w @regno/web` = 0 errors.
+
 ## 2026-08-30 — Recall & Serve, Phase B: the decision layer (serve known answers, cut LLM calls)
 
 The CORTEX brain can now answer known tasks **from memory with zero LLM calls**, instead of

@@ -40,6 +40,29 @@ export async function GET() {
     configured: Boolean(process.env.SMTP_HOST && process.env.SMTP_PASSWORD),
   };
 
+  // Recall & Serve — served vs LLM calls across executions (best-effort).
+  let served: unknown = null;
+  try {
+    const db = await getDb();
+    const agg = await db
+      .collection(Collections.CORTEX_EXECUTIONS)
+      .aggregate([
+        {
+          $group: {
+            _id: null,
+            executions: { $sum: 1 },
+            servedPhases: { $sum: '$servedPhases' },
+            llmCalls: { $sum: '$llmCalls' },
+          },
+        },
+      ])
+      .toArray();
+    const row = agg[0] ?? { executions: 0, servedPhases: 0, llmCalls: 0 };
+    served = { executions: row.executions, servedPhases: row.servedPhases, llmCalls: row.llmCalls };
+  } catch {
+    served = null;
+  }
+
   // AI usage & cost — aggregated from ai_usage (best-effort; null if collection absent).
   let usage: unknown = null;
   try {
@@ -139,5 +162,5 @@ export async function GET() {
     usage = null;
   }
 
-  return json({ ok: true, service: 'regno-architect', redis, mongo, qdrant, neo4j, smtp, usage });
+  return json({ ok: true, service: 'regno-architect', redis, mongo, qdrant, neo4j, smtp, served, usage });
 }

@@ -44,6 +44,9 @@ export async function GET({ url }) {
     status: e.status,
     output: e.output ?? '',
     error: e.error ?? '',
+    llmCalls: e.llmCalls ?? 0,
+    servedPhases: e.servedPhases ?? 0,
+    servedFrom: e.servedFrom ?? null,
     createdAt: e.createdAt,
   }));
   return json({ ok: true, executions });

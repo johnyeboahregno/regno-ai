@@ -13,6 +13,8 @@
     depth: string;
     finalScore: number;
     status: string;
+    llmCalls: number;
+    servedPhases: number;
     createdAt: string;
   }> = [];
 
@@ -83,7 +85,7 @@
 <div class="panel" style="overflow-x:auto;">
   <table>
     <thead>
-      <tr><th>Status</th><th>Agent</th><th>Prompt</th><th>Depth</th><th>Score</th><th>Created</th></tr>
+      <tr><th>Status</th><th>Agent</th><th>Prompt</th><th>Depth</th><th>Score</th><th>Served</th><th>LLM calls</th><th>Created</th></tr>
     </thead>
     <tbody>
       {#each executions as e}
@@ -93,11 +95,19 @@
           <td class="muted">{e.prompt?.slice(0, 80)}{e.prompt?.length > 80 ? '…' : ''}</td>
           <td>{e.depth}</td>
           <td>{e.finalScore ?? '—'}</td>
+          <td>
+            {#if e.servedPhases > 0}
+              <span class="tag signal">✓ {e.servedPhases} served</span>
+            {:else}
+              <span class="faint">—</span>
+            {/if}
+          </td>
+          <td>{e.llmCalls ?? '—'}</td>
           <td class="faint">{e.createdAt ? new Date(e.createdAt).toLocaleString() : '—'}</td>
         </tr>
       {/each}
       {#if executions.length === 0}
-        <tr><td colspan="6" class="faint">No executions yet — run one above.</td></tr>
+        <tr><td colspan="8" class="faint">No executions yet — run one above.</td></tr>
       {/if}
     </tbody>
   </table>
