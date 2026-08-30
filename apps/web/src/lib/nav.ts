@@ -47,6 +47,7 @@ export function buildNav(role: string): NavGroup[] {
       icon: 'gear',
       items: [
         { href: '/app', label: 'Dashboard', icon: 'dashboard' },
+        { href: '/app/guides', label: 'User Guides', icon: 'guide' },
         { href: '/app/docs', label: 'Docs', icon: 'docs' },
         { href: '/app/credentials', label: 'Credentials', icon: 'credentials' },
         { href: '/app/health', label: 'Health', icon: 'health' },

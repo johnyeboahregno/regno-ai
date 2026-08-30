@@ -1,0 +1,124 @@
+# Initial Setup & Growing the CORTEX Brain
+
+> How to take a fresh Regno Architect from "running" to "learning", then keep growing its brain.
+> Target audience: new devs, and devs who need a refresh.
+
+## What "growing the brain" means
+
+Your Architect isn't a static model — it's a **compounding brain**. Every good build writes a
+memory; every future run reads those memories back into its context. Growth happens through
+**four channels** that compound:
+
+| Channel | How | Mechanism |
+|---|---|---|
+| **Seed** | Ingest docs + standards + a dev's code/git history | `seed-*` scripts → `cortex_index` + Qdrant |
+| **Curate** | Manually store memories & patterns | `/app/cortex` page |
+| **Work** | Run real executions; each good one auto-writes an insight | `orchestrator.ts` → `remember()` when score ≥ 80 |
+| **Recall** | Next run reads memories + flavour back into context | `context.ts` prompt injection |
+
+```mermaid
+flowchart LR
+    A["Seed: seed-history / seed-github<br/>(code + git log → cortex_index, tagged by developer)"] --> B["CORTEX brain<br/>(Mongo + Qdrant + Neo4j)"]
+    B --> C["Execution: orchestrator<br/>context = base standards + developer flavour + memories"]
+    C --> D["Output graded (quality.ts)"]
+    D -->|"score ≥ 80"| E["remember() → insight wisdom"]
+    E --> B
+```
+
+## Prerequisites
+
+| Check | How to verify |
+|---|---|
+| **Valid LLM key** | `OPENAI_API_KEY` in root `.env`. **#1 blocker.** A key returning `429 insufficient_quota` silently switches to *simulated* output — you'd be learning fake insights. Confirm it works first. |
+| **Infra up** | Mongo, Qdrant, Neo4j, Redis (`npm run db:up` locally, or the k3s namespace). `/app/health` shows each store's status. |
+| **Web app running** | `npm run dev:web` → http://localhost:5173 (dev), or the deployed app. |
+
+## Step 0 — Unblock the LLM key (do this FIRST)
+
+1. Put a **valid** `OPENAI_API_KEY` in root `.env`.
+2. Restart the web dev server (Vite does not auto-load root `.env` for SSR):
+   ```bash
+   export OPENAI_API_KEY=$(sed -n 's/^OPENAI_API_KEY=//p' .env)
+   npm run dev:web
+   ```
+3. Confirm **real model calls** on `/app/health` (AI usage section) — not errors.
+
+## Step 1 — Seed the base brain
+
+Give it its starting corpus (all 332 docs + best-practice standards):
+
+```bash
+npm run db:up
+npm run db:init && npm run db:seed
+```
+
+> On k3s this is automatic: `seed-k3s.sh` runs `seed-agents` / `seed-standards` / `seed-brain` in-pod.
+
+**Verify:** `/app/cortex` shows a non-zero **KNOWLEDGE DOCS** count; `/app/oracle` returns results.
+
+## Step 2 — Teach it a developer's flavour
+
+Point it at your code so it learns your conventions (the "learn their code" model):
+
+```bash
+DEVELOPER=<your-name> node scripts/seed-history.mjs   # uses profile/repos.json → C:/repos/regno-ai
+```
+
+**Verify:** search returns code chunks tagged with your developer name. Spawning a new Architect
+via `/app/agents` does this automatically for the repos you list (tagged with the architect's
+slug), plus gives it its own brain + read-only access to the shared base.
+
+## Step 3 — Curate: teach it directly
+
+On the **CORTEX page** (`/app/cortex`):
+- **Memories** — store `profile` (your conventions), `note`, and `insight` entries.
+  `profile`-category memories are injected into every run as `userMemories`.
+- **Patterns** — store proven approaches ("SvelteKit CRUD API", "Go service layout").
+  These sync to Mongo + Qdrant + Neo4j.
+
+## Step 4 — Let it learn from work
+
+The **Architect chat** (`/app/chat`) is the growth engine: each execution scoring **≥ 80**
+auto-writes an insight memory the *next* run reads back.
+
+1. Ask it to build something small (start with your own codebase so `read`/`grep` tools have value).
+2. Watch `/app/executions` — check the **final score**.
+3. Verify on `/app/cortex` that an **insight** memory appeared.
+4. Run a second, similar task — the insight should appear in its context.
+
+> ⚠️ Use the **Architect chat / executions** for growth, not Genesis pipelines — Genesis nodes
+> call the LLM but don't write wisdom back. Auto-learning happens only in the Cortex Flow
+> orchestrator (`/api/executions`).
+
+## Step 5 — Verify the loop is compounding
+
+| Check | Where | Should show |
+|---|---|---|
+| Knowledge docs seeded | `/app/cortex` | non-zero count |
+| Developer flavour searchable | `/app/oracle` | code chunks tagged `developer:<you>` |
+| Insight memories growing | `/app/cortex` → Memories | new entries after each good run |
+| Memory used in next run | run a 2nd task | output reflects the prior insight |
+| LLM calls shrinking | `/app` (SERVED PHASES) | served phases > 0 after repeated tasks |
+
+## Known limitations (don't be surprised)
+
+- **Only ≥80 scores are learned** — low-quality runs intentionally write nothing.
+- **Memory recall is recent-first, not semantic** — context pulls the 5 most-recent memories,
+  not the most relevant. Semantic retrieval exists (Oracle/Nexus, knowledgeBase tool) but isn't
+  the default context path yet. This is the biggest quality ceiling on growth.
+- **No automatic pattern extraction yet** — only insights are auto-written; patterns are manual,
+  and there's no confidence decay.
+- **Wisdom memories skip Neo4j** (Mongo + Qdrant only); patterns use all three stores.
+- **LLM key 429 = silent simulation** — pipelines fall back to simulated analysis so they never
+  hard-fail. Always confirm real model calls on `/app/health`.
+
+## Where things live
+
+| Concern | File |
+|---|---|
+| Learning write-back (insight) | `packages/flow/src/orchestrator.ts` |
+| Context injection (standards + flavour + memory) | `packages/flow/src/context.ts` |
+| Three-store sync | `packages/db/src/sync.ts` |
+| Recall & Serve decision layer | `packages/cortex/src/recall.ts` |
+| Code ingestion | `scripts/seed-history.mjs`, `scripts/seed-github.mjs` |
+| Architect spawner | `scripts/spawn-agent.mjs` + `/api/agents` |

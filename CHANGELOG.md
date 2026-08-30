@@ -3,6 +3,24 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-30 — User Guides section + Recall & Serve docs (Phase E)
+
+A dedicated, markdown-driven **User Guides** area so every explanation lives where new devs and
+refreshers can find it:
+
+- **New `/app/guides` page** — `apps/web/src/routes/app/guides/+page.svelte` auto-discovers every
+  `.md` in `apps/web/src/lib/guides/` (via `import.meta.glob`, `as: 'raw'`), renders markdown +
+  mermaid (same pipeline as `/app/docs`). Sidebar entry **User Guides** in the System group
+  (book-open icon added to `$lib/icons.ts`).
+- **Guide: `initial-setup.md`** — "Initial Setup & Growing the CORTEX Brain": the four growth
+  channels, LLM-key unblock, seeding, developer flavour, curation, work loop, and verification.
+- **Guide: `llm-reduction.md`** — "Why Your LLM Bills Shrink": how Recall & Serve works, how to
+  verify it (served counters), how to tune it (env/per-call), and honest caveats.
+- **Docs** — `docs/engineering/18-architect-brain-model.md` notes the learning + serving layer
+  (architect-scoped wisdom, base read-only).
+- Build verified: `npm run check -w @regno/web` = 0 errors; production build bundles
+  `pages/app/guides/_page.svelte.js`.
+
 ## 2026-08-30 — SMA: "Architects" corrected to Subject Matter Experts
 
 Correcting the "Regno Architects" concept: there is **one** architect (the whole app), and what
