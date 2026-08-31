@@ -15,12 +15,19 @@
   stroke-linejoin="round"
   aria-hidden="true"
 >
-  <path d="M22 12 L18 12 L15 21 L9 3 L6 12 L2 12" opacity="0.55" />
-  <circle r="1.8" fill="currentColor" stroke="none">
+  <path d="M2 12 L6 12 L9 3 L15 21 L18 12 L22 12" opacity="0.55" />
+  <circle r="1.8" fill="currentColor" stroke="none" opacity="0">
     <animateMotion
       dur="1.6s"
       repeatCount="indefinite"
-      path="M22 12 L18 12 L15 21 L9 3 L6 12 L2 12"
+      path="M2 12 L6 12 L9 3 L15 21 L18 12 L22 12"
+    />
+    <animate
+      attributeName="opacity"
+      dur="1.6s"
+      repeatCount="indefinite"
+      values="0; 1; 1; 0"
+      keyTimes="0; 0.12; 0.88; 1"
     />
   </circle>
 </svg>
