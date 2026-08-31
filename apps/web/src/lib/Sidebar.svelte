@@ -242,6 +242,7 @@
   <div class="sb-head">
     {#if !$collapsed}
       <a class="brand" href="/app" aria-label="Regno home"><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
+      <span class="sb-status" title="All systems operational" aria-label="System status: all systems operational"><Icon name="health" size={14} /></span>
     {:else}
       <span class="brand-mark" aria-hidden="true"></span>
     {/if}

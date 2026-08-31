@@ -364,6 +364,14 @@ tr:hover td { background: var(--signal-hover); }
   min-height: 38px;
 }
 .sidebar .sb-head .brand { flex: 1; min-width: 0; display: flex; align-items: center; }
+.sidebar .sb-status {
+  display: inline-flex;
+  align-items: center;
+  color: var(--good);
+  opacity: 0.85;
+  flex: none;
+}
+.sidebar .sb-status:hover { opacity: 1; }
 .sidebar .brand-mark {
   width: 16px;
   height: 16px;
