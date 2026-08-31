@@ -57,28 +57,6 @@
     return d.toISOString().slice(0, 16).replace('T', ' ');
   }
 
-  // ---- ASCII banner --------------------------------------------------------
-  const FONT: Record<string, string[]> = {
-    R: ['#####', '#   #', '#   #', '#####', '#  # ', '#   #'],
-    E: ['#####', '#    ', '#### ', '#    ', '#    ', '#####'],
-    G: [' ####', '#    ', '#  ##', '#   #', ' #  #', ' ####'],
-    N: ['#   #', '##  #', '# # #', '#  ##', '#   #', '#   #'],
-    O: [' ### ', '#   #', '#   #', '#   #', '#   #', ' ### '],
-    A: [' ### ', '#   #', '#####', '#   #', '#   #', '#   #'],
-    I: ['#####', '  #  ', '  #  ', '  #  ', '  #  ', '#####'],
-    ' ': ['     ', '     ', '     ', '     ', '     ', '     '],
-  };
-  function banner(text: string): string {
-    const rows = ['', '', '', '', '', ''];
-    for (const ch of text.toUpperCase()) {
-      const glyph = FONT[ch] ?? FONT[' '];
-      glyph.forEach((row, i) => {
-        rows[i] += row + '  ';
-      });
-    }
-    return rows.join('\n');
-  }
-
   // ---- command registry ----------------------------------------------------
   interface Cmd {
     usage: string;
@@ -124,14 +102,6 @@
       detail: 'Clear the screen.\n\n  clear\n\nAliases: cls · Shortcut: Ctrl+L.',
       run() {
         lines = [];
-      },
-    },
-    banner: {
-      usage: '',
-      desc: 're-print the REGNO banner',
-      detail: 'Re-print the ASCII banner.\n\n  banner',
-      run() {
-        pushMany('banner', banner('REGNO'));
       },
     },
     whoami: {
@@ -526,14 +496,7 @@
     }
     if (saved && smas.some((s) => s.slug === saved)) sma = saved;
 
-    pushMany('banner', banner('REGNO'));
-    push('banner', '');
-    push('info', 'AI Command Console — v1.0.0');
-    push('info', `session  ${data.user.email} (${data.user.role})`);
-    push('info', `sma      ${sma} — switch with: sma <slug>`);
-    push('muted', '');
-    push('info', 'type "help" to list commands · "help <command>" for details');
-    push('muted', '');
+    push('muted', 'Regno CLI — type "help" for commands');
     focusInput();
     scrollToBottom();
   });
