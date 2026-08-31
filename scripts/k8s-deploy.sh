@@ -196,7 +196,7 @@ if [ "$SKIP_VALIDATE" -eq 0 ]; then
   step "validating deployed app at http://localhost:$PORT/api/health"
   ok=0
   for i in $(seq 1 24); do
-    body="$(curl -fsS --max-time 5 "http://localhost:$PORT/api/health" 2>/dev/null || true)"
+    body="$(curl -fsS --max-time 10 "http://localhost:$PORT/api/health" 2>/dev/null || true)"
     if printf '%s' "$body" | grep -q '"ok":true'; then
       ok=1
       echo "  ✓ health OK: $body"
