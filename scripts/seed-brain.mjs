@@ -58,6 +58,12 @@ async function embed(text, key) {
   return json.data[0].embedding;
 }
 
+/** Qdrant point ids must be integers or UUIDs — derive a stable integer id. */
+function pointId(sourceUrl, i) {
+  const h = createHash('sha1').update(`${sourceUrl}#${i}`).digest('hex');
+  return Number.parseInt(h.slice(0, 13), 16);
+}
+
 async function main() {
   const key = process.env.OPENAI_API_KEY ?? '';
   if (!key) {
@@ -87,7 +93,6 @@ async function main() {
     );
 
     const chunks = chunk(content);
-    const digest = createHash('sha1').update(sourceUrl).digest('hex').slice(0, 12);
     if (key) {
       for (let i = 0; i < chunks.length; i++) {
         const vector = await embed(chunks[i], key);
@@ -95,7 +100,7 @@ async function main() {
           wait: false,
           points: [
             {
-              id: `${digest}-${i}`,
+              id: pointId(sourceUrl, i),
               vector,
               payload: { sourceUrl, title, rel: domain, heading: title, version: 1, isLatest: true, chunk: i, text: chunks[i] },
             },

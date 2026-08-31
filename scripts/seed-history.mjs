@@ -63,6 +63,12 @@ async function embed(text, key) {
   return json.data[0].embedding;
 }
 
+/** Qdrant point ids must be integers or UUIDs — derive a stable integer id. */
+function pointId(sourceUrl, i) {
+  const h = createHash('sha1').update(`${sourceUrl}#${i}`).digest('hex');
+  return Number.parseInt(h.slice(0, 13), 16);
+}
+
 function gitLog(repo) {
   try {
     return execSync(
@@ -122,10 +128,9 @@ async function main() {
       );
       totalDocs++;
       if (key) {
-        const digest = createHash('sha1').update(sourceUrl).digest('hex').slice(0, 12);
         for (const [i, c] of chunk(log).entries()) {
           const vector = await embed(c, key);
-          await q.upsert('doc_search', { wait: false, points: [{ id: `${digest}-${i}`, vector, payload: { sourceUrl, title: `${name} history`, rel: `git/${name}`, heading: 'history', version: 1, isLatest: true, chunk: i, text: c } }] });
+          await q.upsert('doc_search', { wait: false, points: [{ id: pointId(sourceUrl, i), vector, payload: { sourceUrl, title: `${name} history`, rel: `git/${name}`, heading: 'history', version: 1, isLatest: true, chunk: i, text: c } }] });
           totalChunks++;
         }
       }
@@ -151,10 +156,9 @@ async function main() {
       );
       totalDocs++;
       if (key) {
-        const digest = createHash('sha1').update(sourceUrl).digest('hex').slice(0, 12);
         for (const [i, c] of chunk(content).entries()) {
           const vector = await embed(c, key);
-          await q.upsert('doc_search', { wait: false, points: [{ id: `${digest}-${i}`, vector, payload: { sourceUrl, title: `${name}/${rel}`, rel: domain, heading: rel, version: 1, isLatest: true, chunk: i, text: c } }] });
+          await q.upsert('doc_search', { wait: false, points: [{ id: pointId(sourceUrl, i), vector, payload: { sourceUrl, title: `${name}/${rel}`, rel: domain, heading: rel, version: 1, isLatest: true, chunk: i, text: c } }] });
           totalChunks++;
         }
       }

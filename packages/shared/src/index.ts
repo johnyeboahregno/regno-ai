@@ -2,6 +2,7 @@
  * @regno/shared — shared constants for the Regno Architect Me build.
  * Collection / queue / event names consolidated from docs/DB_SCHEMA.md.
  */
+import { createHash } from 'node:crypto';
 
 export const DB_NAME = 'regno';
 
@@ -59,6 +60,17 @@ export const QdrantCollections = {
   KNOWLEDGE_VECTORS: 'knowledge_vectors',
   DOC_SEARCH: 'doc_search',
 } as const;
+
+/**
+ * Derive a stable Qdrant point id. Qdrant only accepts unsigned integers or
+ * UUID strings as point ids — a bare `${hash}-${i}` string is rejected with
+ * HTTP 400 "Bad Request". We hash the logical key into a 52-bit integer
+ * (within Number.MAX_SAFE_INTEGER) so re-runs upsert the same points.
+ */
+export function qdrantPointId(key: string, chunk = 0): number {
+  const h = createHash('sha1').update(`${key}#${chunk}`).digest('hex');
+  return Number.parseInt(h.slice(0, 13), 16);
+}
 
 /** BullMQ queues (see docs/DB_SCHEMA.md §5) */
 export const Queues = {

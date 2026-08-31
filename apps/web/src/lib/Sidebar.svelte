@@ -1,6 +1,7 @@
 <script lang="ts">
   import Brand from '$lib/Brand.svelte';
   import Icon from '$lib/Icon.svelte';
+  import StatusPulse from '$lib/StatusPulse.svelte';
   import ArchitectAgeWidget from '$lib/ArchitectAgeWidget.svelte';
   import { buildNav, groupContainsPath, itemMatchesPath, type NavGroup, type NavItem } from '$lib/nav';
   import { guides } from '$lib/guides';
@@ -242,7 +243,7 @@
   <div class="sb-head">
     {#if !$collapsed}
       <a class="brand" href="/app" aria-label="Regno home"><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
-      <span class="sb-status" title="All systems operational" aria-label="System status: all systems operational"><Icon name="health" size={14} /></span>
+      <span class="sb-status" title="All systems operational" aria-label="System status: all systems operational"><StatusPulse size={16} /></span>
     {:else}
       <span class="brand-mark" aria-hidden="true"></span>
     {/if}

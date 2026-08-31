@@ -4,9 +4,8 @@
  * Flow: source document → cortex_index (Mongo) → chunk/embed → doc_search (Qdrant, ask-the-docs RAG).
  * Entity/fact extraction into cortex_knowledge_facts + Neo4j is the LLM-driven step (Phase 2b).
  */
-import { createHash } from 'node:crypto';
 import { getDb, getQdrant } from '@regno/db';
-import { Collections, QdrantCollections } from '@regno/shared';
+import { Collections, QdrantCollections, qdrantPointId } from '@regno/shared';
 import { embed } from '@regno/ai';
 
 const CHUNK_SIZE = 1200;
@@ -49,7 +48,6 @@ export async function ingestDocument(doc: SourceDocument): Promise<{ chunks: num
   );
 
   const chunks = chunkText(doc.content);
-  const digest = createHash('sha1').update(doc.sourceUrl).digest('hex').slice(0, 12);
 
   for (let i = 0; i < chunks.length; i++) {
     const vector = await embed(chunks[i]);
@@ -57,7 +55,7 @@ export async function ingestDocument(doc: SourceDocument): Promise<{ chunks: num
       wait: false,
       points: [
         {
-          id: `${digest}-${i}`,
+          id: qdrantPointId(doc.sourceUrl, i),
           vector,
           payload: {
             sourceUrl: doc.sourceUrl,

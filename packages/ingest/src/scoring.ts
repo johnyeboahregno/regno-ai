@@ -8,7 +8,7 @@
  * so a later run with a key picks them up).
  */
 import type { Db } from 'mongodb';
-import { Collections } from '@regno/shared';
+import { Collections, qdrantPointId } from '@regno/shared';
 import { getQdrant, ensureCollection } from '@regno/db';
 import { cosine, embedSafe, keywordScore, EMBED_DIM } from './lib/llm.js';
 
@@ -64,7 +64,7 @@ export async function scoreAndEmbed(
       const update: Record<string, unknown> = { _relevanceScore: Number(score.toFixed(4)), _auditedAt: new Date() };
 
       if (vector && qdrantReady) {
-        const vectorId = `fact:${key}`;
+        const vectorId = qdrantPointId(key);
         await q.upsert(QDRANT_COLLECTION, {
           wait: false,
           points: [
@@ -124,7 +124,7 @@ export async function embedRemaining(db: Db, domain: string, onStage?: (msg: str
       wait: false,
       points: [
         {
-          id: `fact:${fact.factKey}`,
+          id: qdrantPointId(String(fact.factKey ?? '')),
           vector,
           payload: { domain, sourceUrl: String(fact.sourceUrl ?? ''), text: content.slice(0, 800), factKey: fact.factKey, isKnowledgeFact: true },
         },
