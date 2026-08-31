@@ -3,7 +3,7 @@
   // Vector DB node. Mirrors the reference "Vector Db" panel: a Configure tab with the
   // Qdrant connection form (+ Test Connection), a Browse tab listing collections, and a
   // footer with Last saved + Save.
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import Icon from '$lib/Icon.svelte';
 
   export let onClose: () => void = () => {};
@@ -136,8 +136,10 @@
   function onKey(e: KeyboardEvent) {
     if (e.key === 'Escape') onClose();
   }
-  onMount(() => window.addEventListener('keydown', onKey));
-  onDestroy(() => window.removeEventListener('keydown', onKey));
+  onMount(() => {
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   async function testConnection() {
     testing = true;

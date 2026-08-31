@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import Icon from '$lib/Icon.svelte';
   import { architectAge, architectAgeOpen } from '$lib/architectAge';
 
@@ -33,9 +33,7 @@
 
   onMount(() => {
     window.addEventListener('keydown', onKey);
-  });
-  onDestroy(() => {
-    window.removeEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
   // --- formatting ---------------------------------------------------------------

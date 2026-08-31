@@ -3,6 +3,19 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-31 — Fix `/app` SSR crash (`window` in `onDestroy`)
+
+Every `/app/*` page returned HTTP 500 with `ReferenceError: window is not defined` in the shared
+`+layout.svelte` (via `ArchitectAgeModal`). Root cause: the `onMount(() => window.addEventListener…)`
++ `onDestroy(() => window.removeEventListener…)` pattern — `onMount` is a no-op during SSR, but
+`onDestroy` callbacks run on server teardown, so `window` was dereferenced server-side.
+
+- Switched to the idiomatic SSR-safe form: register the listener **and** its cleanup inside
+  `onMount` (`return () => window.removeEventListener…`), removing the separate `onDestroy`.
+- Fixed in `ArchitectAgeModal.svelte`, `CortexSourcesModal.svelte`, `CortexVectorDbModal.svelte`
+  (the layout-level modal is what broke all `/app` pages).
+- Added User Guide `using-the-architect.md` (how to point the Architect at a repo + run work).
+
 ## 2026-08-31 — Knowledge ingestion pipeline (`@regno/ingest`) — seed any website into CORTEX
 
 Live implementation of the previously design-only `KnowledgeSeedWorker` / `SiteCrawlerService`

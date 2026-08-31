@@ -3,7 +3,7 @@
   // Mirrors the reference "Sources" panel: an orange header bar with a Configure button,
   // then the six ways knowledge enters CORTEX (ingestion, watched dirs, connectors,
   // SDK/API, execution learning, conversations).
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import Icon from '$lib/Icon.svelte';
 
   export let onClose: () => void = () => {};
@@ -13,8 +13,10 @@
   function onKey(e: KeyboardEvent) {
     if (e.key === 'Escape') onClose();
   }
-  onMount(() => window.addEventListener('keydown', onKey));
-  onDestroy(() => window.removeEventListener('keydown', onKey));
+  onMount(() => {
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   const sources = [
     {
