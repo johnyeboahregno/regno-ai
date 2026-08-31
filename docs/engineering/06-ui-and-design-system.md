@@ -30,5 +30,5 @@ Rebuild the regno.ai UI with a distinct look & feel derived from the SMA proposa
 
 ```bash
 npm run dev:web            # http://localhost:5173
-# in prod: http://<server>:3000
+# in prod: https://john.regno.ai
 ```

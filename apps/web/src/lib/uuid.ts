@@ -2,10 +2,10 @@
  * Client-safe UUID v4 generator.
  *
  * `crypto.randomUUID()` is only defined in *secure contexts* (HTTPS or
- * localhost). The deployed app is served over plain HTTP (e.g.
- * http://213.32.7.227:3000), where it is `undefined` — so we fall back to a
- * v4 generator built on `crypto.getRandomValues` (available in every context,
- * including insecure HTTP), and finally to `Math.random` as a last resort.
+ * localhost). On a plain-HTTP origin (e.g. a non-TLS reverse proxy or direct
+ * port access) it is `undefined` — so we fall back to a v4 generator built on
+ * `crypto.getRandomValues` (available in every context, including insecure
+ * HTTP), and finally to `Math.random` as a last resort.
  */
 export function uuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {

@@ -52,7 +52,7 @@ sudo kubectl get pods
 
 ## 6. Register + use
 
-1. `http://<server>:3000/register` (first user = owner)
+1. `https://john.regno.ai/register` (first user = owner)
 2. `/app/chat` → pick a persona → talk to the architect
 
 ## 7. Clone for a new developer
