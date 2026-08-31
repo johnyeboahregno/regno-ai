@@ -210,6 +210,10 @@ spec:
   ports: [{ port: 6379, targetPort: 6379 }]
 ---
 # ── Web (SvelteKit app + API) ───────────────────────────────
+# Production (default ns) rolls zero-downtime: RollingUpdate surges the new pod
+# alongside the old, the readiness probe gates traffic, then the old pod is
+# terminated. hostPort is intentionally absent here — preview namespaces re-add
+# it via the deploy scripts for direct access.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -217,7 +221,10 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels: { app: web }
   template:
@@ -229,7 +236,22 @@ spec:
         - name: web
           image: regno-architect-web:latest
           imagePullPolicy: IfNotPresent
-          ports: [{ containerPort: 3000, hostPort: 3000 }]
+          ports: [{ containerPort: 3000 }]
+          readinessProbe:
+            httpGet: { path: /api/health, port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet: { path: /api/health, port: 3000 }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: { memory: "256Mi", cpu: "100m" }
+            limits: { memory: "1Gi", cpu: "1" }
           envFrom:
             - secretRef: { name: regno-env }
 ---

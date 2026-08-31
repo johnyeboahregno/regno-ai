@@ -53,8 +53,10 @@ async function main() {
 
   // 3. manifest with unique hostPorts
   const manifest = readFileSync('/app/k8s/app.yaml', 'utf8')
-    .replace(/hostPort: 3000/g, `hostPort: ${port}`)
-    .replace(/hostPort: 3002/g, `hostPort: ${rtPort}`);
+    .replace(/\{ containerPort: 3000 \}/g, `{ containerPort: 3000, hostPort: ${port} }`)
+    .replace(/hostPort: 3002/g, `hostPort: ${rtPort}`)
+    .replace(/maxUnavailable: 0/g, 'maxUnavailable: 1')
+    .replace(/maxSurge: 1/g, 'maxSurge: 0');
   writeFileSync('/tmp/app.yaml', manifest);
   execSync(`kubectl apply -n ${ns} -f /tmp/app.yaml`, { stdio: 'ignore' });
 

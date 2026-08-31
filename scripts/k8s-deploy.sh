@@ -161,7 +161,14 @@ step "ensuring image pull secret regcred in $NAMESPACE"
 
 # --- 3. apply manifests (unique host ports per namespace) ---------------
 step "applying manifests (web :$PORT, realtime :$RTPORT)"
-SED_EXPR="s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/"
+# Production (default ns): web has no hostPort and rolls zero-downtime (surge the
+# new pod alongside the old). Previews keep a unique hostPort for direct access —
+# a hostPort can only be held by one pod at a time, so there web terminates the
+# old pod first (maxUnavailable: 1, maxSurge: 0).
+SED_EXPR="s/hostPort: 3002/hostPort: $RTPORT/"
+if [ "$NAMESPACE" != "default" ]; then
+  SED_EXPR="$SED_EXPR; s|{ containerPort: 3000 }|{ containerPort: 3000, hostPort: $PORT }|; s/maxUnavailable: 0/maxUnavailable: 1/; s/maxSurge: 1/maxSurge: 0/"
+fi
 if [ -n "$IMAGE_REPO" ]; then
   SED_EXPR="$SED_EXPR; s|image: regno-architect-web:latest|image: $WEB_IMG|; s|image: regno-architect-execution:latest|image: $EXEC_IMG|; s|image: regno-architect-realtime:latest|image: $RT_IMG|"
 fi
@@ -193,7 +200,15 @@ fi
 
 # --- 5. validate the deployed version ----------------------------------
 if [ "$SKIP_VALIDATE" -eq 0 ]; then
-  step "validating deployed app at http://localhost:$PORT/api/health"
+  # Production web has no hostPort, so reach it through the Service with a
+  # port-forward. Previews bind a hostPort and can be curled directly.
+  if [ "$NAMESPACE" = "default" ]; then
+    step "validating deployed app (port-forward svc/web → localhost:$PORT)"
+    "$KUBECTL" -n "$NAMESPACE" port-forward svc/web "$PORT:3000" >/dev/null 2>&1 &
+    PF_PID=$!
+  else
+    step "validating deployed app at http://localhost:$PORT/api/health"
+  fi
   ok=0
   for i in $(seq 1 24); do
     body="$(curl -fsS --max-time 10 "http://localhost:$PORT/api/health" 2>/dev/null || true)"
@@ -205,6 +220,9 @@ if [ "$SKIP_VALIDATE" -eq 0 ]; then
     echo "  … health check retry $i/24"
     sleep 5
   done
+  if [ "$NAMESPACE" = "default" ]; then
+    kill "$PF_PID" >/dev/null 2>&1 || true
+  fi
 
   if [ "$ok" -eq 1 ]; then
     echo "[k8s-deploy] ✓ validation passed"

@@ -31,8 +31,9 @@ sudo kubectl -n "$NS" delete secret regno-env --ignore-not-found >/dev/null 2>&1
 sudo kubectl -n "$NS" create secret generic regno-env --from-env-file=/tmp/regno-env.clean
 rm -f /tmp/regno-env.clean
 
-# 3. Manifests with unique host ports
-sed "s/hostPort: 3000/hostPort: $PORT/; s/hostPort: 3002/hostPort: $RTPORT/" k8s/app.yaml \
+# 3. Manifests with unique host ports (web hostPort re-added for direct access;
+#    a hostPort can only be held by one pod, so clones terminate old-before-new)
+sed "s|{ containerPort: 3000 }|{ containerPort: 3000, hostPort: $PORT }|; s/hostPort: 3002/hostPort: $RTPORT/; s/maxUnavailable: 0/maxUnavailable: 1/; s/maxSurge: 1/maxSurge: 0/" k8s/app.yaml \
   | sudo kubectl apply -n "$NS" -f -
 
 # 4. Wait for the web + neo4j pods

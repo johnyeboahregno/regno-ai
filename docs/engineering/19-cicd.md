@@ -20,7 +20,7 @@ plus isolated per-developer preview namespaces.
 ## The deploy script (`scripts/k8s-deploy.sh`)
 
 One script drives both production and developer deploys:
-`build → push → namespace + secret → apply manifests (unique hostPort) → wait rollouts → validate → rollback`.
+`build → push → namespace + secret → apply manifests → wait rollouts → validate (production via port-forward, previews via hostPort) → rollback`.
 
 Key flags: `-n/--namespace`, `-p/--port`, `-r/--image-repo`, `--push`, `--no-rollback`.
 

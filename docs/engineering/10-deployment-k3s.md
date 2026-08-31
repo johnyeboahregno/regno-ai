@@ -15,7 +15,9 @@ A cloneable, declarative platform — one k3s namespace per developer is the clo
 - `k8s/app.yaml` — 7 Deployments + Services + PVCs (web, execution, realtime, mongo, qdrant,
   neo4j, redis) + a `regno-env` Secret.
 - Images are built with Docker and used directly (k3s runs the Docker runtime).
-- `web`/`realtime` use `hostPort` + `Recreate` strategy (hostPort can't roll concurrently).
+- `web` uses `RollingUpdate` (0/1) + a readiness probe, with **no `hostPort`** — it rolls
+  zero-downtime. `realtime` keeps `hostPort` + `Recreate`. Preview namespaces re-add a web
+  `hostPort` and terminate the old pod before the new one (hostPort can't roll concurrently).
 - `migrate-k3s.sh` — creates the Secret from `.env.prod` + applies manifests.
 - `seed-k3s.sh` — runs the seed scripts inside the web pod (docs/scripts baked into the image).
 

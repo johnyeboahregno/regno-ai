@@ -13,7 +13,7 @@ automatically if validation fails. Individual developers get isolated preview na
 | 3. Build | `npm run build` (type-checks all packages + apps, builds web) | GitHub-hosted runner |
 | 4. Build & push | `docker build` + `docker push` to Docker Hub (`regnodockerhub/regno-*:<sha>`) | Self-hosted runner on the k3s node |
 | 5. Deploy | create Secret + `kubectl apply` + `rollout status` | Self-hosted runner |
-| 6. Validate | `curl http://localhost:<port>/api/health` → expect `"ok":true` | Self-hosted runner |
+| 6. Validate | `curl /api/health` (production via `kubectl port-forward svc/web`, previews via hostPort) → expect `"ok":true` | Self-hosted runner |
 | 7. Rollback | `kubectl rollout undo` on web/execution/realtime if validation fails | Self-hosted runner |
 
 ## Workflows
@@ -106,5 +106,7 @@ developer's preview is a complete, independent environment.
 - `concurrency` groups prevent two deploys of the same target (production, or the same developer
   namespace) running in parallel.
 - Production deploys never cancel in-flight runs (`cancel-in-progress: false`).
+- Production `web` rolls zero-downtime (`RollingUpdate` + readiness probe, no `hostPort`); preview
+  namespaces keep a unique `hostPort` (old pod terminated before the new one).
 - Validation failure triggers an automatic `rollout undo`, leaving the previous healthy version
   running.

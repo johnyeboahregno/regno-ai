@@ -13,7 +13,9 @@ https://john.regno.ai ──▶ Cloudflare (edge TLS, proxy) ──▶ 213.32.7.
 
 - Cloudflare terminates TLS at the edge. SSL/TLS mode is **Flexible** → origin serves plain HTTP on `:80`.
 - `http://john.regno.ai` is 301'd to `https://` by Cloudflare ("Always Use HTTPS").
-- Direct `http://213.32.7.227:3000` still works as a fallback (`hostPort` on the web pod).
+- The production `web` pod no longer binds `hostPort` (it rolls zero-downtime), so the direct
+  `http://213.32.7.227:3000` fallback is gone — use the domain, or reach the app with
+  `kubectl -n default port-forward svc/web 3000:3000`.
 
 ## Cloudflare DNS
 
@@ -35,8 +37,9 @@ sudo kubectl -n default apply -f k8s/ingress.yaml
 sudo kubectl -n default get ingress regno-web   # → HOSTS john.regno.ai, ADDRESS 213.32.7.227
 ```
 
-- `web` / `realtime` keep `hostPort` + `Recreate`; the Ingress points at their ClusterIP
-  Services, so `:3000` / `:3002` stay internal.
+- `web` rolls zero-downtime (`RollingUpdate` + readiness probe, no `hostPort`); `realtime`
+  keeps `hostPort` + `Recreate`. The Ingress points at their ClusterIP Services, so
+  `:3000` / `:3002` stay internal.
 
 ## Env
 
