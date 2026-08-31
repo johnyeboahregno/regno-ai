@@ -1,0 +1,40 @@
+# Regno — production Ingress (Traefik, k3s)
+#
+# Routes the public domain through Cloudflare → origin :80 → Traefik:
+#   /events*  → realtime service (:3002)   (SSE stream)
+#   /*        → web service (:3000)        (SvelteKit app + API)
+#
+# Cloudflare proxies https://john.regno.ai to origin port 80 (SSL mode:
+# Flexible → origin is plain HTTP). Applied to the `default` namespace:
+#
+#   sudo kubectl -n default apply -f k8s/ingress.yaml
+#
+# NOTE: intentionally kept OUT of k8s/app.yaml so the shared deploy pipeline
+# doesn't apply it to developer preview namespaces.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: regno-web
+  namespace: default
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: john.regno.ai
+      http:
+        paths:
+          - path: /events
+            pathType: Prefix
+            backend:
+              service:
+                name: realtime
+                port:
+                  number: 3002
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 3000

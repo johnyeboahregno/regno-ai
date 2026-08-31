@@ -17,8 +17,8 @@ export async function POST({ request, cookies }) {
 
   const role = String(user.role ?? 'user');
   const token = await signSession({ sub: String(user._id), email, role });
-  // secure:false while serving over HTTP — flip to true once HTTPS (Caddy) is enabled.
-  cookies.set(SESSION_COOKIE, token, { path: '/', httpOnly: true, secure: false, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7 });
+  // secure:true — HTTPS is terminated at the Cloudflare edge (john.regno.ai).
+  cookies.set(SESSION_COOKIE, token, { path: '/', httpOnly: true, secure: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7 });
 
   return json({ ok: true, user: { email, role } });
 }
