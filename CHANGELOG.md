@@ -3,6 +3,30 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-08-31 — Knowledge ingestion pipeline (`@regno/ingest`) — seed any website into CORTEX
+
+Live implementation of the previously design-only `KnowledgeSeedWorker` / `SiteCrawlerService`
+(turns an external site into an indexed, fact-extracted, vectorised domain). See
+`docs/guides/KNOWLEDGE_INGESTION_RUNBOOK.md` and the User Guide
+`apps/web/src/lib/guides/knowledge-ingestion.md`.
+
+- **`packages/ingest`** (new workspace package) — 10-phase pipeline with checkpoint/resume:
+  crawl (sitemap + BFS + robots + rate limit) → filter → process (heading-aware chunking +
+  condensation) → index (Wave-1 upsert into `cortex_index`, `$setOnInsert`) → facts (Wave-2a
+  atomic facts) → entities (Wave-2b → `cortex_entities` + Neo4j best-effort) → score (Wave-2c
+  embedding-cosine + Qdrant `knowledge_vectors`) → expert (hash-diffed, versioned domain expert)
+  → assets (GridFS) → finalize (quality grade A–F + `cortex_domain_analysis`).
+- **Non-destructive guarantees** — never delete facts, never discard pages (reclassified under
+  `{domain}.{category}`), never overwrite indexed content, version-don't-overwrite the expert.
+- **LLM vs keyless** — every phase has an LLM path (via `@regno/ai` gateway, default gpt-4o-mini /
+  text-embedding-3-small) and a deterministic keyless fallback (keyword filter, sentence-split
+  facts, regex entities, keyword scoring).
+- **Entry points** — `npm run db:ingest-site -- --url <site>` (CLI),
+  `POST /api/knowledge/ingest` (fire-and-forget), `GET /api/knowledge/ingest/[seedId]` (live
+  progress), `GET /api/knowledge/seeds` (list).
+- **Wiring** — `@regno/ingest` added to the root build chain + web deps; `db:ingest-site` script.
+- Build verified: `npm run build` (full chain incl. `@regno/ingest`) = clean; `npm run check -w @regno/web` = 0 errors.
+
 ## 2026-08-30 — CORTEX Architecture tab rebuilt to the reference dashboard
 
 `CortexArchitecture.svelte` is now a live, health-driven overview instead of a static layer
