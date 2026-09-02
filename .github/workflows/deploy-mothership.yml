@@ -37,7 +37,7 @@ jobs:
       - name: Deploy via SSH
         env:
           SSH_HOST: ${{ secrets.MOTHER_SSH_HOST }}
-          SSH_USER: ${{ secrets.MOTHER_SSH_USER }}
+          SSH_USER: ${{ secrets.MOTHER_SSH_USER || 'ubuntu' }}
           SSH_KEY: ${{ secrets.MOTHER_SSH_KEY }}
           REPO_URL: https://github.com/johnyeboahregno/regno-ai.git
           JWT_SECRET: ${{ secrets.MOTHER_JWT_SECRET }}
@@ -50,10 +50,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/mothership
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/mothership
           chmod 600 ~/.ssh/mothership
+          ssh-keygen -y -f ~/.ssh/mothership >/dev/null
 
-          ssh -i ~/.ssh/mothership -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+          ssh -i ~/.ssh/mothership -o BatchMode=yes -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
             "REPO_URL='$REPO_URL' JWT_SECRET='$JWT_SECRET' CREDENTIALS_KEY='$CREDENTIALS_KEY' \
              IDENTITY='$IDENTITY' CF_TOKEN='$CF_TOKEN' CF_ZONE='$CF_ZONE' ROOT_DOMAIN='$ROOT_DOMAIN' \
              MOTHERSHIP_URL='$MOTHERSHIP_URL' \
