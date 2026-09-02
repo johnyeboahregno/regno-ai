@@ -67,7 +67,7 @@ GITHUB_REPOS=owner/repo-a,owner/repo-b GITHUB_TOKEN=... node scripts/seed-github
 flowchart LR
   A[Wizard Step 3\nprivate repo + token] --> B[POST /api/agents]
   B --> C[storeCredential\nvault AES-256-GCM]
-  B --> D[spawn-agent.mjs\nenv GITHUB_TOKEN_CRED]
+  B --> D[Mothership provision worker\nArchitect env]
   D --> E[kubectl exec\nenv GITHUB_REPOS + GITHUB_TOKEN]
   E --> F[seed-github.mjs\nauthenticated shallow clone]
   F --> G[scrub remote URL\nno token in .git/config]

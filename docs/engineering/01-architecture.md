@@ -39,8 +39,9 @@ docs/         pulled regno.ai docs + engineering docs
 
 - `package.json` — workspaces + scripts
 - `tsconfig.base.json` — shared TS config
-- `docker-compose.yml` — Compose variant (pre-k3s)
-- `k8s/app.yaml` — Kubernetes variant (current)
+- `docker-compose.yml` — full Architect stack
+- `docker-compose.mothership.yml` — Mothership control-plane stack
+- `apps/mothership/` — dedicated Mothership SvelteKit app
 
 ## Reproduce / verify
 

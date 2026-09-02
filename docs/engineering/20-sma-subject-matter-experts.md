@@ -4,9 +4,8 @@
 
 ## What it is
 
-- **One architect.** The whole application is *the architect*. If you want another architect,
-  you deploy a whole new copy of this repo (`clone-developer.sh` →
-  [`15-per-developer-cloning.md`](./15-per-developer-cloning.md)).
+- **One architect per provisioned target.** If you want another architect, create it through
+  the Mothership **Architects → New Architect** wizard.
 - **SMA (Subject Matter Expert)** = a *selectable expert profile* you pick when running an
   architect job. It is **not** a new stack or namespace.
 - An SMA is centered on a **focus area**: e.g. an *F1 Race Engineer* SMA centers its knowledge on

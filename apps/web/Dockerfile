@@ -9,7 +9,6 @@ COPY docs ./docs
 COPY scripts ./scripts
 COPY profile ./profile
 COPY standards ./standards
-COPY k8s ./k8s
 RUN npm install --no-audit --no-fund
 RUN npm run build -w @regno/web
 
@@ -23,7 +22,5 @@ COPY --from=build /app/docs ./docs
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/profile ./profile
 COPY --from=build /app/standards ./standards
-COPY --from=build /app/k8s ./k8s
-RUN apk add --no-cache kubectl
 EXPOSE 3000
 CMD ["node", "build"]

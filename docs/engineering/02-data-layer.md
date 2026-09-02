@@ -30,6 +30,6 @@ Neo4j (graph), eventual within seconds. See `docs/architecture/REGNO_AI_ARCHITEC
 ## Reproduce / verify
 
 ```bash
-docker compose up -d mongo qdrant neo4j redis   # or k3s: kubectl apply -f k8s/app.yaml
+docker compose up -d mongo qdrant neo4j redis   # Mothership uses docker-compose.mothership.yml
 npm run db:init                                  # indexes + collections + constraints
 ```

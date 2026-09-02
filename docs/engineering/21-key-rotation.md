@@ -121,10 +121,10 @@ sudo docker compose logs -f execution     # or: kubectl -n default logs -f deplo
 - `~/regno/.env.prod` (on the box — never committed)
 - `.env.example` (repo — empty template, safe to commit)
 - `.env` (local dev only, gitignored)
-- `scripts/k8s-deploy.sh` — builds `regno-env` Secret from `.env.prod`
-- `migrate-k3s.sh` — manual Secret rebuild + apply (compose/k3s fallback)
+- `docker-compose.mothership.yml` — Mothership service and worker environment
+- `deploy-mothership.sh` — Mothership bootstrap and rebuild entrypoint
 - `seed-brain.sh` — re-seed after enabling keys
-- `.github/workflows/deploy.yml` — the CI/CD path
+- `.github/workflows/deploy-mothership.yml` — the Mothership CI/CD path
 - `docker-compose.yml` — env passthrough for the compose path
 
 ## Notes

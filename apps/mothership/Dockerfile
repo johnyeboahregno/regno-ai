@@ -1,6 +1,5 @@
 # Regno Mothership — control-plane SvelteKit app + API.
-# Mirrors apps/web/Dockerfile but builds @regno/mothership and skips kubectl
-# (the control plane never shells into a cluster itself — the execution worker does).
+# Mirrors apps/web/Dockerfile but builds @regno/mothership.
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json ./
@@ -11,7 +10,6 @@ COPY docs ./docs
 COPY scripts ./scripts
 COPY profile ./profile
 COPY standards ./standards
-COPY k8s ./k8s
 RUN npm install --no-audit --no-fund
 RUN npm run build -w @regno/mothership
 
@@ -25,6 +23,5 @@ COPY --from=build /app/docs ./docs
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/profile ./profile
 COPY --from=build /app/standards ./standards
-COPY --from=build /app/k8s ./k8s
 EXPOSE 3000
 CMD ["node", "build"]

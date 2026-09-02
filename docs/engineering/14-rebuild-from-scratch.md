@@ -39,15 +39,12 @@ npm run dev:execution    # BullMQ workers
 npm run dev:realtime     # SSE :3002
 ```
 
-## 5. Deploy to k3s (production)
+## 5. Deploy through the Mothership
 
 ```bash
-ssh ubuntu@213.32.7.227
-cd ~/regno
-# .env.prod already has secrets; rebuild if changed:
-bash migrate-k3s.sh      # Secret + manifests
-bash seed-k3s.sh         # in-pod seeding
-sudo kubectl get pods
+Open the Mothership and create the Architect from **Architects → New Architect**.
+The Mothership execution worker provisions the target over SSH, runs `deploy.sh`,
+and registers the Cloudflare DNS record.
 ```
 
 ## 6. Register + use

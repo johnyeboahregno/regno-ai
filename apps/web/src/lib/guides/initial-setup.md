@@ -52,7 +52,8 @@ npm run db:up
 npm run db:init && npm run db:seed
 ```
 
-> On k3s this is automatic: `seed-k3s.sh` runs `seed-agents` / `seed-standards` / `seed-brain` in-pod.
+> On a Mothership-provisioned Architect this is automatic: the provisioning worker runs
+> `deploy.sh`, which seeds agents / standards / brain after the stack is up.
 
 **Verify:** `/app/cortex` shows a non-zero **KNOWLEDGE DOCS** count; `/app/oracle` returns results.
 

@@ -49,13 +49,13 @@ REGNO_ROOT_DOMAIN=regno.ai   # default
 
 ## Provisioning hooks
 
-Both deploy paths call the script automatically when the right env vars are set:
+Deployment calls the script automatically when the right env vars are set:
 
 - **`deploy.sh`** (fresh server): registers the domain after the stack is up.
   Set `CF_API_TOKEN` (and optionally `SERVER_IP`, otherwise the public IP is
   auto-detected).
-- **`clone-developer.sh`** (k3s namespace): registers the slug when both
-  `CF_API_TOKEN` and `SERVER_IP` are set.
+- **Mothership provisioning** (`packages/provision` → `cloudflare.ts`): registers
+  `slug.regno.ai` for each provisioned Architect when `CF_API_TOKEN` is set.
 
 If the token is missing the scripts skip DNS and print a note — provisioning still
 succeeds, and you can run the script by hand afterwards.

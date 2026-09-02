@@ -62,9 +62,9 @@ flowchart TB
 
 ## Cloning model
 
-- There is **one architect** — this application. To create another architect, **deploy a whole new
-  copy of this repo** (a k3s namespace with its own brain) — see `clone-developer.sh` /
-  [`docs/engineering/15-per-developer-cloning.md`](docs/engineering/15-per-developer-cloning.md).
+- Each developer can have a separate Architect. Create and deploy it through the Mothership
+  **Architects → New Architect** flow; the provision worker deploys a full Docker Compose stack
+  on the target machine.
 - **SMAs** are *not* new stacks — they are selectable expert profiles created at `/app/agents`
   (name → focus tags → disciplines/languages). Knowledge is shared across all jobs; an SMA
   centers retrieval on its focus tags.
