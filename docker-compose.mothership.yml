@@ -44,6 +44,9 @@ services:
     environment:
       - MONGO_URI=mongodb://mongo:27017/regno
       - REDIS_URL=redis://redis:6379
+      # Same key as the web service so the worker can decrypt vault secrets.
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - CREDENTIALS_KEY=${CREDENTIALS_KEY:-}
       - MOTHERSHIP_URL=${MOTHERSHIP_URL:-}
       - CF_API_TOKEN=${CF_API_TOKEN:-}
       - CF_ZONE_ID=${CF_ZONE_ID:-}
