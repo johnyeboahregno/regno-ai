@@ -10,7 +10,8 @@
 - A basic VPS (1–2 vCPU, **2–4 GB RAM**) with a public IP.
 - The `regno.ai` (or chosen) zone on Cloudflare, proxied with **Flexible** TLS (origin :80).
 - A Cloudflare API token with **Zone → DNS → Edit** (for registering `slug.regno.ai`).
-- Regno Identity SSO reachable (`https://identity.regnocloud.com`).
+- The Mothership uses local authentication. Identity SSO can be restored once the
+  Identity service exposes the token-validation contract documented in `@regno/auth`.
 
 ## 2. Env
 

@@ -20,7 +20,8 @@ services:
       - "80:3000" # Cloudflare Flexible origin (edge TLS → plain HTTP)
     environment:
       - MOTHERSHIP_URL=${MOTHERSHIP_URL:-}
-      - REGNO_IDENTITY_BASE_URL=${REGNO_IDENTITY_BASE_URL:-https://identity.regnocloud.com}
+      # Identity SSO currently exposes no token-validation API; use local auth.
+      - REGNO_IDENTITY_BASE_URL=${REGNO_IDENTITY_BASE_URL:-}
       - MONGO_URI=mongodb://mongo:27017/regno
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}

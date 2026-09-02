@@ -41,7 +41,6 @@ jobs:
           REPO_URL: https://github.com/johnyeboahregno/regno-ai.git
           JWT_SECRET: ${{ secrets.MOTHER_JWT_SECRET }}
           CREDENTIALS_KEY: ${{ secrets.MOTHER_CREDENTIALS_KEY }}
-          IDENTITY: ${{ secrets.REGNO_IDENTITY_BASE_URL }}
           CF_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CF_ZONE: ${{ secrets.CF_ZONE_ID }}
           ROOT_DOMAIN: ${{ secrets.REGNO_ROOT_DOMAIN }}
@@ -71,7 +70,7 @@ jobs:
           ssh -i ~/.ssh/mothership -o BatchMode=yes -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
             "REPO_URL='$REPO_URL' JWT_SECRET='$JWT_SECRET' CREDENTIALS_KEY='$CREDENTIALS_KEY' \
-             IDENTITY='$IDENTITY' CF_TOKEN='$CF_TOKEN' CF_ZONE='$CF_ZONE' ROOT_DOMAIN='$ROOT_DOMAIN' \
+             CF_TOKEN='$CF_TOKEN' CF_ZONE='$CF_ZONE' ROOT_DOMAIN='$ROOT_DOMAIN' \
              MOTHERSHIP_URL='$MOTHERSHIP_URL' \
              bash -s" <<'REMOTE'
           set -euo pipefail
@@ -110,7 +109,6 @@ jobs:
           cat > .env.prod <<EOF
           JWT_SECRET=$JWT_SECRET
           CREDENTIALS_KEY=$CREDENTIALS_KEY
-          REGNO_IDENTITY_BASE_URL=$IDENTITY
           CF_API_TOKEN=$CF_TOKEN
           CF_ZONE_ID=$CF_ZONE
           REGNO_ROOT_DOMAIN=$ROOT_DOMAIN

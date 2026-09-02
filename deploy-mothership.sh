@@ -56,8 +56,6 @@ step "4/6 — writing .env.prod"
 if [ ! -f .env.prod ]; then
   JWT_SECRET="$(openssl rand -hex 32)"
   CREDENTIALS_KEY="$(openssl rand -hex 32)"
-  read -r -p "Regno Identity base URL [https://identity.regnocloud.com]: " IDENTITY
-  IDENTITY="${IDENTITY:-https://identity.regnocloud.com}"
   read -r -p "Cloudflare API token (Zone → DNS → Edit, blank to skip DNS): " CF_TOKEN
   read -r -p "Cloudflare zone ID (blank to resolve from root domain): " CF_ZONE
   read -r -p "Root domain [regno.ai]: " ROOT
@@ -67,7 +65,6 @@ if [ ! -f .env.prod ]; then
   cat > .env.prod <<EOF
 JWT_SECRET=$JWT_SECRET
 CREDENTIALS_KEY=$CREDENTIALS_KEY
-REGNO_IDENTITY_BASE_URL=$IDENTITY
 CF_API_TOKEN=$CF_TOKEN
 CF_ZONE_ID=$CF_ZONE
 REGNO_ROOT_DOMAIN=$ROOT
