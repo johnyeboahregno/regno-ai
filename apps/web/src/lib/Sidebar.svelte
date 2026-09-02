@@ -34,7 +34,7 @@
     return p.split('/').pop() ?? p;
   }
 
-  function isActive(item: NavItem, p = path): boolean {
+  function isActive(item: NavItem, p: string): boolean {
     return itemMatchesPath(item, p);
   }
 
@@ -283,11 +283,11 @@
 
         {#if !$collapsed && open[group.id]}
           <div class="section-body">
-            {#each group.items as item}
+            {#each group.items as item (item.href)}
               {#if item.children}
                 <button
                   class="item item-toggle"
-                  class:active={isActive(item)}
+                  class:active={isActive(item, path)}
                   on:click={() => toggleItem(item)}
                   title={item.label}
                   aria-expanded={!!openItems[item.href]}
@@ -313,7 +313,7 @@
                         {#if openSub[subKey(item, g.name)]}
                           <div class="sub-group-body">
                             {#each g.items as child}
-                              <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
+                              <a href={child.href} class="item sub" class:active={isActive(child, path)} title={child.label}>
                                 <span class="label">{child.label}</span>
                               </a>
                             {/each}
@@ -321,7 +321,7 @@
                         {/if}
                       {:else}
                         {#each g.items as child}
-                          <a href={child.href} class="item sub" class:active={isActive(child)} title={child.label}>
+                          <a href={child.href} class="item sub" class:active={isActive(child, path)} title={child.label}>
                             <span class="label">{child.label}</span>
                           </a>
                         {/each}
@@ -330,7 +330,7 @@
                   </div>
                 {/if}
               {:else}
-                <a href={item.href} class="item" class:active={isActive(item)} title={item.label} aria-current={isActive(item) ? 'page' : undefined}>
+                <a href={item.href} class="item" class:active={isActive(item, path)} title={item.label} aria-current={isActive(item, path) ? 'page' : undefined}>
                   <span class="ic-wrap"><Icon name={item.icon} size={16} /></span>
                   <span class="label">{item.label}</span>
                 </a>

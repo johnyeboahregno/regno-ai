@@ -12,7 +12,7 @@
 
   let open: Record<string, boolean> = {};
 
-  function isActive(item: NavItem, p = path): boolean {
+  function isActive(item: NavItem, p: string): boolean {
     return itemMatchesPath(item, p);
   }
 
@@ -131,13 +131,13 @@
 
         {#if !$collapsed && open[group.id]}
           <div class="section-body">
-            {#each group.items as item}
+            {#each group.items as item (item.href)}
               <a
                 href={item.href}
                 class="item"
-                class:active={isActive(item)}
+                class:active={isActive(item, path)}
                 title={item.label}
-                aria-current={isActive(item) ? 'page' : undefined}
+                aria-current={isActive(item, path) ? 'page' : undefined}
               >
                 <span class="ic-wrap"><Icon name={item.icon} size={16} /></span>
                 <span class="label">{item.label}</span>
