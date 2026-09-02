@@ -26,6 +26,7 @@
   let architects: Architect[] = [];
   let error = '';
   let message = '';
+  let pendingDelete: string | null = null;
   let timer: ReturnType<typeof setInterval> | null = null;
 
   async function load() {
@@ -58,8 +59,10 @@
     else error = d.error ?? 'Failed to launch';
   }
 
-  async function remove(slug: string) {
-    if (!confirm(`Delete Architect "${slug}"? This removes its blueprint and stored secrets.`)) return;
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const slug = pendingDelete;
+    pendingDelete = null;
     await fetch(`/api/architects/${slug}`, { method: 'DELETE' });
     message = `Deleted "${slug}"`;
     load();
@@ -126,7 +129,7 @@
             {#if a.status === 'draft' || a.status === 'error'}
               <button class="btn ghost" style="padding:6px 12px;" on:click={() => relaunch(a.slug)}>Launch</button>
             {/if}
-            <button class="btn ghost" style="padding:6px 12px;" on:click={() => remove(a.slug)}>Delete</button>
+            <button class="btn ghost" style="padding:6px 12px;" on:click={() => (pendingDelete = a.slug)}>Delete</button>
           </td>
         </tr>
       {/each}
@@ -143,3 +146,33 @@
     on:close={closeWizard}
   />
 {/if}
+
+{#if pendingDelete}
+  <div class="modal-backdrop" on:click={() => (pendingDelete = null)}>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Delete Architect" on:click|stopPropagation>
+      <div class="modal-head">
+        <span class="eyebrow">Delete Architect</span>
+        <button class="x" on:click={() => (pendingDelete = null)}>✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0; color:var(--ink-dim);">
+          Delete Architect <span class="mono">{pendingDelete}</span>? This removes its blueprint and stored secrets.
+        </p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" on:click={() => (pendingDelete = null)}>Cancel</button>
+        <button class="btn danger" on:click={confirmDelete}>Delete</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(4,6,12,0.7); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .modal { background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; width: min(440px, 92vw); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.45); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line-soft); }
+  .modal-body { padding: 18px; }
+  .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line-soft); }
+  .x { background: transparent; border: 0; color: var(--ink-faint); font-size: 18px; cursor: pointer; }
+  .x:hover { color: var(--ink); }
+</style>
