@@ -25,16 +25,17 @@
   }
 </script>
 
-<svelte:head><title>Regno Architect Me</title></svelte:head>
+<svelte:head><title>{data.mothership ? 'Regno Mothership' : 'Regno Architect Me'}</title></svelte:head>
 
 <div class="mobile-bar">
   <button class="mb-btn" on:click={openMobileNav} aria-label="Open menu">
     <Icon name="menu" size={20} />
   </button>
   <a class="brand" href="/app"><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
+  {#if data.mothership}<span class="ms-label">MOTHERSHIP</span>{/if}
 </div>
 
-<div class="shell" class:collapsed={$collapsed} class:mobile-open={$mobileNavOpen}>
+<div class="shell" class:collapsed={$collapsed} class:mobile-open={$mobileNavOpen} class:mothership={data.mothership}>
   <Sidebar user={data.user} mothership={data.mothership} path={$page.url.pathname + $page.url.search} onLogout={logout} onNavigate={closeMobileNav} />
   <main class="content">
     <slot />

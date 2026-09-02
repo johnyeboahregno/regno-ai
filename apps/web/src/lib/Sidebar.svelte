@@ -243,7 +243,8 @@
 <aside class="sidebar" on:click={handleClick}>
   <div class="sb-head">
     {#if !$collapsed}
-      <a class="brand" href="/app" aria-label="Regno home"><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
+      <a class="brand" href="/app" aria-label={mothership ? 'Regno Mothership home' : 'Regno home'}><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
+      {#if mothership}<span class="ms-badge" title="Control plane">MOTHERSHIP</span>{/if}
       <span class="sb-status" title="All systems operational" aria-label="System status: all systems operational"><StatusPulse size={16} /></span>
     {:else}
       <span class="brand-mark" aria-hidden="true"></span>
