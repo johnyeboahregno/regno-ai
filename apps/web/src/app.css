@@ -741,29 +741,22 @@ tr:hover td { background: var(--signal-hover); }
   --signal-hover: rgba(245, 184, 61, 0.08);
   --on-signal: #17110a;
 }
-.ms-banner {
+.sidebar .sb-head .sb-brand {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 11px 18px;
-  margin: 14px 16px 0;
-  border-radius: var(--r);
-  background: linear-gradient(135deg, #ffd166, #f5b83d);
-  color: #17110a;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  box-shadow: 0 8px 30px rgba(245, 184, 61, 0.28);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
 }
-.ms-banner-title {
+.sidebar .sb-head .sb-brand .brand { flex: none; }
+.ms-sublabel {
   font-family: var(--mono);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  font-size: 13px;
-  white-space: nowrap;
-}
-.ms-banner-sub {
-  font-size: 13px;
-  font-weight: 600;
-  opacity: 0.75;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: #ffd166;
+  text-transform: uppercase;
 }
 .ms-label {
   font-family: var(--mono);

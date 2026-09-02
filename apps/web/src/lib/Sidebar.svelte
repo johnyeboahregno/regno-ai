@@ -243,7 +243,10 @@
 <aside class="sidebar" on:click={handleClick}>
   <div class="sb-head">
     {#if !$collapsed}
-      <a class="brand" href="/app" aria-label={mothership ? 'Regno Mothership home' : 'Regno home'}><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
+      <div class="sb-brand">
+        <a class="brand" href="/app" aria-label={mothership ? 'Regno Mothership home' : 'Regno home'}><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
+        {#if mothership}<span class="ms-sublabel">Mothership</span>{/if}
+      </div>
       <span class="sb-status" title="All systems operational" aria-label="System status: all systems operational"><StatusPulse size={16} /></span>
     {:else}
       <span class="brand-mark" aria-hidden="true"></span>
