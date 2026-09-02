@@ -35,7 +35,7 @@
 </div>
 
 <div class="shell" class:collapsed={$collapsed} class:mobile-open={$mobileNavOpen}>
-  <Sidebar user={data.user} path={$page.url.pathname + $page.url.search} onLogout={logout} onNavigate={closeMobileNav} />
+  <Sidebar user={data.user} mothership={data.mothership} path={$page.url.pathname + $page.url.search} onLogout={logout} onNavigate={closeMobileNav} />
   <main class="content">
     <slot />
   </main>

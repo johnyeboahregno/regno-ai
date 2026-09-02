@@ -18,5 +18,14 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
     cookies.delete(SESSION_COOKIE, { path: '/' });
     throw redirect(303, identityEnabled() ? sso() : local('session-expired'));
   }
-  return { user: { email: session.email, role: session.role } };
+
+  // Mothership mode: only the control-plane routes are reachable.
+  const mothership = process.env.MOTHERSHIP === '1';
+  if (mothership) {
+    const allowed = new Set(['', 'architects', 'credentials', 'health']);
+    const seg = url.pathname.split('/')[2] ?? '';
+    if (!allowed.has(seg)) throw redirect(303, '/app/architects');
+  }
+
+  return { user: { email: session.email, role: session.role }, mothership };
 };

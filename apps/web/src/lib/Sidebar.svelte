@@ -12,8 +12,9 @@
   export let path: string;
   export let onLogout: () => void;
   export let onNavigate: (() => void) | undefined = undefined;
+  export let mothership = false;
 
-  const baseNav = buildNav(user.role);
+  const baseNav = buildNav(user.role, mothership);
   let docsChildren: NavItem[] = [];
 
   // Inject the dynamic Docs submenu (artifacts + ingested docs) once it loads.

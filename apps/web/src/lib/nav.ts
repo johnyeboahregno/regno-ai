@@ -18,7 +18,24 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export function buildNav(role: string): NavGroup[] {
+export function buildNav(role: string, mothership = false): NavGroup[] {
+  if (mothership) {
+    // Control-plane only: no Build / Intelligence groups, just the system surface.
+    return [
+      {
+        id: 'system',
+        title: 'System',
+        icon: 'gear',
+        items: [
+          { href: '/app', label: 'Dashboard', icon: 'dashboard' },
+          { href: '/app/architects', label: 'Architects', icon: 'architects' },
+          { href: '/app/credentials', label: 'Credentials', icon: 'credentials' },
+          { href: '/app/health', label: 'Health', icon: 'health' },
+        ],
+      },
+    ];
+  }
+
   return [
     {
       id: 'build',

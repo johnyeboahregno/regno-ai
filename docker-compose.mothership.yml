@@ -19,6 +19,7 @@ services:
     ports:
       - "80:3000" # Cloudflare Flexible origin (edge TLS → plain HTTP)
     environment:
+      - MOTHERSHIP=1
       - REGNO_IDENTITY_BASE_URL=${REGNO_IDENTITY_BASE_URL:-https://identity.regnocloud.com}
       - MONGO_URI=mongodb://mongo:27017/regno
       - REDIS_URL=redis://redis:6379
