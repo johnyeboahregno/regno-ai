@@ -120,5 +120,5 @@ jobs:
           chmod 600 .env.prod
 
           sudo docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build --remove-orphans
-          sudo docker compose -f docker-compose.mothership.yml ps
+          sudo docker compose -f docker-compose.mothership.yml --env-file .env.prod ps
           REMOTE

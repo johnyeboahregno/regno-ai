@@ -85,4 +85,4 @@ step "6/6 — done"
 echo
 echo "[mothership] up ✅ — point a Cloudflare A record at this box's IP (port 80, Flexible TLS)"
 echo "[mothership] then open: https://<your-subdomain> and register the first (owner) account."
-docker compose -f docker-compose.mothership.yml ps
+docker compose -f docker-compose.mothership.yml --env-file .env.prod ps
