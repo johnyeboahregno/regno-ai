@@ -48,7 +48,7 @@ After changing `.env.prod`, rebuild the Mothership stack:
 
 ```bash
 cd /opt/regno
-sudo docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build
+sudo docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build --remove-orphans
 ```
 
 ## Verify

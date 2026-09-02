@@ -47,5 +47,5 @@ The Mothership only needs the leaf workspace closure — **no** `@regno/ai`,
 
 - `npm run build -w @regno/mothership` and `-w @regno/web` both build clean.
 - `npm run check -w @regno/mothership` / `-w @regno/web` report 0 errors.
-- `docker compose -f docker-compose.mothership.yml up -d --build` boots the
+- `docker compose -f docker-compose.mothership.yml up -d --build --remove-orphans` boots the
   control plane (mothership + execution + mongo + redis).

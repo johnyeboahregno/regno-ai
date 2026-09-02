@@ -35,7 +35,7 @@ Push to `master` (or `main`). The `Deploy Mothership` GitHub Actions workflow do
 1. SSHes into the Mothership VPS with the repo secret `MOTHER_SSH_KEY`.
 2. `git pull --ff-only` in `/opt/regno`.
 3. Rewrites `.env.prod` from GitHub secrets (so secrets never live in the repo).
-4. `docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build`.
+4. `docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build --remove-orphans`.
 5. Prints `docker compose ps`.
 
 To run it without a new commit: **Actions → Deploy Mothership → Run workflow**.

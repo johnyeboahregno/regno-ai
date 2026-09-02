@@ -32,7 +32,7 @@ MOTHERSHIP_URL=https://<mothership-subdomain>   # Architects POST telemetry here
 ```bash
 git clone "$REPO_URL" /opt/regno && cd /opt/regno
 cp .env.prod .env
-docker compose -f docker-compose.mothership.yml up -d --build
+docker compose -f docker-compose.mothership.yml up -d --build --remove-orphans
 ```
 
 The Mothership app serves on `:80`; point Cloudflare at the VPS IP and open the app. The health page will

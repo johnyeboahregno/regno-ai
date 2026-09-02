@@ -6,7 +6,7 @@
 #   not a body. Each Architect runs the full stack on its own machine.
 #
 # Deploy on a basic VPS:
-#   cp .env.prod .env && docker compose -f docker-compose.mothership.yml up -d --build
+#   cp .env.prod .env && docker compose -f docker-compose.mothership.yml up -d --build --remove-orphans
 # Then point Cloudflare at <vps-ip>:80 (Flexible TLS, same as the production box).
 name: regno-mothership
 

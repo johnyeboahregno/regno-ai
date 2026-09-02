@@ -79,7 +79,7 @@ EOF
 fi
 
 step "5/6 — building + starting the Mothership"
-docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build
+docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build --remove-orphans
 
 step "6/6 — done"
 echo
