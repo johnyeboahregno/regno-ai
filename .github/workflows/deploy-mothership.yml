@@ -10,7 +10,6 @@ name: Deploy Mothership
 #
 # Required GitHub Actions secrets:
 #   MOTHER_SSH_HOST            e.g. 51.75.163.94
-#   MOTHER_SSH_USER            e.g. ubuntu
 #   MOTHER_SSH_KEY             private key (no passphrase)
 #   MOTHER_JWT_SECRET          long random hex (persistent across deploys)
 #   MOTHER_CREDENTIALS_KEY     long random hex (persistent)
@@ -37,7 +36,7 @@ jobs:
       - name: Deploy via SSH
         env:
           SSH_HOST: ${{ secrets.MOTHER_SSH_HOST }}
-          SSH_USER: ${{ secrets.MOTHER_SSH_USER || 'ubuntu' }}
+          SSH_USER: ubuntu
           SSH_KEY: ${{ secrets.MOTHER_SSH_KEY }}
           REPO_URL: https://github.com/johnyeboahregno/regno-ai.git
           JWT_SECRET: ${{ secrets.MOTHER_JWT_SECRET }}
@@ -53,6 +52,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/mothership
           chmod 600 ~/.ssh/mothership
           ssh-keygen -y -f ~/.ssh/mothership >/dev/null
+          echo "SSH key fingerprint: $(ssh-keygen -y -f ~/.ssh/mothership | ssh-keygen -lf - | awk '{print $2}')"
 
           ssh -i ~/.ssh/mothership -o BatchMode=yes -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \

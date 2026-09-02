@@ -47,8 +47,7 @@ GitHub repo → **Settings → Secrets and variables → Actions → Secrets**:
 | Secret | Value |
 |---|---|
 | `MOTHER_SSH_HOST` | Mothership VPS IP, e.g. `51.75.163.94` |
-| `MOTHER_SSH_USER` | `ubuntu` (or `root`) |
-| `MOTHER_SSH_KEY` | private key for that user (no passphrase) |
+| `MOTHER_SSH_KEY` | private key for the Mothership's `ubuntu` user (no passphrase) |
 | `MOTHER_JWT_SECRET` | long random hex (persistent across deploys) |
 | `MOTHER_CREDENTIALS_KEY` | long random hex (persistent) |
 | `REGNO_IDENTITY_BASE_URL` | `https://identity.regnocloud.com` |
