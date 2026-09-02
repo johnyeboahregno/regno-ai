@@ -32,6 +32,8 @@ if ! command -v docker >/dev/null 2>&1; then
   curl -fsSL https://get.docker.com | sh
 fi
 systemctl enable --now docker || true
+# Let the non-root SSH user drive Docker (no sudo) on later deploys.
+if [ -n "${SUDO_USER:-}" ]; then usermod -aG docker "$SUDO_USER" 2>/dev/null || true; fi
 
 step "2/6 — adding 2GB swap (headroom for the image build)"
 if ! swapon --show | grep -q swapfile; then
@@ -60,6 +62,8 @@ if [ ! -f .env.prod ]; then
   read -r -p "Cloudflare zone ID (blank to resolve from root domain): " CF_ZONE
   read -r -p "Root domain [regno.ai]: " ROOT
   ROOT="${ROOT:-regno.ai}"
+  read -r -p "Mothership public URL [https://mothership.regno.ai]: " MOTHERSHIP_URL
+  MOTHERSHIP_URL="${MOTHERSHIP_URL:-https://mothership.regno.ai}"
   cat > .env.prod <<EOF
 JWT_SECRET=$JWT_SECRET
 CREDENTIALS_KEY=$CREDENTIALS_KEY
@@ -68,6 +72,7 @@ CF_API_TOKEN=$CF_TOKEN
 CF_ZONE_ID=$CF_ZONE
 REGNO_ROOT_DOMAIN=$ROOT
 REPO_URL=$REPO_URL
+MOTHERSHIP_URL=$MOTHERSHIP_URL
 EOF
   chmod 600 .env.prod
   echo "[mothership] wrote .env.prod"

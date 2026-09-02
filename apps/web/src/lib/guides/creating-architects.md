@@ -57,6 +57,10 @@ Architect under a new name.
 The list shows each Architect's status (`draft → provisioning → healthy/error`). A failed
 provision surfaces its error inline; fix it and press **Launch** again.
 
+To push a later code change (or rotated key) to a healthy Architect, press **Redeploy** —
+it re-runs the worker without wiping volumes (`git pull --ff-only` + `deploy.sh`). See the
+**No-SSH Operations** guide for the full hands-off workflow.
+
 ## Live progress while provisioning
 
 Once launched, the wizard shows a step-by-step progress list so you can see exactly what the

@@ -59,6 +59,15 @@
     else error = d.error ?? 'Failed to launch';
   }
 
+  async function redeploy(slug: string) {
+    error = '';
+    message = '';
+    const r = await fetch(`/api/architects/${slug}/launch`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) { message = `Redeploying "${slug}"… (job ${d.jobId})`; load(); }
+    else error = d.error ?? 'Failed to redeploy';
+  }
+
   async function confirmDelete() {
     if (!pendingDelete) return;
     const slug = pendingDelete;
@@ -128,6 +137,8 @@
           <td style="white-space:nowrap;">
             {#if a.status === 'draft' || a.status === 'error'}
               <button class="btn ghost" style="padding:6px 12px;" on:click={() => relaunch(a.slug)}>Launch</button>
+            {:else if a.status !== 'provisioning'}
+              <button class="btn ghost" style="padding:6px 12px;" on:click={() => redeploy(a.slug)}>Redeploy</button>
             {/if}
             <button class="btn ghost" style="padding:6px 12px;" on:click={() => (pendingDelete = a.slug)}>Delete</button>
           </td>
