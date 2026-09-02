@@ -1,8 +1,8 @@
 /**
  * Regno Identity SSO — mirrors the sysadmin portal's auth (regno-websites →
  * sysadmin.regnocloud.com/includes/auth.php). Flow: redirect to
- * `${REGNO_IDENTITY_BASE_URL}/login?redirect_uri=…`, receive `identity_access_token`
- * on the callback, validate it at `/api/token/validate`, then bootstrap a local
+ * `${REGNO_IDENTITY_BASE_URL}/Identity/Account/Login?returnUrl=…`, receive
+ * `identity_access_token` on the callback, validate it at `/api/token/validate`, then bootstrap a local
  * `regno_session`. This is how `*.regno.ai` shares auth with `*.regnocloud.com`
  * without sharing a cookie domain.
  */
@@ -20,7 +20,7 @@ export interface IdentityClaims {
 }
 
 export function identityLoginUrl(redirectUri: string): string {
-  return `${IDENTITY_BASE_URL}/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
+  return `${IDENTITY_BASE_URL}/Identity/Account/Login?returnUrl=${encodeURIComponent(redirectUri)}`;
 }
 
 /** True when Regno Identity SSO is configured (env var set). */
