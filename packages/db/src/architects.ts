@@ -146,7 +146,9 @@ export async function appendArchitectProgress(
   step: Omit<ArchitectProgressStep, 'at'>,
 ): Promise<void> {
   const db = await getDb();
-  await db.collection(Collections.ARCHITECTS).updateOne(
+  // Type the collection explicitly: an untyped `Collection<Document>` makes the
+  // MongoDB driver reject `$push` on the optional `progress` array.
+  await db.collection<ArchitectRecord>(Collections.ARCHITECTS).updateOne(
     { slug },
     { $push: { progress: { ...step, at: new Date() } }, $set: { updatedAt: new Date() } },
   );
