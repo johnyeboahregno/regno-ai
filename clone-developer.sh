@@ -52,4 +52,12 @@ sudo kubectl -n "$NS" exec "$WPOD" -- node scripts/seed-agents.mjs
 sudo kubectl -n "$NS" exec "$WPOD" -- node scripts/seed-standards.mjs
 sudo kubectl -n "$NS" exec "$WPOD" -- node scripts/seed-brain.mjs
 
+# 6. Cloudflare DNS (optional) — SERVER_IP + CF_API_TOKEN required
+if [ -n "${SERVER_IP:-}" ] && [ -n "${CF_API_TOKEN:-}" ]; then
+  echo "[clone] registering $SLUG.regno.ai → $SERVER_IP"
+  node scripts/cloudflare-dns.mjs upsert "$SLUG" "$SERVER_IP"
+else
+  echo "[clone] skipping Cloudflare DNS (set SERVER_IP + CF_API_TOKEN to enable)"
+fi
+
 echo "[clone] done ✅ — $SLUG at http://<server>:$PORT (namespace $NS)"

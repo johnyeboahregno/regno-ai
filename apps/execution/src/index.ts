@@ -9,6 +9,7 @@ import { getRedis, recordAiUsage } from '@regno/db';
 import { setUsageSink } from '@regno/ai';
 import { startOrchestratorWorker } from './workers/orchestrator.js';
 import { startNotificationsWorker } from './workers/notifications.js';
+import { startProvisionWorker } from './workers/provision.js';
 
 // Capture AI usage (tokens + cost) for every LLM call made by the worker.
 setUsageSink((u) => {
@@ -21,12 +22,14 @@ async function main() {
 
   const orchestrator = startOrchestratorWorker(connection);
   const notifications = startNotificationsWorker(connection);
-  console.log('[execution] workers online — orchestrator + notifications');
+  const provision = startProvisionWorker(connection);
+  console.log('[execution] workers online — orchestrator + notifications + provision');
 
   const shutdown = async () => {
     console.log('[execution] shutting down…');
     await orchestrator.close();
     await notifications.close();
+    await provision.close();
     process.exit(0);
   };
   process.on('SIGINT', shutdown);

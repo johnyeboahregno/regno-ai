@@ -1,0 +1,75 @@
+# Regno Mothership — lightweight control plane.
+#
+# Runs ONLY the pieces needed to provision + manage developer Architects:
+#   web (wizard UI + API), execution (provisioning worker), mongo (registry),
+#   redis (BullMQ queue). No Neo4j / Qdrant / Caddy — the Mothership is a brain,
+#   not a body. Each Architect runs the full stack on its own machine.
+#
+# Deploy on a basic VPS:
+#   cp .env.prod .env && docker compose -f docker-compose.mothership.yml up -d --build
+# Then point Cloudflare at <vps-ip>:80 (Flexible TLS, same as the production box).
+name: regno-mothership
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:3000" # Cloudflare Flexible origin (edge TLS → plain HTTP)
+    environment:
+      - REGNO_IDENTITY_BASE_URL=${REGNO_IDENTITY_BASE_URL:-https://identity.regnocloud.com}
+      - MONGO_URI=mongodb://mongo:27017/regno
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - CREDENTIALS_KEY=${CREDENTIALS_KEY:-}
+      - CF_API_TOKEN=${CF_API_TOKEN:-}
+      - CF_ZONE_ID=${CF_ZONE_ID:-}
+      - REGNO_ROOT_DOMAIN=${REGNO_ROOT_DOMAIN:-regno.ai}
+      - REPO_URL=${REPO_URL:-}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+    depends_on:
+      - mongo
+      - redis
+    networks: [regno]
+
+  execution:
+    build:
+      context: .
+      dockerfile: apps/execution/Dockerfile
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/regno
+      - REDIS_URL=redis://redis:6379
+      - CF_API_TOKEN=${CF_API_TOKEN:-}
+      - CF_ZONE_ID=${CF_ZONE_ID:-}
+      - REGNO_ROOT_DOMAIN=${REGNO_ROOT_DOMAIN:-regno.ai}
+      - REPO_URL=${REPO_URL:-}
+    depends_on:
+      - mongo
+      - redis
+    networks: [regno]
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks: [regno]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks: [regno]
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  regno:
+    driver: bridge

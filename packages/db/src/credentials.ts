@@ -67,3 +67,38 @@ export async function deleteCredential(id: string): Promise<void> {
   const db = await getDb();
   await db.collection(Collections.CREDENTIALS).deleteOne({ _id: new ObjectId(id) });
 }
+
+/** Create or replace a credential by its unique name (used for architect env blobs). */
+export async function upsertCredentialByName(
+  name: string,
+  input: Omit<CredentialInput, 'name'>,
+): Promise<string> {
+  const db = await getDb();
+  const existing = await db.collection(Collections.CREDENTIALS).findOne({ name }, { projection: { _id: 1 } });
+  const now = new Date();
+  const doc = {
+    type: input.type,
+    provider: input.provider ?? input.type,
+    encryptedValue: encryptSecret(input.secret),
+  };
+  if (existing) {
+    await db.collection(Collections.CREDENTIALS).updateOne({ _id: existing._id }, { $set: { ...doc, updatedAt: now } });
+    return String(existing._id);
+  }
+  const res = await db.collection(Collections.CREDENTIALS).insertOne({ name, ...doc, createdAt: now });
+  return String(res.insertedId);
+}
+
+/** Reveal a decrypted secret by credential name (null when absent). */
+export async function revealCredentialByName(name: string): Promise<string | null> {
+  const db = await getDb();
+  const doc = await db.collection(Collections.CREDENTIALS).findOne({ name });
+  if (!doc?.encryptedValue) return null;
+  return decryptSecret(String(doc.encryptedValue));
+}
+
+/** Delete a credential by its unique name (idempotent). */
+export async function deleteCredentialByName(name: string): Promise<void> {
+  const db = await getDb();
+  await db.collection(Collections.CREDENTIALS).deleteOne({ name });
+}

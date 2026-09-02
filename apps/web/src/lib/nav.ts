@@ -53,6 +53,7 @@ export function buildNav(role: string): NavGroup[] {
         { href: '/app/docs', label: 'Docs', icon: 'docs' },
         { href: '/app/credentials', label: 'Credentials', icon: 'credentials' },
         { href: '/app/health', label: 'Health', icon: 'health' },
+        ...(['owner', 'admin', 'sysadmin'].includes(role) ? [{ href: '/app/architects', label: 'Architects', icon: 'architects' }] : []),
         ...(role === 'owner' ? [{ href: '/app/agents', label: 'SMA', icon: 'agents' }] : []),
       ],
     },

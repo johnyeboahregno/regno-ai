@@ -6,4 +6,6 @@ COPY tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
 RUN npm install --no-audit --no-fund
+# ssh client for architect provisioning (key auth); sshpass for password auth
+RUN apk add --no-cache openssh-client sshpass
 CMD ["npx", "tsx", "apps/execution/src/index.ts"]

@@ -16,6 +16,7 @@ export const Collections = {
   SYSTEM_CONFIG: 'system_config',
   STANDARDS: 'standards',
   DEVELOPERS: 'developers',
+  ARCHITECTS: 'architects',
   PERSONAS: 'personas',
   ARTIFACTS: 'artifacts',
   AGENTS: 'agents',
@@ -79,6 +80,7 @@ export const Queues = {
   DOC_SEARCH: 'doc-search',
   SEAL_DAEMON: 'sealDaemon',
   NOTIFICATIONS: 'notifications',
+  PROVISION: 'provision',
 } as const;
 
 /** Realtime SSE event names */
@@ -92,3 +94,5 @@ export const Events = {
 /** Analysis depths for Cortex Flow topology selection */
 export const AnalysisDepth = ['quick', 'standard', 'deep'] as const;
 export type AnalysisDepth = (typeof AnalysisDepth)[number];
+
+export * from './slug.js';

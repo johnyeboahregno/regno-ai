@@ -1,0 +1,29 @@
+/**
+ * Build the `.env.prod` payload written to a target machine. Merges non-secret
+ * config with decrypted secrets and the same DB defaults `deploy.sh` assumes.
+ * SSH credentials (SSH_KEY / SSH_PASSWORD) are provisioner-only and excluded.
+ */
+const DB_DEFAULTS: Record<string, string> = {
+  MONGO_URI: 'mongodb://mongo:27017/regno',
+  MONGO_POOL_SIZE: '50',
+  NEO4J_URI: 'bolt://neo4j:7687',
+  NEO4J_USER: 'neo4j',
+  QDRANT_URL: 'http://qdrant:6333',
+  REDIS_URL: 'redis://redis:6379',
+};
+
+const PROVISIONER_ONLY = new Set(['SSH_KEY', 'SSH_PASSWORD', 'CF_API_TOKEN', 'CF_ZONE_ID']);
+
+export function buildEnvPayload(env: Record<string, string>, secrets: Record<string, string>): string {
+  const merged: Record<string, string> = {};
+  for (const [k, v] of Object.entries(env)) if (v !== undefined && v !== null) merged[k] = String(v);
+  for (const [k, v] of Object.entries(secrets)) {
+    if (PROVISIONER_ONLY.has(k)) continue;
+    if (v !== undefined && v !== null && String(v) !== '') merged[k] = String(v);
+  }
+  for (const [k, v] of Object.entries(DB_DEFAULTS)) if (!merged[k]) merged[k] = v;
+
+  const lines: string[] = [];
+  for (const [k, v] of Object.entries(merged)) lines.push(`${k}=${v}`);
+  return `${lines.join('\n')}\n`;
+}

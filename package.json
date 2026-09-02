@@ -12,7 +12,7 @@
     "dev:web": "npm run dev -w @regno/web",
     "dev:execution": "npm run dev -w @regno/execution",
     "dev:realtime": "npm run dev -w @regno/realtime",
-    "build": "npm run build -w @regno/shared && npm run build -w @regno/crypto && npm run build -w @regno/db && npm run build -w @regno/ai && npm run build -w @regno/cortex && npm run build -w @regno/mail && npm run build -w @regno/flow && npm run build -w @regno/ingest && npm run build -w @regno/cli && npm run build -w @regno/web && npm run build -w @regno/execution && npm run build -w @regno/realtime",
+    "build": "npm run build -w @regno/shared && npm run build -w @regno/crypto && npm run build -w @regno/db && npm run build -w @regno/ai && npm run build -w @regno/cortex && npm run build -w @regno/mail && npm run build -w @regno/flow && npm run build -w @regno/provision && npm run build -w @regno/ingest && npm run build -w @regno/cli && npm run build -w @regno/web && npm run build -w @regno/execution && npm run build -w @regno/realtime",
     "db:up": "docker compose up -d mongo qdrant neo4j redis",
     "db:down": "docker compose down",
     "db:init": "node scripts/init-db.mjs",
@@ -24,6 +24,7 @@
     "db:seed-profile": "node scripts/seed-profile.mjs",
     "db:ingest-site": "npx tsx scripts/ingest-site.ts",
     "cli": "npx tsx packages/cli/src/cli.ts",
+    "dns": "node scripts/cloudflare-dns.mjs",
     "stack:up": "docker compose up -d --build",
     "stack:down": "docker compose down"
   },

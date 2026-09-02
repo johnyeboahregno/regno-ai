@@ -86,3 +86,26 @@ curl -s -k https://john.regno.ai/api/health                       # end-to-end v
   namespace) — keeping it out of `app.yaml` avoids clobbering dev preview namespaces.
 - If Cloudflare ever returns `521`/`522`, the SSL/TLS mode is set to Full while the origin
   only serves HTTP — switch it back to **Flexible** (or add origin TLS).
+
+## Automating DNS for new Architects
+
+`scripts/cloudflare-dns.mjs` creates/updates the A record for a developer name so
+**`<slug>.regno.ai`** points at the deployed server (proxied through Cloudflare, matching
+the topology above). It's also importable as a module for the provisioning wizard.
+
+```bash
+node scripts/cloudflare-dns.mjs upsert john 213.32.7.227   # john.regno.ai → 213.32.7.227 (proxied)
+node scripts/cloudflare-dns.mjs upsert darren 1.2.3.4 --no-proxy
+node scripts/cloudflare-dns.mjs delete john
+node scripts/cloudflare-dns.mjs list
+```
+
+Requirements:
+
+- `CF_API_TOKEN` — Cloudflare API token with **Zone → DNS → Edit** permission.
+- `CF_ZONE_ID` — optional; resolved from `REGNO_ROOT_DOMAIN` (default `regno.ai`) if omitted.
+- Slug rules: lowercase `a-z`/`0-9`/hyphens, no spaces; reserved names (`www`, `api`, `admin`, …) are rejected.
+
+Both `deploy.sh` (step 8/8) and `clone-developer.sh` (step 6) call it automatically when
+the token (and `SERVER_IP` for the clone path) are set, skipping gracefully otherwise.
+A user-facing walkthrough lives in **User Guides → Cloudflare DNS for new Architects**.

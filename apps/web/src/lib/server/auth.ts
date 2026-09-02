@@ -60,4 +60,18 @@ export async function requireSession(cookies: Cookies): Promise<SessionUser | nu
   return verifySession(token);
 }
 
+/** Roles allowed to use admin-only surfaces (architect provisioning). */
+export const ADMIN_ROLES = new Set(['owner', 'admin', 'sysadmin']);
+
+export function isAdminRole(role: string): boolean {
+  return ADMIN_ROLES.has(role);
+}
+
+/** Admin gate — session + role in the admin set (null when not an admin). */
+export async function requireAdmin(cookies: Cookies): Promise<SessionUser | null> {
+  const user = await requireSession(cookies);
+  if (!user || !isAdminRole(user.role)) return null;
+  return user;
+}
+
 export const SESSION_COOKIE = 'regno_session';

@@ -103,7 +103,7 @@ fi
 step "6/7 — building + starting the stack"
 docker compose --env-file .env.prod up -d --build
 
-step "7/7 — initializing + seeding (host → localhost DB ports)"
+step "7/8 — initializing + seeding (host → localhost DB ports)"
 # Load API keys from .env.prod, then point host scripts at the published DB ports.
 set -a
 # shellcheck disable=SC1091
@@ -130,6 +130,22 @@ if [ -n "${OPENAI_API_KEY:-}" ]; then
   fi
 else
   echo "[deploy] no OPENAI_API_KEY — skipped embedding steps. Run 'npm run db:seed-brain' and 'npm run db:seed-history' after adding a key."
+fi
+
+step "8/8 — Cloudflare DNS (optional)"
+if [ -n "${CF_API_TOKEN:-}" ]; then
+  SLUG_DOMAIN="$(echo "$DOMAIN" | cut -d. -f1)"
+  ROOT_DOMAIN="${DOMAIN#"$SLUG_DOMAIN".}"
+  if [ -z "${SERVER_IP:-}" ]; then
+    SERVER_IP="$(curl -fsS --max-time 10 https://api.ipify.org || true)"
+  fi
+  if [ -n "$SLUG_DOMAIN" ] && [ -n "$SERVER_IP" ]; then
+    REGNO_ROOT_DOMAIN="$ROOT_DOMAIN" node scripts/cloudflare-dns.mjs upsert "$SLUG_DOMAIN" "$SERVER_IP"
+  else
+    echo "[deploy] skipped Cloudflare DNS — could not determine public IP (set SERVER_IP)"
+  fi
+else
+  echo "[deploy] skipped Cloudflare DNS — CF_API_TOKEN not set"
 fi
 
 echo
