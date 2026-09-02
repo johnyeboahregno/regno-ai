@@ -1,6 +1,6 @@
 name: Deploy Mothership
 
-# Deploys the lightweight control plane (web + execution + mongo + redis) to the
+# Deploys the lightweight control plane (mothership + execution + mongo + redis) to the
 # Mothership VPS on every push to master/main. SSHes into the box, pulls the latest
 # code, writes .env.prod from GitHub secrets, and rebuilds via
 # docker-compose.mothership.yml.

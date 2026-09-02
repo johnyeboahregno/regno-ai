@@ -4,7 +4,7 @@
   // Qdrant connection form (+ Test Connection), a Browse tab listing collections, and a
   // footer with Last saved + Save.
   import { onMount } from 'svelte';
-  import Icon from '$lib/Icon.svelte';
+  import { Icon } from '@regno/ui';
 
   export let onClose: () => void = () => {};
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { theme, type Theme } from '$lib/ui';
+  import { theme, type Theme } from '@regno/ui';
 
   const themes: Array<{ id: Theme; name: string; desc: string; swatch: string[] }> = [
     { id: 'dark', name: 'Midnight', desc: 'Deep navy with a purple-blue signal.', swatch: ['#0a0c16', '#6c5ce7', '#8d7bff'] },

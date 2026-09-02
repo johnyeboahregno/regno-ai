@@ -1,6 +1,6 @@
 // /api/technologies — the technology catalog available to agent creation.
 import { json } from '@sveltejs/kit';
-import { requireSession } from '$lib/server/auth.js';
+import { requireSession } from '@regno/auth';
 
 interface CatalogItem { slug: string; label: string; icon: string }
 

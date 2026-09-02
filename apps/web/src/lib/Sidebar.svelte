@@ -1,20 +1,17 @@
 <script lang="ts">
-  import Brand from '$lib/Brand.svelte';
-  import Icon from '$lib/Icon.svelte';
-  import StatusPulse from '$lib/StatusPulse.svelte';
+  import { Brand, Icon, StatusPulse } from '@regno/ui';
   import ArchitectAgeWidget from '$lib/ArchitectAgeWidget.svelte';
   import { buildNav, groupContainsPath, itemMatchesPath, type NavGroup, type NavItem } from '$lib/nav';
   import { guides } from '$lib/guides';
-  import { theme, collapsed, nextTheme, type Theme } from '$lib/ui';
+  import { theme, collapsed, nextTheme, type Theme } from '@regno/ui';
   import { onMount } from 'svelte';
 
   export let user: { email: string; role: string };
   export let path: string;
   export let onLogout: () => void;
   export let onNavigate: (() => void) | undefined = undefined;
-  export let mothership = false;
 
-  const baseNav = buildNav(user.role, mothership);
+  const baseNav = buildNav(user.role);
   let docsChildren: NavItem[] = [];
 
   // Inject the dynamic Docs submenu (artifacts + ingested docs) once it loads.
@@ -244,8 +241,7 @@
   <div class="sb-head">
     {#if !$collapsed}
       <div class="sb-brand">
-        <a class="brand" href="/app" aria-label={mothership ? 'Regno Mothership home' : 'Regno home'}><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
-        {#if mothership}<span class="ms-sublabel">Mothership</span>{/if}
+        <a class="brand" href="/app" aria-label="Regno home"><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
       </div>
       <span class="sb-status" title="All systems operational" aria-label="System status: all systems operational"><StatusPulse size={16} /></span>
     {:else}

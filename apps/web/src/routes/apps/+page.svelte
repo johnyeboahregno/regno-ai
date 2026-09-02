@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Brand from '$lib/Brand.svelte';
+  import { Brand } from '@regno/ui';
 
   interface App {
     name: string;

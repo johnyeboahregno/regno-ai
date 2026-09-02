@@ -14,7 +14,7 @@ flowchart LR
   A -->|heartbeat every 30s| M
 ```
 
-- **Mothership** — the control plane (web + execution + mongo + redis). It is deployed by
+- **Mothership** — the control plane (mothership + execution + mongo + redis). It is deployed by
   GitHub Actions; you never touch it by hand.
 - **Architect** — each developer's full stack. It is deployed and updated **by the Mothership's
   provisioning worker**, not by you.

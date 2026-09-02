@@ -4,7 +4,7 @@
   // then the six ways knowledge enters CORTEX (ingestion, watched dirs, connectors,
   // SDK/API, execution learning, conversations).
   import { onMount } from 'svelte';
-  import Icon from '$lib/Icon.svelte';
+  import { Icon } from '@regno/ui';
 
   export let onClose: () => void = () => {};
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Brand from '$lib/Brand.svelte';
+  import { Brand } from '@regno/ui';
   import NeuralBackground from '$lib/NeuralBackground.svelte';
   let user: { email: string; role: string } | null = null;
 

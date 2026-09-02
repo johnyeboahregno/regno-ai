@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
-  import { theme, THEMES, type Theme } from '$lib/ui';
+  import { theme, THEMES, type Theme } from '@regno/ui';
   import type { PageData } from './$types.js';
 
   export let data: PageData;

@@ -4,7 +4,7 @@
 import { json } from '@sveltejs/kit';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
-import { requireSession } from '$lib/server/auth.js';
+import { requireSession } from '@regno/auth';
 
 function slugify(name: string): string {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

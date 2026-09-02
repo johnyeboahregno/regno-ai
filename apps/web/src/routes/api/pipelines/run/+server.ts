@@ -3,7 +3,7 @@
 // Stream progress via GET /api/pipelines/run/[executionId]/events
 import { json } from '@sveltejs/kit';
 import { randomUUID } from 'node:crypto';
-import { requireSession } from '$lib/server/auth.js';
+import { requireSession } from '@regno/auth';
 import { runPipeline, type RunRequest } from '$lib/pipeline/executor.js';
 
 export async function POST({ request, cookies }) {

@@ -1,5 +1,5 @@
 // /api/pipelines/run/[executionId]/events — SSE stream of node progress.
-import { requireSession } from '$lib/server/auth.js';
+import { requireSession } from '@regno/auth';
 import { subscribe, isExecutionDone, getExecutionEvents } from '$lib/pipeline/executor.js';
 
 export async function GET({ params, cookies, request }) {

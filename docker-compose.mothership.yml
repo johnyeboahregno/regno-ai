@@ -1,7 +1,7 @@
 # Regno Mothership — lightweight control plane.
 #
 # Runs ONLY the pieces needed to provision + manage developer Architects:
-#   web (wizard UI + API), execution (provisioning worker), mongo (registry),
+#   mothership (wizard UI + API), execution (provisioning worker), mongo (registry),
 #   redis (BullMQ queue). No Neo4j / Qdrant / Caddy — the Mothership is a brain,
 #   not a body. Each Architect runs the full stack on its own machine.
 #
@@ -11,15 +11,14 @@
 name: regno-mothership
 
 services:
-  web:
+  mothership:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/mothership/Dockerfile
     restart: unless-stopped
     ports:
       - "80:3000" # Cloudflare Flexible origin (edge TLS → plain HTTP)
     environment:
-      - MOTHERSHIP=1
       - MOTHERSHIP_URL=${MOTHERSHIP_URL:-}
       - REGNO_IDENTITY_BASE_URL=${REGNO_IDENTITY_BASE_URL:-https://identity.regnocloud.com}
       - MONGO_URI=mongodb://mongo:27017/regno
@@ -39,12 +38,12 @@ services:
   execution:
     build:
       context: .
-      dockerfile: apps/execution/Dockerfile
+      dockerfile: apps/execution/Dockerfile.provision
     restart: unless-stopped
     environment:
       - MONGO_URI=mongodb://mongo:27017/regno
       - REDIS_URL=redis://redis:6379
-      # Same key as the web service so the worker can decrypt vault secrets.
+      # Same key as the mothership service so the worker can decrypt vault secrets.
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - CREDENTIALS_KEY=${CREDENTIALS_KEY:-}
       - MOTHERSHIP_URL=${MOTHERSHIP_URL:-}

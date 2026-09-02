@@ -10,9 +10,11 @@
   ],
   "scripts": {
     "dev:web": "npm run dev -w @regno/web",
+    "dev:mothership": "npm run dev -w @regno/mothership",
     "dev:execution": "npm run dev -w @regno/execution",
+    "dev:provision": "npm run dev:provision -w @regno/execution",
     "dev:realtime": "npm run dev -w @regno/realtime",
-    "build": "npm run build -w @regno/shared && npm run build -w @regno/crypto && npm run build -w @regno/db && npm run build -w @regno/ai && npm run build -w @regno/cortex && npm run build -w @regno/mail && npm run build -w @regno/flow && npm run build -w @regno/provision && npm run build -w @regno/ingest && npm run build -w @regno/cli && npm run build -w @regno/web && npm run build -w @regno/execution && npm run build -w @regno/realtime",
+    "build": "npm run build -w @regno/shared && npm run build -w @regno/crypto && npm run build -w @regno/db && npm run build -w @regno/auth && npm run build -w @regno/ai && npm run build -w @regno/cortex && npm run build -w @regno/mail && npm run build -w @regno/flow && npm run build -w @regno/provision && npm run build -w @regno/ingest && npm run build -w @regno/cli && npm run build -w @regno/web && npm run build -w @regno/mothership && npm run build -w @regno/execution && npm run build -w @regno/realtime",
     "db:up": "docker compose up -d mongo qdrant neo4j redis",
     "db:down": "docker compose down",
     "db:init": "node scripts/init-db.mjs",

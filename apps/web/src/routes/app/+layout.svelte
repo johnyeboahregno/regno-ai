@@ -3,9 +3,8 @@
   import { goto } from '$app/navigation';
   import Sidebar from '$lib/Sidebar.svelte';
   import ArchitectAgeModal from '$lib/ArchitectAgeModal.svelte';
-  import Brand from '$lib/Brand.svelte';
-  import Icon from '$lib/Icon.svelte';
-  import { collapsed, mobileNavOpen, theme } from '$lib/ui';
+  import { Brand, Icon } from '@regno/ui';
+  import { collapsed, mobileNavOpen, theme } from '@regno/ui';
   import type { LayoutData } from './$types.js';
 
   export let data: LayoutData;
@@ -25,18 +24,17 @@
   }
 </script>
 
-<svelte:head><title>{data.mothership ? 'Regno Mothership' : 'Regno Architect Me'}</title></svelte:head>
+<svelte:head><title>Regno Architect Me</title></svelte:head>
 
 <div class="mobile-bar">
   <button class="mb-btn" on:click={openMobileNav} aria-label="Open menu">
     <Icon name="menu" size={20} />
   </button>
   <a class="brand" href="/app"><Brand variant={$theme === 'light' ? 'dark' : 'light'} /></a>
-  {#if data.mothership}<span class="ms-label">MOTHERSHIP</span>{/if}
 </div>
 
-<div class="shell" class:collapsed={$collapsed} class:mobile-open={$mobileNavOpen} class:mothership={data.mothership}>
-  <Sidebar user={data.user} mothership={data.mothership} path={$page.url.pathname + $page.url.search} onLogout={logout} onNavigate={closeMobileNav} />
+<div class="shell" class:collapsed={$collapsed} class:mobile-open={$mobileNavOpen}>
+  <Sidebar user={data.user} path={$page.url.pathname + $page.url.search} onLogout={logout} onNavigate={closeMobileNav} />
   <main class="content">
     <slot />
   </main>

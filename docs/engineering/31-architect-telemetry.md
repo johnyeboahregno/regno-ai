@@ -19,7 +19,8 @@ flowchart LR
   `hooks.server.ts`), probes Mongo/Redis/Qdrant/Neo4j, and POSTs a Regno Standard
   bundle to the Mothership.
 - **Mothership** — stores the latest bundle in `architect_telemetry` and
-  denormalizes a summary onto the `architects` record for fast listing.
+  denormalizes a summary onto the `architects` record for fast listing. The ingest
+  endpoint lives in `apps/mothership/src/routes/api/architects/[slug]/telemetry`.
 
 ## Configuration
 
@@ -32,7 +33,7 @@ flowchart LR
 The provisioner (`packages/provision/src/env.ts`) injects `MOTHERSHIP_URL`,
 `ARCHITECT_SLUG`, and the token into the target's `.env.prod`; `docker-compose.yml`
 passes them into the web container. The token is generated server-side in the
-`PUT /api/architects/{slug}/secrets` handler and never echoed back.
+`PUT /api/architects/{slug}/secrets` handler (in `apps/mothership`) and never echoed back.
 
 ## Auth
 

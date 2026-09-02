@@ -8,7 +8,7 @@ import { getQdrant } from '@regno/db';
 import { QdrantCollections } from '@regno/shared';
 import { embed } from '@regno/ai';
 import { keywordSearch, patternSearch, graphSearch } from '@regno/cortex';
-import { requireSession } from '$lib/server/auth.js';
+import { requireSession } from '@regno/auth';
 
 interface Payload {
   title?: string;

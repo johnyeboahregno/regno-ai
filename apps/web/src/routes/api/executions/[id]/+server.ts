@@ -2,7 +2,7 @@
 import { json } from '@sveltejs/kit';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
-import { requireSession } from '$lib/server/auth.js';
+import { requireSession } from '@regno/auth';
 
 export async function GET({ params, cookies }) {
   const user = await requireSession(cookies);

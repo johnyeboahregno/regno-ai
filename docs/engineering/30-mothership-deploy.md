@@ -2,7 +2,8 @@
 
 > The Mothership is the lightweight Regno deployment that runs the Architect-creation wizard
 > and the provisioning worker. Each developer Architect is a **separate** full stack on its
-> own machine — the Mothership only ever runs web + execution + mongo + redis.
+> own machine — the Mothership only ever runs mothership + execution + mongo + redis.
+> It is its own SvelteKit app (`apps/mothership`); see `docs/engineering/32-mothership-app-split.md`.
 
 ## 1. Requirements
 
@@ -34,7 +35,7 @@ cp .env.prod .env
 docker compose -f docker-compose.mothership.yml up -d --build
 ```
 
-Web serves on `:80`; point Cloudflare at the VPS IP and open the app. The health page will
+The Mothership app serves on `:80`; point Cloudflare at the VPS IP and open the app. The health page will
 show Neo4j/Qdrant as **degraded** on the Mothership — that is expected (it doesn't run them).
 
 ## 4. Provisioning flow
@@ -48,7 +49,7 @@ show Neo4j/Qdrant as **degraded** on the Mothership — that is expected (it doe
 
 ## 5. Notes
 
-- The execution image installs `openssh-client` + `sshpass` (see `apps/execution/Dockerfile`);
+- The execution image installs `openssh-client` + `sshpass` (see `apps/execution/Dockerfile.provision`);
   the Mothership VPS must allow **outbound SSH (22)** to target machines.
 - The target machine needs enough RAM for Neo4j (4 GB heap) — 8 GB min, 16 GB comfortable.
 - To repurpose `213.32.7.227` as a fresh Architect: point the wizard at it with **wipe** enabled.

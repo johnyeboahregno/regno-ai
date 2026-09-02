@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Apply the persisted theme before first paint to avoid a flash of the wrong theme.
+      try {
+        var t = localStorage.getItem('regno.theme');
+        var valid = t === 'light' || t === 'dark' || t === 'tactical' || t === 'aurora' || t === 'nova' || t === 'emerald' || t === 'matrix';
+        document.documentElement.dataset.theme = valid ? t : 'dark';
+      } catch (e) {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    </script>
+    <link rel="icon" type="image/png" href="/logoPurple.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@500;600;700&family=Share+Tech+Mono&family=Cinzel:wght@600;700&family=Marcellus&display=swap"
+      rel="stylesheet"
+    />
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>

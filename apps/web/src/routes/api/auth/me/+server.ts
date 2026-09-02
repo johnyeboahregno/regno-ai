@@ -1,6 +1,6 @@
 // GET /api/auth/me — return the current session user (or null).
 import { json } from '@sveltejs/kit';
-import { verifySession, SESSION_COOKIE } from '$lib/server/auth.js';
+import { verifySession, SESSION_COOKIE } from '@regno/auth';
 
 export async function GET({ cookies }) {
   const token = cookies.get(SESSION_COOKIE);

@@ -1,10 +1,10 @@
-// Guard the /app area. When Regno Identity SSO is configured (the Mothership),
-// unauthenticated visitors go through the same SSO as sysadmin.regnocloud.com;
-// otherwise they fall back to the local /login screen.
+// Guard the /app area. When Regno Identity SSO is configured, unauthenticated
+// visitors go through the same SSO as sysadmin.regnocloud.com; otherwise they
+// fall back to the local /login screen.
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types.js';
-import { verifySession, SESSION_COOKIE } from '$lib/server/auth.js';
-import { identityEnabled } from '$lib/server/identity.js';
+import { verifySession, SESSION_COOKIE } from '@regno/auth';
+import { identityEnabled } from '@regno/auth';
 
 export const load: LayoutServerLoad = async ({ cookies, url }) => {
   const next = encodeURIComponent(url.pathname + url.search);
@@ -19,13 +19,5 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
     throw redirect(303, identityEnabled() ? sso() : local('session-expired'));
   }
 
-  // Mothership mode: only the control-plane routes are reachable.
-  const mothership = process.env.MOTHERSHIP === '1';
-  if (mothership) {
-    const allowed = new Set(['', 'architects', 'credentials', 'health']);
-    const seg = url.pathname.split('/')[2] ?? '';
-    if (!allowed.has(seg)) throw redirect(303, '/app/architects');
-  }
-
-  return { user: { email: session.email, role: session.role }, mothership };
+  return { user: { email: session.email, role: session.role } };
 };

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import Brand from '$lib/Brand.svelte';
-  import PasswordInput from '$lib/PasswordInput.svelte';
+  import { Brand, PasswordInput } from '@regno/ui';
   let email = '';
   let password = '';
   let error = '';

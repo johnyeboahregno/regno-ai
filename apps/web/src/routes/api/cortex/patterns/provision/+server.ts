@@ -7,7 +7,7 @@ import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { createPattern } from '@regno/cortex';
 import { getPatternById } from '$lib/server/cortex/catalog.js';
-import { requireSession } from '$lib/server/auth.js';
+import { requireSession } from '@regno/auth';
 
 // Embedding model is text-embedding-3-small (see @regno/ai) — $0.02 / 1M tokens.
 const EMBED_COST_PER_M = 0.02;

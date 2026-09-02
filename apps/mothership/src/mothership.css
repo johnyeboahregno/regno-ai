@@ -1,0 +1,27 @@
+/* Mothership control plane — gold accent layered on the shared design system. */
+:root {
+  --signal: #f5b83d;
+  --signal-2: #ffd166;
+  --signal-blue: #ffb74d;
+  --signal-glow: rgba(245, 184, 61, 0.35);
+  --signal-bg: rgba(245, 184, 61, 0.12);
+  --signal-hover: rgba(245, 184, 61, 0.08);
+  --on-signal: #17110a;
+}
+
+.ms-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #ffd166;
+}
+
+.ms-sublabel {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: #ffd166;
+  text-transform: uppercase;
+}

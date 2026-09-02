@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Icon from '$lib/Icon.svelte';
+  import { Icon } from '@regno/ui';
   import { architectAge, architectAgeOpen, refreshArchitectAge } from '$lib/architectAge';
 
   // Bar scaling caps — human years vs a centenarian, AI years vs the server's rate clamp.

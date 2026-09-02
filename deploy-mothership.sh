@@ -10,7 +10,7 @@ set -euo pipefail
 #
 # Installs Docker, adds swap headroom, clones the repo, writes .env.prod
 # (prompts only for the Cloudflare token — secrets stay on the box), and
-# starts web + execution + mongo + redis via docker-compose.mothership.yml.
+# starts mothership + execution + mongo + redis via docker-compose.mothership.yml.
 # =====================================================================
 
 APP_DIR="${APP_DIR:-/opt/regno}"

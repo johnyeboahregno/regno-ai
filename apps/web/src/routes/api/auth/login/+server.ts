@@ -2,7 +2,7 @@
 import { json } from '@sveltejs/kit';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
-import { verifyPassword, signSession, SESSION_COOKIE } from '$lib/server/auth.js';
+import { verifyPassword, signSession, SESSION_COOKIE } from '@regno/auth';
 
 export async function POST({ request, cookies }) {
   const body = (await request.json().catch(() => ({}))) as { email?: string; password?: string };
