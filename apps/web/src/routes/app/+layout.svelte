@@ -38,6 +38,12 @@
 <div class="shell" class:collapsed={$collapsed} class:mobile-open={$mobileNavOpen} class:mothership={data.mothership}>
   <Sidebar user={data.user} mothership={data.mothership} path={$page.url.pathname + $page.url.search} onLogout={logout} onNavigate={closeMobileNav} />
   <main class="content">
+    {#if data.mothership}
+      <div class="ms-banner" role="status">
+        <span class="ms-banner-title">🛰 MOTHERSHIP</span>
+        <span class="ms-banner-sub">Control plane — provisioning developer Architects</span>
+      </div>
+    {/if}
     <slot />
   </main>
   <ArchitectAgeModal />
