@@ -739,6 +739,7 @@ tr:hover td { background: var(--signal-hover); }
   --signal-glow: rgba(245, 184, 61, 0.35);
   --signal-bg: rgba(245, 184, 61, 0.12);
   --signal-hover: rgba(245, 184, 61, 0.08);
+  --on-signal: #17110a;
 }
 .ms-banner {
   display: flex;
