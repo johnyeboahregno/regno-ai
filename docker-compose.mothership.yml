@@ -20,6 +20,7 @@ services:
       - "80:3000" # Cloudflare Flexible origin (edge TLS → plain HTTP)
     environment:
       - MOTHERSHIP=1
+      - MOTHERSHIP_URL=${MOTHERSHIP_URL:-}
       - REGNO_IDENTITY_BASE_URL=${REGNO_IDENTITY_BASE_URL:-https://identity.regnocloud.com}
       - MONGO_URI=mongodb://mongo:27017/regno
       - REDIS_URL=redis://redis:6379
@@ -43,6 +44,7 @@ services:
     environment:
       - MONGO_URI=mongodb://mongo:27017/regno
       - REDIS_URL=redis://redis:6379
+      - MOTHERSHIP_URL=${MOTHERSHIP_URL:-}
       - CF_API_TOKEN=${CF_API_TOKEN:-}
       - CF_ZONE_ID=${CF_ZONE_ID:-}
       - REGNO_ROOT_DOMAIN=${REGNO_ROOT_DOMAIN:-regno.ai}

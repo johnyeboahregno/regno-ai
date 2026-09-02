@@ -23,6 +23,7 @@ CF_API_TOKEN=<cloudflare token>
 CF_ZONE_ID=<regno.ai zone id>
 REGNO_ROOT_DOMAIN=regno.ai
 REPO_URL=https://github.com/<you>/regno-ai.git
+MOTHERSHIP_URL=https://<mothership-subdomain>   # Architects POST telemetry here
 ```
 
 ## 3. Start
@@ -42,7 +43,8 @@ show Neo4j/Qdrant as **degraded** on the Mothership — that is expected (it doe
 2. Open **System → Architects** → **New Architect**.
 3. Fill the 6 wizard steps, tick **wipe** if repurposing an existing box, and **Save & launch**.
 4. The execution worker SSHs to the target, writes `.env.prod`, runs `deploy.sh`, and registers
-   `<slug>.regno.ai` in Cloudflare. Watch the status on the Architects page.
+   `<slug>.regno.ai` in Cloudflare. Watch the live step-by-step progress in the wizard (and the
+   status on the Architects page).
 
 ## 5. Notes
 

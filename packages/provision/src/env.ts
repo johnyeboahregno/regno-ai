@@ -14,7 +14,11 @@ const DB_DEFAULTS: Record<string, string> = {
 
 const PROVISIONER_ONLY = new Set(['SSH_KEY', 'SSH_PASSWORD', 'CF_API_TOKEN', 'CF_ZONE_ID']);
 
-export function buildEnvPayload(env: Record<string, string>, secrets: Record<string, string>): string {
+export function buildEnvPayload(
+  env: Record<string, string>,
+  secrets: Record<string, string>,
+  slug?: string,
+): string {
   const merged: Record<string, string> = {};
   for (const [k, v] of Object.entries(env)) if (v !== undefined && v !== null) merged[k] = String(v);
   for (const [k, v] of Object.entries(secrets)) {
@@ -22,6 +26,12 @@ export function buildEnvPayload(env: Record<string, string>, secrets: Record<str
     if (v !== undefined && v !== null && String(v) !== '') merged[k] = String(v);
   }
   for (const [k, v] of Object.entries(DB_DEFAULTS)) if (!merged[k]) merged[k] = v;
+
+  // Architect → Mothership telemetry wiring (see docs/engineering/31-architect-telemetry.md).
+  // The Mothership reports its own public URL; each Architect needs to know who it is
+  // and where to POST its Regno Standard heartbeat.
+  if (slug) merged.ARCHITECT_SLUG = slug;
+  if (process.env.MOTHERSHIP_URL) merged.MOTHERSHIP_URL = process.env.MOTHERSHIP_URL;
 
   const lines: string[] = [];
   for (const [k, v] of Object.entries(merged)) lines.push(`${k}=${v}`);

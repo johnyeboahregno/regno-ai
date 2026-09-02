@@ -17,6 +17,7 @@ export const Collections = {
   STANDARDS: 'standards',
   DEVELOPERS: 'developers',
   ARCHITECTS: 'architects',
+  ARCHITECT_TELEMETRY: 'architect_telemetry',
   PERSONAS: 'personas',
   ARTIFACTS: 'artifacts',
   AGENTS: 'agents',
@@ -96,3 +97,4 @@ export const AnalysisDepth = ['quick', 'standard', 'deep'] as const;
 export type AnalysisDepth = (typeof AnalysisDepth)[number];
 
 export * from './slug.js';
+export * from './regno-standard.js';

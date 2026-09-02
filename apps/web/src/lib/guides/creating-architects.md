@@ -56,3 +56,35 @@ Architect under a new name.
 
 The list shows each Architect's status (`draft → provisioning → healthy/error`). A failed
 provision surfaces its error inline; fix it and press **Launch** again.
+
+## Live progress while provisioning
+
+Once launched, the wizard shows a step-by-step progress list so you can see exactly what the
+worker is doing instead of a bare "provisioning":
+
+- Connecting to the target host
+- Preparing `/opt/regno`
+- Fetching code (clone or `git pull --ff-only`)
+- Writing `.env.prod`
+- Wiping existing deployment (only when **wipe** is ticked)
+- Building & seeding via `deploy.sh` — the longest step
+- Registering Cloudflare DNS
+- Architect ready at `slug.regno.ai`
+
+Each step turns ✓ as it completes; the in-flight step pulses ●, and a failure appends a ✕
+step with the exact SSH/deploy error. This is polled from the Architect record (`progress`
+array), written by the provisioning worker on every stage.
+
+## Live telemetry (Regno Standard)
+
+Once an Architect is up, it reports a heartbeat back to the Mothership every 30 seconds —
+encoded as a **Regno Standard** document set (ConfigDoc + ParamScalarValueDoc + EventDataDoc,
+see `docs/engineering/31-architect-telemetry.md`). The list page shows:
+
+- **Per-service chips** — Mongo, Redis, Qdrant, Neo4j (green = reachable, red = down).
+- **Version + health + "seen Ns ago"** — from the last received heartbeat.
+
+No heartbeat in ~2 minutes means the Architect is unreachable. The Mothership learns each
+Architect's URL via `MOTHERSHIP_URL` (set in the Mothership's `.env.prod`); the Architect
+learns who to report to from its own `.env.prod`, which the provisioner writes automatically.
+

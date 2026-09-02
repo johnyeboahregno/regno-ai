@@ -11,7 +11,7 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, chmodSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { getArchitectBySlug, setArchitectStatus, revealCredentialByName } from '@regno/db';
+import { getArchitectBySlug, setArchitectStatus, revealCredentialByName, appendArchitectProgress } from '@regno/db';
 import { buildEnvPayload } from './env.js';
 import { upsertDnsRecord } from './cloudflare.js';
 
@@ -85,21 +85,27 @@ export async function provisionArchitect(slug: string, onEvent: ProvisionEvent):
   const { host, sshUser, sshPort, wipe } = architect.target;
   const auth: SshAuth = { privateKey: secrets.SSH_KEY, password: secrets.SSH_PASSWORD };
   const repoUrl = secrets.REPO_URL || process.env.REPO_URL || '';
-  const envPayload = buildEnvPayload(architect.env, secrets);
+  const envPayload = buildEnvPayload(architect.env, secrets, slug);
 
   const emit = (event: string, data: unknown) => onEvent(`provision:${event}`, { slug, ...(data as object) });
 
+  // Emit to the realtime bus AND persist a human-readable step for the wizard.
+  const log = (stage: string, label: string, data: unknown = {}) => {
+    emit(stage, data);
+    void appendArchitectProgress(slug, { stage, label }).catch(() => {});
+  };
+
   try {
     await setArchitectStatus(slug, 'provisioning');
-    emit('start', { host });
+    log('start', `Connecting to ${host}`, { host });
 
     // 1. Prepare the app dir.
-    emit('prepare', {});
+    log('prepare', 'Preparing /opt/regno on the target machine');
     await sshExec({ host, sshUser, sshPort }, auth, 'sudo mkdir -p /opt/regno && sudo chown -R "$(id -u):$(id -g)" /opt/regno');
 
     // 2. Clone or update the repo.
     if (repoUrl) {
-      emit('fetch', { repo: repoUrl });
+      log('fetch', `Fetching code from ${repoUrl}`, { repo: repoUrl });
       await sshExec(
         { host, sshUser, sshPort },
         auth,
@@ -108,30 +114,31 @@ export async function provisionArchitect(slug: string, onEvent: ProvisionEvent):
     }
 
     // 3. Write .env.prod (non-interactive deploy).
-    emit('env', {});
+    log('env', 'Writing .env.prod');
     await sshExec({ host, sshUser, sshPort }, auth, 'cat > /opt/regno/.env.prod', envPayload);
 
     // 4. Optional wipe.
     if (wipe) {
-      emit('wipe', {});
+      log('wipe', 'Wiping existing deployment (docker compose down -v)');
       await sshExec({ host, sshUser, sshPort }, auth, 'cd /opt/regno && docker compose down -v 2>/dev/null || true');
     }
 
     // 5. Deploy (installs Docker/Node if needed, builds, seeds).
-    emit('deploy', {});
+    log('deploy', 'Building & seeding via deploy.sh — this is the longest step');
     await sshExec({ host, sshUser, sshPort }, auth, 'cd /opt/regno && APP_DIR=/opt/regno sudo -E bash deploy.sh');
 
     // 6. Cloudflare DNS.
-    emit('dns', {});
+    log('dns', 'Registering Cloudflare DNS record');
     const dns = await upsertDnsRecord(slug, host, true);
-    emit('dns-done', dns);
+    log('dns-done', 'Cloudflare DNS ready', dns);
 
     await setArchitectStatus(slug, 'healthy', { error: null });
-    emit('done', { domain: architect.domain });
+    log('done', `Architect ready at ${architect.domain}`, { domain: architect.domain });
   } catch (err) {
     const message = (err as Error).message;
     await setArchitectStatus(slug, 'error', { error: message });
     emit('error', { error: message });
+    void appendArchitectProgress(slug, { stage: 'error', label: message }).catch(() => {});
     throw err;
   }
 }

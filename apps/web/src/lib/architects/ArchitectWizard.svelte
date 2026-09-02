@@ -10,6 +10,8 @@
   let busy = false;
   let error = '';
   let status = '';
+  let progress: Array<{ stage: string; label: string; at: string }> = [];
+  let phase: 'running' | 'done' | 'error' = 'running';
 
   let form = {
     slug: '',
@@ -117,6 +119,8 @@
     busy = true;
     error = '';
     status = '';
+    progress = [];
+    phase = 'running';
     try {
       const slug = form.slug.trim().toLowerCase();
       const developer = { name: form.name.trim(), email: form.email.trim(), github: form.github.trim() };
@@ -163,14 +167,17 @@
   }
 
   async function pollStatus(slug: string) {
-    for (let i = 0; i < 90; i++) {
-      await new Promise((r) => setTimeout(r, 4000));
+    for (let i = 0; i < 180; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
       try {
         const r = await fetch(`/api/architects/${slug}`);
         const d = await r.json();
         if (d.ok) {
           status = `Status: ${d.architect.status}`;
           if (d.architect.error) status += ` — ${d.architect.error}`;
+          if (Array.isArray(d.architect.progress)) progress = d.architect.progress;
+          if (d.architect.status === 'healthy') phase = 'done';
+          if (d.architect.status === 'error') phase = 'error';
           if (d.architect.status === 'healthy' || d.architect.status === 'error') {
             busy = false;
             onDone();
@@ -183,6 +190,12 @@
     }
     busy = false;
     onDone();
+  }
+
+  function stepDone(i: number): boolean {
+    if (phase === 'done') return true;
+    if (phase === 'error' && i === progress.length - 1) return false;
+    return i < progress.length - 1;
   }
 
   function close() {
@@ -373,6 +386,20 @@
 
     <div style="padding:0 16px 12px;">
       {#if status}<p class="ok small">{status}</p>{/if}
+      {#if progress.length}
+        <ol class="progress">
+          {#each progress as p, i}
+            <li class:done={stepDone(i)} class:err={p.stage === 'error'}>
+              <span class="mark">
+                {#if p.stage === 'error'}✕
+                {:else if stepDone(i)}✓
+                {:else}<span class="pulse">●</span>{/if}
+              </span>
+              <span class="plabel">{p.label}</span>
+            </li>
+          {/each}
+        </ol>
+      {/if}
       {#if error}<p class="error small">{error}</p>{/if}
     </div>
   </div>
@@ -387,4 +414,13 @@
   .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line-soft); }
   .x { background: transparent; border: 0; color: var(--ink-faint); font-size: 18px; cursor: pointer; }
   .check-label { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-dim); }
+  .progress { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .progress li { display: flex; align-items: baseline; gap: 8px; font-size: 12px; color: var(--ink-dim); }
+  .progress .mark { width: 14px; text-align: center; color: var(--ink-faint); flex: none; }
+  .progress li.done .mark { color: var(--good); }
+  .progress li.done .plabel { color: var(--ink); }
+  .progress li.err .mark, .progress li.err .plabel { color: var(--danger); }
+  .progress .plabel { font-family: var(--mono); }
+  .pulse { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 </style>

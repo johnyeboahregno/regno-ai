@@ -2,6 +2,7 @@
 // Architect. All secrets are persisted as ONE vault credential
 // `architect:<slug>:env` (AES-256-GCM at rest) — never echoed back masked.
 import { json } from '@sveltejs/kit';
+import { randomBytes } from 'node:crypto';
 import { getArchitectBySlug, upsertCredentialByName, revealCredentialByName } from '@regno/db';
 import { requireSession, isAdminRole } from '$lib/server/auth.js';
 
@@ -21,12 +22,28 @@ export async function PUT({ params, request, cookies }) {
     return json({ ok: false, error: 'secrets is required' }, { status: 400 });
   }
 
+  // Preserve the existing telemetry token across re-saves (it is minted once and
+  // baked into the Architect's .env.prod; regenerating it would strand the machine).
+  const existingRaw = await revealCredentialByName(vaultName(params.slug));
+  let existing: Record<string, string> = {};
+  if (existingRaw) {
+    try {
+      existing = JSON.parse(existingRaw) as Record<string, string>;
+    } catch {
+      existing = {};
+    }
+  }
+  if (!existing.ARCHITECT_TELEMETRY_TOKEN) {
+    existing.ARCHITECT_TELEMETRY_TOKEN = randomBytes(24).toString('hex');
+  }
+
+  const merged = { ...existing, ...secrets };
   await upsertCredentialByName(vaultName(params.slug), {
     type: 'env',
     provider: 'architect',
-    secret: JSON.stringify(secrets),
+    secret: JSON.stringify(merged),
   });
-  return json({ ok: true, stored: Object.keys(secrets) });
+  return json({ ok: true, stored: Object.keys(merged) });
 }
 
 export async function GET({ params, cookies }) {

@@ -46,6 +46,10 @@ services:
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - JWT_SECRET=${JWT_SECRET}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      # Architect → Mothership telemetry (set in .env.prod by the provisioner).
+      - MOTHERSHIP_URL=${MOTHERSHIP_URL:-}
+      - ARCHITECT_SLUG=${ARCHITECT_SLUG:-}
+      - ARCHITECT_TELEMETRY_TOKEN=${ARCHITECT_TELEMETRY_TOKEN:-}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USERNAME=${SMTP_USERNAME}

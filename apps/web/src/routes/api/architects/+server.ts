@@ -5,6 +5,7 @@ import {
   createArchitectDraft,
   getArchitectBySlug,
   listArchitects,
+  markStaleArchitectsOffline,
   type ArchitectDeveloper,
   type ArchitectTarget,
   type ArchitectMode,
@@ -13,11 +14,15 @@ import { sanitizeSlug, fqdn } from '@regno/shared';
 import { requireSession, isAdminRole } from '$lib/server/auth.js';
 import { toPublicArchitect } from '$lib/server/architects.js';
 
+/** Heartbeats arrive every 30s; 3 missed beats ⇒ mark the Architect offline. */
+const OFFLINE_AFTER_MS = 90_000;
+
 export async function GET({ cookies }) {
   const user = await requireSession(cookies);
   if (!user) return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   if (!isAdminRole(user.role)) return json({ ok: false, error: 'Admin only' }, { status: 403 });
 
+  await markStaleArchitectsOffline(OFFLINE_AFTER_MS);
   const architects = (await listArchitects()).map(toPublicArchitect);
   return json({ ok: true, architects });
 }
