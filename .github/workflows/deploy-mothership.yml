@@ -1,0 +1,89 @@
+name: Deploy Mothership
+
+# Deploys the lightweight control plane (web + execution + mongo + redis) to the
+# Mothership VPS on every push to master/main. SSHes into the box, pulls the latest
+# code, writes .env.prod from GitHub secrets, and rebuilds via
+# docker-compose.mothership.yml.
+#
+# One-time bootstrap (already done for the current VPS, or run manually):
+#   bash deploy-mothership.sh   # installs Docker + swap + clones the repo
+#
+# Required GitHub Actions secrets:
+#   MOTHER_SSH_HOST            e.g. 51.75.163.94
+#   MOTHER_SSH_USER            e.g. ubuntu
+#   MOTHER_SSH_KEY             private key (no passphrase)
+#   MOTHER_JWT_SECRET          long random hex (persistent across deploys)
+#   MOTHER_CREDENTIALS_KEY     long random hex (persistent)
+#   REGNO_IDENTITY_BASE_URL    e.g. https://identity.regnocloud.com
+#   CF_API_TOKEN               Cloudflare Zone → DNS → Edit
+#   CF_ZONE_ID                 regno.ai zone id
+#   REGNO_ROOT_DOMAIN          e.g. regno.ai
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-mothership
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy control plane
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        env:
+          SSH_HOST: ${{ secrets.MOTHER_SSH_HOST }}
+          SSH_USER: ${{ secrets.MOTHER_SSH_USER }}
+          SSH_KEY: ${{ secrets.MOTHER_SSH_KEY }}
+          REPO_URL: https://github.com/johnyeboahregno/regno-ai.git
+          JWT_SECRET: ${{ secrets.MOTHER_JWT_SECRET }}
+          CREDENTIALS_KEY: ${{ secrets.MOTHER_CREDENTIALS_KEY }}
+          IDENTITY: ${{ secrets.REGNO_IDENTITY_BASE_URL }}
+          CF_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE: ${{ secrets.CF_ZONE_ID }}
+          ROOT_DOMAIN: ${{ secrets.REGNO_ROOT_DOMAIN }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/mothership
+          chmod 600 ~/.ssh/mothership
+
+          ssh -i ~/.ssh/mothership -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+            "REPO_URL='$REPO_URL' JWT_SECRET='$JWT_SECRET' CREDENTIALS_KEY='$CREDENTIALS_KEY' \
+             IDENTITY='$IDENTITY' CF_TOKEN='$CF_TOKEN' CF_ZONE='$CF_ZONE' ROOT_DOMAIN='$ROOT_DOMAIN' \
+             bash -s" <<'REMOTE'
+          set -euo pipefail
+          APP_DIR=/opt/regno
+
+          # Ensure Docker exists (idempotent; normally installed by deploy-mothership.sh once).
+          if ! command -v docker >/dev/null 2>&1; then
+            curl -fsSL https://get.docker.com | sudo sh
+            sudo systemctl enable --now docker || true
+          fi
+
+          # Clone or update the repo.
+          if [ ! -d "$APP_DIR/.git" ]; then
+            sudo mkdir -p "$APP_DIR" && sudo chown "$(id -u):$(id -g)" "$APP_DIR"
+            git clone "$REPO_URL" "$APP_DIR"
+          fi
+          cd "$APP_DIR"
+          git pull --ff-only
+
+          # Write .env.prod from the injected environment (never logged).
+          cat > .env.prod <<EOF
+          JWT_SECRET=$JWT_SECRET
+          CREDENTIALS_KEY=$CREDENTIALS_KEY
+          REGNO_IDENTITY_BASE_URL=$IDENTITY
+          CF_API_TOKEN=$CF_TOKEN
+          CF_ZONE_ID=$CF_ZONE
+          REGNO_ROOT_DOMAIN=$ROOT_DOMAIN
+          REPO_URL=$REPO_URL
+          EOF
+          chmod 600 .env.prod
+
+          docker compose -f docker-compose.mothership.yml --env-file .env.prod up -d --build
+          docker compose -f docker-compose.mothership.yml ps
+          REMOTE
