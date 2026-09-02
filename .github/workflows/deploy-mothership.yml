@@ -48,6 +48,16 @@ jobs:
           MOTHERSHIP_URL: ${{ secrets.MOTHERSHIP_URL }}
         run: |
           set -euo pipefail
+          for required in SSH_HOST SSH_KEY JWT_SECRET; do
+            if [ -z "${!required:-}" ]; then
+              case "$required" in
+                SSH_HOST) echo "Missing GitHub Actions secret: MOTHER_SSH_HOST" >&2 ;;
+                SSH_KEY) echo "Missing GitHub Actions secret: MOTHER_SSH_KEY" >&2 ;;
+                JWT_SECRET) echo "Missing GitHub Actions secret: MOTHER_JWT_SECRET" >&2 ;;
+              esac
+              exit 1
+            fi
+          done
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/mothership
           chmod 600 ~/.ssh/mothership

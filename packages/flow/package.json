@@ -15,7 +15,7 @@
     "@regno/db": "*",
     "@regno/mail": "*",
     "@regno/shared": "*",
-    "bullmq": "^5.12.0"
+    "bullmq": "^6.3.4"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
