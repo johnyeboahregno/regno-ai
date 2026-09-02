@@ -48,12 +48,11 @@ jobs:
           MOTHERSHIP_URL: ${{ secrets.MOTHERSHIP_URL }}
         run: |
           set -euo pipefail
-          for required in SSH_HOST SSH_KEY JWT_SECRET; do
+          for required in SSH_HOST SSH_KEY; do
             if [ -z "${!required:-}" ]; then
               case "$required" in
                 SSH_HOST) echo "Missing GitHub Actions secret: MOTHER_SSH_HOST" >&2 ;;
                 SSH_KEY) echo "Missing GitHub Actions secret: MOTHER_SSH_KEY" >&2 ;;
-                JWT_SECRET) echo "Missing GitHub Actions secret: MOTHER_JWT_SECRET" >&2 ;;
               esac
               exit 1
             fi
@@ -93,6 +92,19 @@ jobs:
           fi
           cd "$APP_DIR"
           git pull --ff-only
+
+          # Keep persistent credentials from the VPS when a corresponding GitHub
+          # secret is not configured. Never replace an existing key with blank.
+          if [ -z "$JWT_SECRET" ] && [ -f .env.prod ]; then
+            JWT_SECRET="$(sed -n 's/^JWT_SECRET=//p' .env.prod | head -n 1)"
+          fi
+          if [ -z "$CREDENTIALS_KEY" ] && [ -f .env.prod ]; then
+            CREDENTIALS_KEY="$(sed -n 's/^CREDENTIALS_KEY=//p' .env.prod | head -n 1)"
+          fi
+          if [ -z "$JWT_SECRET" ]; then
+            echo "JWT_SECRET is missing: set MOTHER_JWT_SECRET in GitHub Actions or create it in /opt/regno/.env.prod." >&2
+            exit 1
+          fi
 
           # Write .env.prod from the injected environment (never logged).
           cat > .env.prod <<EOF
