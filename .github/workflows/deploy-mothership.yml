@@ -52,7 +52,12 @@ jobs:
           printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/mothership
           chmod 600 ~/.ssh/mothership
           ssh-keygen -y -f ~/.ssh/mothership >/dev/null
-          echo "SSH key fingerprint: $(ssh-keygen -y -f ~/.ssh/mothership | ssh-keygen -lf - | awk '{print $2}')"
+          SSH_FINGERPRINT="$(ssh-keygen -y -f ~/.ssh/mothership | ssh-keygen -lf - | awk '{print $2}')"
+          echo "SSH key fingerprint: $SSH_FINGERPRINT"
+          if [ "$SSH_FINGERPRINT" != "SHA256:acJ4sxc2g8nkV5Fqblm3P60B03fL9C2/Kx/9tSRS73Y" ]; then
+            echo "MOTHER_SSH_KEY does not match the authorized Mothership deployment key." >&2
+            exit 1
+          fi
 
           ssh -i ~/.ssh/mothership -o BatchMode=yes -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
