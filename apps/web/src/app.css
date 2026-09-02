@@ -765,18 +765,6 @@ tr:hover td { background: var(--signal-hover); }
   font-weight: 600;
   opacity: 0.75;
 }
-.ms-badge {
-  flex: none;
-  padding: 4px 9px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  color: #17110a;
-  background: linear-gradient(135deg, #ffd166, #f5b83d);
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  border-radius: 7px;
-}
 .ms-label {
   font-family: var(--mono);
   font-size: 12px;
