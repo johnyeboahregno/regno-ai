@@ -30,7 +30,6 @@ export function buildNav(role: string): NavGroup[] {
         { href: '/app/canvas', label: 'Canvas', icon: 'canvas' },
         { href: '/app/stage', label: 'Stage', icon: 'stage' },
         { href: '/app/genesis', label: 'Genesis', icon: 'genesis' },
-        { href: '/app/launchpad', label: 'Launchpad', icon: 'launchpad' },
       ],
     },
     {

@@ -411,7 +411,7 @@
       usage: '<page>',
       desc: 'navigate to another page in the app',
       detail:
-        'Navigate to another page in the app.\n\n  goto dashboard\n\nPages: dashboard, chat, canvas, stage, genesis, launchpad, oracle, cortex, sentinel, executions, guides, docs, credentials, health, agents, settings, cli.\n\nAliases: open.',
+        'Navigate to another page in the app.\n\n  goto dashboard\n\nPages: dashboard, chat, canvas, stage, genesis, oracle, cortex, sentinel, executions, guides, docs, credentials, health, agents, settings, cli.\n\nAliases: open.',
       async run(args) {
         const pages: Record<string, string> = {
           dashboard: '',
@@ -420,7 +420,6 @@
           canvas: 'canvas',
           stage: 'stage',
           genesis: 'genesis',
-          launchpad: 'launchpad',
           oracle: 'oracle',
           cortex: 'cortex',
           sentinel: 'sentinel',

@@ -191,6 +191,7 @@ Commands:
   db init                              Bootstrap indexes / Qdrant / Neo4j constraints
   brain seed                           Ingest docs/ into the CORTEX brain
   github ingest                        Ingest all repos in GITHUB_ORG
+  ingest --url <url> --description <d> [--max-pages <n>] [--depth <d>]   Crawl & ingest a website
   profile seed                         Seed user conventions as userMemories
   standards seed                       Seed base coding standards (immutable core)
   remember "content" [--category]     Store a CORTEX memory
@@ -229,6 +230,14 @@ async function runCli(args: string[]): Promise<void> {
       agent: { type: 'string' },
       slug: { type: 'string' },
       developer: { type: 'string' },
+      url: { type: 'string' },
+      domain: { type: 'string' },
+      'max-pages': { type: 'string' },
+      'rate-limit-ms': { type: 'string' },
+      phases: { type: 'string' },
+      'seed-id': { type: 'string' },
+      'no-llm': { type: 'boolean' },
+      'no-assets': { type: 'boolean' },
       help: { type: 'boolean', short: 'h' },
     },
     allowPositionals: true,
@@ -396,6 +405,39 @@ async function runCli(args: string[]): Promise<void> {
       console.error('unknown github subcommand');
       help();
       return;
+
+    case 'ingest': {
+      const url = values.url ?? '';
+      if (!url) {
+        console.error('usage: regno ingest --url <url> --description <desc> [options]');
+        console.error('options: --max-pages <n>, --depth <n>, --rate-limit-ms <n>, --seed-id <id>, --no-llm, --no-assets');
+        return;
+      }
+      // Build arguments array for the ingest-site.ts script
+      const scriptArgs: string[] = ['--url', url];
+      if (values.description) scriptArgs.push('--description', values.description);
+      if (values.name) scriptArgs.push('--name', values.name);
+      if (values.domain) scriptArgs.push('--domain', values.domain);
+      if (values['max-pages']) scriptArgs.push('--max-pages', values['max-pages']);
+      if (values.depth && values.depth !== 'quick' && values.depth !== 'standard' && values.depth !== 'deep') {
+        // depth might be used for other commands, only add to ingest if numeric
+        scriptArgs.push('--depth', values.depth);
+      }
+      if (values['rate-limit-ms']) scriptArgs.push('--rate-limit-ms', values['rate-limit-ms']);
+      if (values.phases) scriptArgs.push('--phases', values.phases);
+      if (values['seed-id']) scriptArgs.push('--seed-id', values['seed-id']);
+      if (values['no-llm']) scriptArgs.push('--no-llm');
+      if (values['no-assets']) scriptArgs.push('--no-assets');
+      
+      // Run the ingest script via tsx
+      const p = join(ROOT, 'scripts', 'ingest-site.ts');
+      const r = spawnSync('npx', ['tsx', p, ...scriptArgs], { stdio: 'inherit' });
+      if (r.status !== 0) {
+        console.error(`ingest failed with exit code ${r.status}`);
+        process.exit(r.status ?? 1);
+      }
+      return;
+    }
 
     case 'profile':
       if (sub === 'seed') {

@@ -19,7 +19,6 @@
     { name: 'SENTINEL', href: '/app/sentinel', glyph: '🛡️', color: '#f0555a', desc: 'Security' },
     { name: 'CMS', href: null, glyph: '📄', color: '#60a5fa', desc: 'Excluded' },
     { name: 'Regno.ai', href: '/app', glyph: '👁️', color: '#7c3aed', desc: 'Platform', done: true },
-    { name: 'Launchpad', href: '/app/launchpad', glyph: '◆', color: '#8f7dfb', desc: 'Program' },
     { name: 'Docs', href: '/app/docs', glyph: '📚', color: '#60a5fa', desc: 'Documentation', done: true },
   ];
 </script>
