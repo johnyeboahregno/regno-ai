@@ -1,7 +1,13 @@
 # Caddy reverse proxy — TLS + routing (mirrors docs/references/deploy.md)
 # Route: realtime SSE under /events*, everything else to the SvelteKit app.
+#
+# Served as plain http:// on purpose — Cloudflare's SSL mode here is "Flexible" (edge
+# terminates TLS, origin talks plain HTTP on :80). A bare `{$DOMAIN}` site address would
+# make Caddy auto-provision TLS AND redirect http->https; Cloudflare then re-requests over
+# https, which it forwards to this origin as http again, which redirects again —
+# ERR_TOO_MANY_REDIRECTS in the browser.
 
-{$DOMAIN} {
+http://{$DOMAIN} {
     encode gzip zstd
 
     # Realtime SSE stream
