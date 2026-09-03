@@ -113,6 +113,18 @@ for port in 27017 6333 6334 7474 7687 6379 3000 3002; do
   ids="$(docker ps -q --filter "publish=$port")"
   [ -n "$ids" ] && docker rm -f $ids 2>/dev/null || true
 done
+# Last resort: an orphaned `docker-proxy` process can keep a host port bound even after
+# its container is gone (known Docker behaviour after an interrupted/killed deploy) — no
+# container is left to remove, but the port still reports "address already in use".
+# Restarting the daemon kills any leftover proxy processes and releases the ports.
+for port in 27017 6333 6334 7474 7687 6379 3000 3002; do
+  if ss -ltn "( sport = :$port )" 2>/dev/null | grep -q LISTEN; then
+    echo "[deploy] port $port still bound with no owning container — restarting docker to clear orphaned proxies"
+    systemctl restart docker || service docker restart || true
+    sleep 3
+    break
+  fi
+done
 docker compose --env-file .env.prod up -d --build
 
 step "7/8 — initializing + seeding (host → localhost DB ports)"
