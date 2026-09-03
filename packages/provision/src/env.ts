@@ -4,7 +4,6 @@
  * SSH credentials (SSH_KEY / SSH_PASSWORD) are provisioner-only and excluded.
  */
 const DB_DEFAULTS: Record<string, string> = {
-  MONGO_URI: 'mongodb://mongo:27017/regno',
   MONGO_POOL_SIZE: '50',
   NEO4J_URI: 'bolt://neo4j:7687',
   NEO4J_USER: 'neo4j',
@@ -35,6 +34,10 @@ export function buildEnvPayload(
     if (v !== undefined && v !== null && String(v) !== '') merged[k] = String(v);
   }
   for (const [k, v] of Object.entries(DB_DEFAULTS)) if (!merged[k]) merged[k] = v;
+  // Mongo (docker-compose.yml) always starts with root auth enabled — a credential-less
+  // MONGO_URI fails every query with "Command find requires authentication". Build it from
+  // the same MONGO_PASSWORD secret the mongo container itself uses, unless already overridden.
+  if (!merged.MONGO_URI) merged.MONGO_URI = `mongodb://regno:${merged.MONGO_PASSWORD ?? ''}@mongo:27017/regno?authSource=admin`;
   // deploy.sh's Cloudflare DNS step (and Caddy's TLS host) reads $DOMAIN directly — without it,
   // `set -u` makes deploy.sh crash with "DOMAIN: unbound variable" at the final step.
   if (domain && !merged.DOMAIN) merged.DOMAIN = domain;
