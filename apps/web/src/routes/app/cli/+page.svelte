@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { afterUpdate, onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { theme, THEMES, type Theme } from '@regno/ui';
   import type { PageData } from './$types.js';
@@ -14,12 +14,24 @@
     text: string;
   }
 
+  interface CliSession {
+    id: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    lines: Line[];
+    history: string[];
+    nextId: number;
+  }
+
   let lines: Line[] = [];
   let input = '';
   let history: string[] = [];
   let histIdx = -1;
   let busy = false;
   let nextId = 1;
+  let sessions: CliSession[] = [];
+  let activeSessionId = '';
 
   let out: HTMLDivElement;
   let inputEl: HTMLInputElement;
@@ -32,10 +44,96 @@
 
   const local = (data.user.email.split('@')[0] || 'you').toLowerCase();
   const promptText = `${local}@regno:~$`;
+  const SESSIONS_KEY = `regno.cli.sessions.${data.user.email}`;
+  const ACTIVE_SESSION_KEY = `regno.cli.activeSession.${data.user.email}`;
 
   // ---- helpers -------------------------------------------------------------
+  function sessionTitle(session: CliSession): string {
+    const command = [...session.lines].reverse().find((line) => line.kind === 'cmd')?.text.replace(promptText, '').trim();
+    return command ? command.slice(0, 36) : session.title;
+  }
+
+  function persistSessions() {
+    if (!activeSessionId) return;
+    const now = new Date().toISOString();
+    sessions = sessions.map((session) =>
+      session.id === activeSessionId
+        ? { ...session, lines, history, nextId, updatedAt: now, title: sessionTitle({ ...session, lines }) }
+        : session,
+    );
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+    localStorage.setItem(ACTIVE_SESSION_KEY, activeSessionId);
+  }
+
+  function createSession(activate = true): CliSession {
+    const now = new Date().toISOString();
+    const session: CliSession = {
+      id: crypto.randomUUID(),
+      title: `CLI session ${sessions.length + 1}`,
+      createdAt: now,
+      updatedAt: now,
+      lines: [],
+      history: [],
+      nextId: 1,
+    };
+    sessions = [session, ...sessions];
+    if (activate) activateSession(session.id);
+    return session;
+  }
+
+  async function activateSession(id: string) {
+    const session = sessions.find((candidate) => candidate.id === id);
+    if (!session) return;
+    activeSessionId = session.id;
+    lines = session.lines;
+    history = session.history;
+    nextId = session.nextId;
+    histIdx = -1;
+    input = '';
+    localStorage.setItem(ACTIVE_SESSION_KEY, activeSessionId);
+    await scrollToBottom();
+  }
+
+  function startNewSession() {
+    createSession(true);
+    push('muted', 'New CLI session — type "help" for commands');
+    focusInput();
+    scrollToBottom();
+  }
+
+  function deleteSession(session: CliSession, event?: MouseEvent) {
+    event?.stopPropagation();
+    if (sessions.length === 1) {
+      sessions = [];
+      createSession(true);
+      push('muted', 'New CLI session — type "help" for commands');
+      persistSessions();
+      return;
+    }
+    sessions = sessions.filter((candidate) => candidate.id !== session.id);
+    if (session.id === activeSessionId) {
+      const next = sessions[0];
+      void activateSession(next.id);
+    }
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+  }
+
+  function loadSessions() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? '[]') as CliSession[];
+      sessions = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      sessions = [];
+    }
+    if (!sessions.length) createSession(false);
+    const savedActive = localStorage.getItem(ACTIVE_SESSION_KEY);
+    const active = sessions.find((session) => session.id === savedActive) ?? sessions[0];
+    void activateSession(active.id);
+  }
+
   function push(kind: LineKind, text: string) {
     lines = [...lines, { id: nextId++, kind, text }];
+    persistSessions();
   }
   function pushMany(kind: LineKind, text: string) {
     for (const t of text.split('\n')) push(kind, t);
@@ -44,6 +142,10 @@
     await tick();
     if (out) out.scrollTop = out.scrollHeight;
   }
+
+  afterUpdate(() => {
+    if (out) out.scrollTop = out.scrollHeight;
+  });
   function fmtTokens(n: number | undefined): string {
     const v = n ?? 0;
     if (v >= 1_000_000) return (v / 1_000_000).toFixed(2) + 'M';
@@ -407,6 +509,7 @@
       push('err', 'nice try — you already have root.');
       input = '';
       history = [...history, raw];
+      persistSessions();
       histIdx = -1;
       scrollToBottom();
       return;
@@ -416,6 +519,7 @@
     push('cmd', promptText + ' ' + raw);
     input = '';
     history = [...history, raw];
+    persistSessions();
     histIdx = -1;
     if (!name) {
       push('err', `command not found: ${first}`);
@@ -486,6 +590,7 @@
   }
 
   onMount(async () => {
+    loadSessions();
     const saved = localStorage.getItem('regno.cli.sma');
     try {
       const r = await fetch('/api/agents');
@@ -496,7 +601,7 @@
     }
     if (saved && smas.some((s) => s.slug === saved)) sma = saved;
 
-    push('muted', 'Regno CLI — type "help" for commands');
+    if (!lines.length) push('muted', 'Regno CLI — type "help" for commands');
     focusInput();
     scrollToBottom();
   });
@@ -510,6 +615,33 @@
   aria-label="Regno command line interface"
   on:click={focusInput}
 >
+  <aside class="session-rail" aria-label="CLI sessions">
+    <div class="rail-head">
+      <div>
+        <div class="rail-kicker">Sessions</div>
+        <div class="rail-title">CLI history</div>
+      </div>
+      <button class="new-session" type="button" on:click|stopPropagation={startNewSession}>New</button>
+    </div>
+    <div class="session-list">
+      {#each sessions as session}
+        <div class="session-row" class:active={session.id === activeSessionId}>
+          <button
+            class="session-item"
+            type="button"
+            on:click|stopPropagation={() => activateSession(session.id)}
+          >
+            <strong>{sessionTitle(session)}</strong>
+            <small>{fmtDate(session.updatedAt)} · {session.lines.length} lines</small>
+          </button>
+          <button class="delete-session" type="button" aria-label={`Delete ${session.title}`} on:click={(event) => deleteSession(session, event)}>
+            ×
+          </button>
+        </div>
+      {/each}
+    </div>
+  </aside>
+
   <div class="crt" aria-hidden="true"></div>
   <div class="term">
     <div class="output" bind:this={out}>
@@ -544,16 +676,122 @@
     height: calc(100vh - 32px);
     min-height: 420px;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
     overflow: hidden;
     cursor: text;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: var(--bg-deep);
+    background:
+      radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--signal) 14%, transparent), transparent 36%),
+      var(--bg-deep);
     box-shadow:
       inset 0 0 60px rgba(0, 0, 0, 0.35),
       0 0 46px var(--signal-glow);
+  }
+
+  .session-rail {
+    position: relative;
+    z-index: 4;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border-right: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel) 72%, var(--bg-deep));
+  }
+  .rail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .rail-kicker {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+  .rail-title {
+    margin-top: 3px;
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .new-session,
+  .delete-session {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--ink);
+    font-family: var(--display);
+    cursor: pointer;
+  }
+  .new-session {
+    padding: 7px 11px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .new-session:hover { border-color: var(--signal); color: var(--signal); }
+  .session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .session-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32px;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .session-item {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    padding: 10px 11px;
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--bg-alt) 84%, transparent);
+    color: var(--ink-dim);
+    cursor: pointer;
+  }
+  .session-item strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--display);
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .session-item small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+  }
+  .session-row.active .session-item {
+    border-color: var(--signal);
+    background: var(--signal-bg);
+    box-shadow: inset 3px 0 0 var(--signal);
+  }
+  .delete-session {
+    width: 32px;
+    min-height: 100%;
+    font-size: 18px;
+    color: var(--ink-faint);
+  }
+  .delete-session:hover {
+    border-color: var(--danger);
+    color: var(--danger);
   }
 
   /* scanlines + subtle vignette flicker (theme-neutral CRT effect) */
@@ -651,4 +889,27 @@
 
   .blink { animation: blink 1s steps(2, start) infinite; }
   @keyframes blink { to { visibility: hidden; } }
+
+  :global(:root[data-theme='light']) .cli-wrap {
+    background: var(--panel);
+    box-shadow: none;
+  }
+  :global(:root[data-theme='light']) .crt,
+  :global(:root[data-theme='light']) .cli-wrap::after {
+    display: none;
+  }
+  :global(:root[data-theme='light']) .session-rail {
+    background: var(--bg-alt);
+  }
+
+  @media (max-width: 820px) {
+    .cli-wrap {
+      grid-template-columns: 1fr;
+      grid-template-rows: minmax(150px, 34vh) minmax(0, 1fr);
+    }
+    .session-rail {
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+    }
+  }
 </style>

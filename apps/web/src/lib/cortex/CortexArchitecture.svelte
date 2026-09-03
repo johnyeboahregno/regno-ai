@@ -484,23 +484,81 @@
   /* metrics tiles */
   .metrics {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
   }
   .metric {
-    padding: 14px 16px;
+    position: relative;
+    min-height: 132px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px 20px;
     border: 1px solid var(--line);
-    border-radius: var(--r-sm);
-    background: var(--panel);
+    border-radius: var(--r);
+    overflow: hidden;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--panel-2) 72%, transparent), transparent 64%),
+      var(--panel);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent);
   }
-  .m-glyph { font-size: 15px; }
-  .m-val { font-family: var(--display); font-size: 22px; font-weight: 800; letter-spacing: -0.01em; margin-top: 4px; }
+  .metric::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--signal), var(--signal-blue));
+    opacity: 0.72;
+  }
+  .metric::after {
+    content: '';
+    position: absolute;
+    right: -44px;
+    top: -52px;
+    width: 132px;
+    height: 132px;
+    border: 1px solid color-mix(in srgb, var(--signal) 22%, transparent);
+    border-radius: 50%;
+    opacity: 0.55;
+  }
+  .m-glyph {
+    position: relative;
+    z-index: 1;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-alt) 70%, transparent);
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .m-val {
+    position: relative;
+    z-index: 1;
+    font-family: var(--display);
+    font-size: 36px;
+    line-height: 1;
+    font-weight: 800;
+    margin-top: 18px;
+    color: var(--ink);
+    letter-spacing: 0;
+  }
   .m-lbl {
+    position: relative;
+    z-index: 1;
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.13em;
     color: var(--ink-faint);
-    margin-top: 2px;
+    margin-top: 10px;
+  }
+  @media (max-width: 640px) {
+    .metrics { grid-template-columns: 1fr; }
+    .metric { min-height: 118px; }
+    .m-val { font-size: 32px; }
   }
 </style>
