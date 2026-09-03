@@ -57,6 +57,9 @@ services:
       - SMTP_ENCRYPTION=${SMTP_ENCRYPTION}
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
       - SMTP_FROM_NAME=${SMTP_FROM_NAME}
+      - REGNO_COMPOSE_PROJECT=regno-architect
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - mongo
       - qdrant

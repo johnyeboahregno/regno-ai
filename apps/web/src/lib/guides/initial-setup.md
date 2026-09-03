@@ -36,10 +36,7 @@ flowchart LR
 ## Step 0 — Unblock the LLM key (do this FIRST)
 
 1. Open `/app/settings` and save a **valid** provider key under **LLM API Keys**.
-2. Restart the execution worker if it is already running, so Cortex Flow jobs hydrate the saved key:
-   ```bash
-   docker compose restart execution
-   ```
+2. Click **Restart execution** in the same Settings panel so Cortex Flow jobs hydrate the saved key.
 3. For local `.env` development, you can still export the key before starting the web dev server:
    ```bash
    export OPENAI_API_KEY=$(sed -n 's/^OPENAI_API_KEY=//p' .env)

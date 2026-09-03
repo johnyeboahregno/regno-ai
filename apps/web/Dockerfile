@@ -15,6 +15,7 @@ RUN npm run build -w @regno/web
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
+RUN apk add --no-cache docker-cli
 COPY --from=build /app/apps/web/build ./build
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages

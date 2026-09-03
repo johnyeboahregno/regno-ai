@@ -30,6 +30,9 @@
   let keySaving = false;
   let keyMessage = '';
   let keyError = '';
+  let restartLoading = false;
+  let restartMessage = '';
+  let restartError = '';
 
   async function loadLlmKeys() {
     keyLoading = true;
@@ -50,6 +53,8 @@
     keySaving = true;
     keyMessage = '';
     keyError = '';
+    restartMessage = '';
+    restartError = '';
     const keys = Object.fromEntries(
       Object.entries(keyInputs).filter(([, value]) => value !== undefined),
     ) as Partial<Record<LlmKeyStatus['name'], string>>;
@@ -69,6 +74,22 @@
       keyError = (err as Error).message;
     } finally {
       keySaving = false;
+    }
+  }
+
+  async function restartExecution() {
+    restartLoading = true;
+    restartMessage = '';
+    restartError = '';
+    try {
+      const res = await fetch('/api/settings/execution/restart', { method: 'POST' });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error ?? 'Could not restart execution');
+      restartMessage = 'Execution restarted. New jobs will use the saved keys.';
+    } catch (err) {
+      restartError = (err as Error).message;
+    } finally {
+      restartLoading = false;
     }
   }
 
@@ -108,6 +129,8 @@
 
   {#if keyError}<div class="status error">{keyError}</div>{/if}
   {#if keyMessage}<div class="status success">{keyMessage}</div>{/if}
+  {#if restartError}<div class="status error">{restartError}</div>{/if}
+  {#if restartMessage}<div class="status success">{restartMessage}</div>{/if}
 
   <div class="key-grid" aria-busy={keyLoading || keySaving}>
     {#if keyLoading}
@@ -135,6 +158,9 @@
   </div>
 
   <div class="key-actions">
+    <button class="restart-btn" type="button" on:click={restartExecution} disabled={keyLoading || keySaving || restartLoading}>
+      {restartLoading ? 'Restarting...' : 'Restart execution'}
+    </button>
     <button class="save-btn" type="button" on:click={saveLlmKeys} disabled={keyLoading || keySaving}>
       {keySaving ? 'Saving...' : 'Save LLM keys'}
     </button>
@@ -208,6 +234,7 @@
     line-height: 1.5;
   }
   .refresh-btn,
+  .restart-btn,
   .save-btn {
     border: 1px solid var(--line);
     border-radius: var(--r);
@@ -218,6 +245,7 @@
     cursor: pointer;
   }
   .refresh-btn:disabled,
+  .restart-btn:disabled,
   .save-btn:disabled { opacity: 0.55; cursor: wait; }
   .key-grid {
     display: grid;
@@ -264,7 +292,8 @@
     padding: 11px 12px;
     font: inherit;
   }
-  .key-actions { margin-top: 16px; display: flex; justify-content: flex-end; }
+  .key-actions { margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px; }
+  .restart-btn { background: transparent; }
   .save-btn { background: var(--signal); border-color: var(--signal); color: var(--signal-ink); font-weight: 700; }
   .status {
     margin: 0 0 14px;
@@ -284,6 +313,8 @@
   @media (max-width: 640px) {
     .section-headline { flex-direction: column; }
     .refresh-btn,
+    .restart-btn,
     .save-btn { width: 100%; }
+    .key-actions { flex-direction: column; }
   }
 </style>
