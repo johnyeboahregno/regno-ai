@@ -292,6 +292,7 @@ label { display: block; font-family: var(--mono); font-size: 11px; letter-spacin
 
 .tag { font-family: var(--mono); font-size: 11px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-dim); white-space: nowrap; }
 .tag.signal { color: var(--signal); border-color: var(--signal); background: var(--signal-bg); }
+.tag.error { color: var(--danger); border-color: var(--danger); background: color-mix(in srgb, var(--danger) 15%, transparent); cursor: help; }
 
 .status { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; }
 .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }

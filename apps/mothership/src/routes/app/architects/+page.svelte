@@ -115,10 +115,14 @@
           <td class="mono">{a.domain}</td>
           <td class="mono small">{a.target?.sshUser}@{a.target?.host}:{a.target?.sshPort}</td>
           <td>
-            <span class="tag" class:signal={a.status === 'healthy'} class:error={a.status === 'error'}>
+            <span
+              class="tag"
+              class:signal={a.status === 'healthy'}
+              class:error={a.status === 'error'}
+              title={a.status === 'error' ? a.error ?? 'Unknown error' : undefined}
+            >
               {a.status}
             </span>
-            {#if a.error}<div class="error small">{a.error}</div>{/if}
           </td>
           <td>
             {#if a.telemetry}
@@ -135,8 +139,10 @@
             {/if}
           </td>
           <td style="white-space:nowrap;">
-            {#if a.status === 'draft' || a.status === 'error'}
+            {#if a.status === 'draft'}
               <button class="btn ghost" style="padding:6px 12px;" on:click={() => relaunch(a.slug)}>Launch</button>
+            {:else if a.status === 'error'}
+              <button class="btn ghost" style="padding:6px 12px; border-color:var(--danger); color:var(--danger);" on:click={() => relaunch(a.slug)}>Redeploy</button>
             {:else if a.status !== 'provisioning'}
               <button class="btn ghost" style="padding:6px 12px;" on:click={() => redeploy(a.slug)}>Redeploy</button>
             {/if}
