@@ -101,6 +101,11 @@ EOF
 fi
 
 step "6/7 — building + starting the stack"
+# Stop any containers left over from a previous/interrupted deploy first — otherwise a
+# leftover container (e.g. redis, neo4j) still holding its host port makes `up` fail
+# with "address already in use". Never touched here: volumes (no -v), so data survives
+# a normal redeploy; only the wizard's explicit "wipe" flag removes volumes.
+docker compose --env-file .env.prod down --remove-orphans 2>/dev/null || true
 docker compose --env-file .env.prod up -d --build
 
 step "7/8 — initializing + seeding (host → localhost DB ports)"
