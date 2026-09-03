@@ -184,6 +184,7 @@ Usage: regno <command> [options]
 Commands:
   login --email <e> --password <p>     Sign in and store the session locally
   run "<prompt>" [--depth <d>]         Enqueue a Cortex Flow execution
+  ask "<prompt>"                       Send a prompt to your Regno Architect
   credentials list                     List stored credentials (no secrets)
   credentials add --name <n> --type <t> --secret <s> [--provider <p>]
   credentials reveal <name>            Reveal a decrypted secret
@@ -198,6 +199,16 @@ Commands:
   pattern add --name --description    Store a CORTEX pattern (three-store sync)
   developer add --slug --name         Register a developer flavour identity
   persona create --slug --name       Create a persona (base + developer flavour)
+  agents                              List Subject Matter Experts (SMAs)
+  execs                               List recent executions
+  sma                                 View or switch the active SMA
+  health                              Report system, database and usage status
+  theme                               View or switch the UI theme
+  whoami                              Print current session identity
+  version                             Print the CLI version
+  date                                Print current date and time
+  echo <text>                         Echo text back to the screen
+  clear                               Clear the terminal screen
 
 History:
   Every command you run (interactive or one-shot) is appended to
@@ -551,8 +562,176 @@ async function runCli(args: string[]): Promise<void> {
       return;
     }
 
+    case 'echo':
+      console.log(positionals.slice(1).join(' '));
+      return;
+
+    case 'clear':
+      console.clear();
+      return;
+
+    case 'date':
+      console.log(new Date().toISOString());
+      return;
+
+    case 'version': {
+      // Read version from package.json
+      const pkgPath = join(ROOT, 'packages', 'cli', 'package.json');
+      try {
+        const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as { version: string };
+        console.log(`regno v${pkg.version}`);
+      } catch {
+        console.log('regno v0.1.0');
+      }
+      return;
+    }
+
+    case 'whoami': {
+      const { status, json } = await api('/api/auth/me');
+      if (status !== 200) {
+        console.error('not logged in');
+        return;
+      }
+      const user = json.user as { email: string; role: string };
+      console.log(`${user.email} (${user.role})`);
+      return;
+    }
+
+    case 'health': {
+      const { status, json } = await api('/api/health');
+      if (status !== 200) {
+        console.error('health check failed:', json.error ?? json.raw);
+        return;
+      }
+      // Display health info
+      const health = json as Record<string, unknown>;
+      console.log(JSON.stringify(health, null, 2));
+      return;
+    }
+
+    case 'agents': {
+      const { status, json } = await api('/api/agents');
+      if (status !== 200) {
+        console.error('failed:', json.error ?? json.raw);
+        return;
+      }
+      const agents = (json.agents as Array<{ slug: string; name: string }>) ?? [];
+      if (!agents.length) {
+        console.log('(no agents registered)');
+        return;
+      }
+      for (const a of agents) console.log(`${a.slug}\t${a.name}`);
+      return;
+    }
+
+    case 'sma': {
+      if (sub === 'switch' || sub) {
+        // Switch SMA
+        const target = sub ?? '';
+        const { status, json } = await api('/api/sma/switch', {
+          method: 'POST',
+          body: JSON.stringify({ slug: target }),
+        });
+        if (status !== 200) {
+          console.error('switch failed:', json.error ?? json.raw);
+          return;
+        }
+        const current = json.current as { slug: string; name: string };
+        console.log(`switched to ${current.slug} (${current.name})`);
+        return;
+      }
+      // View current SMA
+      const { status, json } = await api('/api/sma');
+      if (status !== 200) {
+        console.error('failed:', json.error ?? json.raw);
+        return;
+      }
+      const current = json.current as { slug: string; name: string };
+      console.log(`active SMA: ${current.slug} (${current.name})`);
+      return;
+    }
+
+    case 'theme': {
+      if (sub === 'set' || sub) {
+        // Set theme
+        const theme = sub ?? '';
+        const { status, json } = await api('/api/user/theme', {
+          method: 'POST',
+          body: JSON.stringify({ theme }),
+        });
+        if (status !== 200) {
+          console.error('set failed:', json.error ?? json.raw);
+          return;
+        }
+        console.log(`theme set to ${theme}`);
+        return;
+      }
+      // View current theme
+      const { status, json } = await api('/api/user/theme');
+      if (status !== 200) {
+        console.error('failed:', json.error ?? json.raw);
+        return;
+      }
+      console.log(`current theme: ${json.theme}`);
+      return;
+    }
+
+    case 'execs': {
+      const { status, json } = await api('/api/executions?limit=10');
+      if (status !== 200) {
+        console.error('failed:', json.error ?? json.raw);
+        return;
+      }
+      const execs = (json.executions as Array<{ id: string; prompt: string; status: string }>) ?? [];
+      if (!execs.length) {
+        console.log('(no executions yet)');
+        return;
+      }
+      for (const e of execs) console.log(`${e.id}\t${e.status}\t${e.prompt}`);
+      return;
+    }
+
+    case 'goto': {
+      const page = sub ?? '';
+      if (!page) {
+        console.error('usage: regno goto <page>');
+        console.error('pages: app, docs, cortex, executions');
+        return;
+      }
+      const urls: Record<string, string> = {
+        app: '/app',
+        docs: '/app/docs',
+        cortex: '/app/cortex',
+        executions: '/app/executions',
+      };
+      const path = urls[page] ?? `/app/${page}`;
+      console.log(`navigate to: ${REGNO_URL}${path}`);
+      console.log('(copy this URL to your browser)');
+      return;
+    }
+
+    case 'ask': {
+      const prompt = sub ?? '';
+      if (!prompt) {
+        console.error('usage: regno ask "prompt"');
+        return;
+      }
+      const depth = values.depth ?? 'quick';
+      const { status, json } = await api('/api/executions', {
+        method: 'POST',
+        body: JSON.stringify({ prompt, settings: { analysisDepth: depth } }),
+      });
+      if (status !== 200) {
+        console.error('ask failed:', json.error ?? json.raw);
+        return;
+      }
+      console.log(`enqueued — job ${json.jobId}`);
+      return;
+    }
+
     default:
       help();
+
   }
 }
 
