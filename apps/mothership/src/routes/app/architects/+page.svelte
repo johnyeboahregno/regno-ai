@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import ArchitectWizard from '$lib/architects/ArchitectWizard.svelte';
+  import ProgressModal from '$lib/architects/ProgressModal.svelte';
   import { wizardOpen, openWizard, closeWizard } from '$lib/architects/store.js';
 
   type Architect = {
@@ -27,6 +28,8 @@
   let error = '';
   let message = '';
   let pendingDelete: string | null = null;
+  let progressSlug: string | null = null;
+  let progressJobId: string | undefined = undefined;
   let timer: ReturnType<typeof setInterval> | null = null;
 
   async function load() {
@@ -55,7 +58,7 @@
     message = '';
     const r = await fetch(`/api/architects/${slug}/launch`, { method: 'POST' });
     const d = await r.json();
-    if (d.ok) { message = `Provisioning "${slug}"… (job ${d.jobId})`; load(); }
+    if (d.ok) { progressSlug = slug; progressJobId = d.jobId; load(); }
     else error = d.error ?? 'Failed to launch';
   }
 
@@ -64,7 +67,7 @@
     message = '';
     const r = await fetch(`/api/architects/${slug}/launch`, { method: 'POST' });
     const d = await r.json();
-    if (d.ok) { message = `Redeploying "${slug}"… (job ${d.jobId})`; load(); }
+    if (d.ok) { progressSlug = slug; progressJobId = d.jobId; load(); }
     else error = d.error ?? 'Failed to redeploy';
   }
 
@@ -162,6 +165,10 @@
     onDone={() => { closeWizard(); load(); }}
     on:close={closeWizard}
   />
+{/if}
+
+{#if progressSlug}
+  <ProgressModal slug={progressSlug} jobId={progressJobId} on:close={() => { progressSlug = null; load(); }} />
 {/if}
 
 {#if pendingDelete}
