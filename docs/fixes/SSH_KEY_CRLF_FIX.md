@@ -57,3 +57,9 @@ Normalise line endings (strip all `\r`) at two boundaries:
 Rebuild + redeploy the mothership `execution` worker (it copies `packages/`
 into the image), then click **Launch** on the Architect. Re-pasting the key is
 not required — the existing stored key is normalised at write time.
+
+## See also
+
+- `SSH_KEY_TRAILING_NEWLINE_FIX.md` — the same error message can also be caused
+  by a **missing trailing newline** after `-----END OPENSSH PRIVATE KEY-----`,
+  even when the key has no `\r` and is otherwise valid. Fixed the next day.

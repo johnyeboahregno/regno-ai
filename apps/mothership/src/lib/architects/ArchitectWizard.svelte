@@ -99,7 +99,8 @@
   function buildSecrets(): Record<string, string> {
     const s: Record<string, string> = {};
     const set = (k: string, v: string) => { if (v) s[k] = v; };
-    set('SSH_KEY', form.sshAuth === 'key' ? (form.sshKey || '').replace(/\r/g, '') : '');
+    const sshKey = form.sshAuth === 'key' ? (form.sshKey || '').replace(/\r/g, '').trim() : '';
+    set('SSH_KEY', sshKey ? `${sshKey}\n` : '');
     set('SSH_PASSWORD', form.sshAuth === 'password' ? form.sshPassword : '');
     set('OPENAI_API_KEY', form.openai);
     set('ANTHROPIC_API_KEY', form.anthropic);

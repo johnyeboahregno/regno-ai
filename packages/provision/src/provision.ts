@@ -52,10 +52,11 @@ async function sshExec(
   if (auth.privateKey) {
     const dir = mkdtempSync(join(tmpdir(), 'regno-ssh-'));
     const keyPath = join(dir, 'key');
-    // OpenSSH rejects CRLF line endings in private keys with
-    // "Load key: error in libcrypto: unsupported" — normalise any Windows
-    // line endings (\r\n or stray \r) before writing.
-    writeFileSync(keyPath, auth.privateKey.replace(/\r/g, ''));
+    // OpenSSH rejects private keys with CRLF line endings OR a missing final
+    // newline, both with the misleading
+    // "Load key: error in libcrypto: unsupported". Normalise before writing:
+    // strip \r, trim surrounding whitespace, guarantee a trailing newline.
+    writeFileSync(keyPath, auth.privateKey.replace(/\r/g, '').trim() + '\n');
     chmodSync(keyPath, 0o600);
     try {
       const { stdout, stderr } = await run('ssh', [...sshOpts, '-i', keyPath, '-p', String(target.sshPort), dest, command], stdin);
