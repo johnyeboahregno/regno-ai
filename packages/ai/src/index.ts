@@ -252,12 +252,12 @@ async function chatGoogle(messages: ChatMessage[], opts: ChatOptions): Promise<s
  */
 const FALLBACK_ORDER: Provider[] = ['openai', 'deepseek', 'anthropic', 'google'];
 
-const KEY_FOR_PROVIDER: Record<Provider, string | undefined> = {
-  openai: process.env.OPENAI_API_KEY,
-  anthropic: process.env.ANTHROPIC_API_KEY,
-  google: process.env.GOOGLE_AI_API_KEY,
-  deepseek: process.env.DEEPSEEK_API_KEY,
-};
+function hasProviderKey(provider: Provider): boolean {
+  if (provider === 'openai') return !!process.env.OPENAI_API_KEY;
+  if (provider === 'anthropic') return !!process.env.ANTHROPIC_API_KEY;
+  if (provider === 'google') return !!process.env.GOOGLE_AI_API_KEY;
+  return !!process.env.DEEPSEEK_API_KEY;
+}
 
 export async function chatWithFallback(
   messages: ChatMessage[],
@@ -268,7 +268,7 @@ export async function chatWithFallback(
   const order = [preferred, ...FALLBACK_ORDER.filter((p) => p !== preferred)];
   const tried: Provider[] = [];
   for (const provider of order) {
-    if (!KEY_FOR_PROVIDER[provider]) continue; // skip providers without a key
+    if (!hasProviderKey(provider)) continue; // skip providers without a key
     tried.push(provider);
     try {
       return await chat(messages, { ...opts, provider });

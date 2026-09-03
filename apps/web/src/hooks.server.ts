@@ -1,12 +1,16 @@
 import type { Handle } from '@sveltejs/kit';
 import { setUsageSink } from '@regno/ai';
-import { recordAiUsage } from '@regno/db';
+import { hydrateLlmApiKeysFromVault, recordAiUsage } from '@regno/db';
 import { startArchitectTelemetry } from '$lib/server/architect-telemetry.js';
 
 // Capture AI usage (tokens + cost) for every LLM call made from the web process
 // (e.g. Oracle semantic search embeddings). recordAiUsage is best-effort/non-throwing.
 setUsageSink((u) => {
   void recordAiUsage(u);
+});
+
+void hydrateLlmApiKeysFromVault().catch((err) => {
+  console.warn('[web] LLM API key hydration skipped:', (err as Error).message);
 });
 
 // Report back to the Mothership when this process is a provisioned Architect

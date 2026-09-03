@@ -29,19 +29,23 @@ flowchart LR
 
 | Check | How to verify |
 |---|---|
-| **Valid LLM key** | `OPENAI_API_KEY` in root `.env`. **#1 blocker.** A key returning `429 insufficient_quota` silently switches to *simulated* output — you'd be learning fake insights. Confirm it works first. |
+| **Valid LLM key** | Add provider keys in `/app/settings` after install, or set `OPENAI_API_KEY` in root `.env` before first boot. **#1 blocker.** A key returning `429 insufficient_quota` silently switches to *simulated* output — you'd be learning fake insights. Confirm it works first. |
 | **Infra up** | Mongo, Qdrant, Neo4j, Redis (`npm run db:up` locally, or the k3s namespace). `/app/health` shows each store's status. |
 | **Web app running** | `npm run dev:web` → http://localhost:5173 (dev), or the deployed app. |
 
 ## Step 0 — Unblock the LLM key (do this FIRST)
 
-1. Put a **valid** `OPENAI_API_KEY` in root `.env`.
-2. Restart the web dev server (Vite does not auto-load root `.env` for SSR):
+1. Open `/app/settings` and save a **valid** provider key under **LLM API Keys**.
+2. Restart the execution worker if it is already running, so Cortex Flow jobs hydrate the saved key:
+   ```bash
+   docker compose restart execution
+   ```
+3. For local `.env` development, you can still export the key before starting the web dev server:
    ```bash
    export OPENAI_API_KEY=$(sed -n 's/^OPENAI_API_KEY=//p' .env)
    npm run dev:web
    ```
-3. Confirm **real model calls** on `/app/health` (AI usage section) — not errors.
+4. Confirm **real model calls** on `/app/health` (AI usage section) — not errors.
 
 ## Step 1 — Seed the base brain
 

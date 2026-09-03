@@ -5,7 +5,7 @@
  * Phase 3 will wire PlanEngine → (agent, topology) → AgentExecutor loop,
  * QualityAuditor refine loop, and AgentMemoryService wisdom persistence.
  */
-import { getRedis, recordAiUsage } from '@regno/db';
+import { getRedis, hydrateLlmApiKeysFromVault, recordAiUsage } from '@regno/db';
 import { setUsageSink } from '@regno/ai';
 import { startOrchestratorWorker } from './workers/orchestrator.js';
 import { startNotificationsWorker } from './workers/notifications.js';
@@ -17,6 +17,10 @@ setUsageSink((u) => {
 });
 
 async function main() {
+  await hydrateLlmApiKeysFromVault().catch((err) => {
+    console.warn('[execution] LLM API key hydration skipped:', (err as Error).message);
+  });
+
   const connection = getRedis();
   await connection.ping();
 

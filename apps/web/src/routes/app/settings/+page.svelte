@@ -1,5 +1,14 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { theme, type Theme } from '@regno/ui';
+
+  type LlmKeyStatus = {
+    name: 'OPENAI_API_KEY' | 'ANTHROPIC_API_KEY' | 'GOOGLE_AI_API_KEY' | 'DEEPSEEK_API_KEY';
+    label: string;
+    provider: string;
+    configured: boolean;
+    source: 'vault' | 'env' | 'none';
+  };
 
   const themes: Array<{ id: Theme; name: string; desc: string; swatch: string[] }> = [
     { id: 'dark', name: 'Midnight', desc: 'Deep navy with a purple-blue signal.', swatch: ['#0a0c16', '#6c5ce7', '#8d7bff'] },
@@ -14,6 +23,56 @@
   function apply(id: Theme) {
     theme.set(id);
   }
+
+  let llmKeys: LlmKeyStatus[] = [];
+  let keyInputs: Partial<Record<LlmKeyStatus['name'], string>> = {};
+  let keyLoading = true;
+  let keySaving = false;
+  let keyMessage = '';
+  let keyError = '';
+
+  async function loadLlmKeys() {
+    keyLoading = true;
+    keyError = '';
+    try {
+      const res = await fetch('/api/settings/llm-keys');
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error ?? 'Could not load LLM API keys');
+      llmKeys = json.keys;
+    } catch (err) {
+      keyError = (err as Error).message;
+    } finally {
+      keyLoading = false;
+    }
+  }
+
+  async function saveLlmKeys() {
+    keySaving = true;
+    keyMessage = '';
+    keyError = '';
+    const keys = Object.fromEntries(
+      Object.entries(keyInputs).filter(([, value]) => value !== undefined),
+    ) as Partial<Record<LlmKeyStatus['name'], string>>;
+
+    try {
+      const res = await fetch('/api/settings/llm-keys', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error ?? 'Could not save LLM API keys');
+      llmKeys = json.keys;
+      keyInputs = {};
+      keyMessage = 'LLM API keys saved.';
+    } catch (err) {
+      keyError = (err as Error).message;
+    } finally {
+      keySaving = false;
+    }
+  }
+
+  onMount(loadLlmKeys);
 </script>
 
 <svelte:head><title>Settings — Regno AI</title></svelte:head>
@@ -36,6 +95,51 @@
     </button>
   {/each}
 </div>
+
+<section class="settings-section">
+  <div class="section-headline">
+    <div>
+      <div class="field-label">LLM API Keys</div>
+      <h2>Provider access</h2>
+      <p>Set keys after install. Values are encrypted in the credential vault and never echoed back.</p>
+    </div>
+    <button class="refresh-btn" type="button" on:click={loadLlmKeys} disabled={keyLoading || keySaving}>Refresh</button>
+  </div>
+
+  {#if keyError}<div class="status error">{keyError}</div>{/if}
+  {#if keyMessage}<div class="status success">{keyMessage}</div>{/if}
+
+  <div class="key-grid" aria-busy={keyLoading || keySaving}>
+    {#if keyLoading}
+      <div class="empty-state">Loading provider key status...</div>
+    {:else}
+      {#each llmKeys as key}
+        <label class="key-card">
+          <span class="key-row">
+            <span>
+              <span class="key-name">{key.label}</span>
+              <span class="key-env">{key.name}</span>
+            </span>
+            <span class="key-pill" class:ready={key.configured}>{key.configured ? `Set via ${key.source}` : 'Missing'}</span>
+          </span>
+          <input
+            type="password"
+            autocomplete="off"
+            placeholder={key.configured ? 'Leave blank to keep current key' : 'Paste API key'}
+            value={keyInputs[key.name] ?? ''}
+            on:input={(event) => (keyInputs = { ...keyInputs, [key.name]: event.currentTarget.value })}
+          />
+        </label>
+      {/each}
+    {/if}
+  </div>
+
+  <div class="key-actions">
+    <button class="save-btn" type="button" on:click={saveLlmKeys} disabled={keyLoading || keySaving}>
+      {keySaving ? 'Saving...' : 'Save LLM keys'}
+    </button>
+  </div>
+</section>
 
 <style>
   .field-label {
@@ -77,4 +181,109 @@
   .swatch i { flex: 1; }
   .t-name { font-family: var(--display); font-size: 15px; font-weight: 600; color: var(--ink); }
   .t-desc { font-size: 12.5px; color: var(--ink-dim); }
+  .settings-section {
+    max-width: 860px;
+    margin-top: 34px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .section-headline {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 16px;
+  }
+  .section-headline h2 {
+    margin: 0 0 6px;
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .section-headline p {
+    max-width: 620px;
+    margin: 0;
+    color: var(--ink-dim);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .refresh-btn,
+  .save-btn {
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 10px 14px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .refresh-btn:disabled,
+  .save-btn:disabled { opacity: 0.55; cursor: wait; }
+  .key-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .key-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+  }
+  .key-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .key-name,
+  .key-env { display: block; }
+  .key-name { font-family: var(--display); font-weight: 650; color: var(--ink); }
+  .key-env { margin-top: 4px; font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+  .key-pill {
+    flex: 0 0 auto;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    padding: 4px 8px;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+  .key-pill.ready { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); color: var(--ok); }
+  .key-card input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--panel) 78%, #000 22%);
+    color: var(--ink);
+    padding: 11px 12px;
+    font: inherit;
+  }
+  .key-actions { margin-top: 16px; display: flex; justify-content: flex-end; }
+  .save-btn { background: var(--signal); border-color: var(--signal); color: var(--signal-ink); font-weight: 700; }
+  .status {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .status.error { border: 1px solid color-mix(in srgb, var(--danger) 50%, var(--line)); color: var(--danger); }
+  .status.success { border: 1px solid color-mix(in srgb, var(--ok) 50%, var(--line)); color: var(--ok); }
+  .empty-state {
+    grid-column: 1 / -1;
+    padding: 16px;
+    border: 1px dashed var(--line);
+    border-radius: var(--r);
+    color: var(--ink-dim);
+  }
+  @media (max-width: 640px) {
+    .section-headline { flex-direction: column; }
+    .refresh-btn,
+    .save-btn { width: 100%; }
+  }
 </style>
