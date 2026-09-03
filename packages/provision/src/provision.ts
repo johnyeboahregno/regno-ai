@@ -124,7 +124,16 @@ export async function provisionArchitect(slug: string, onEvent: ProvisionEvent):
     // 4. Optional wipe.
     if (wipe) {
       log('wipe', 'Wiping existing deployment (docker compose down -v)');
-      await sshExec({ host, sshUser, sshPort }, auth, 'cd /opt/regno && docker compose down -v 2>/dev/null || true');
+      // Must run as root (sudo) — the SSH user is only added to the `docker` group by a prior
+      // deploy.sh run, and group membership doesn't apply until a fresh login anyway. Without
+      // sudo this fails with a permission error that `|| true` used to swallow silently,
+      // leaving stale containers running and holding ports for the next `up` to collide with.
+      // Skip quietly on a fresh box where Docker isn't installed yet — nothing to wipe.
+      await sshExec(
+        { host, sshUser, sshPort },
+        auth,
+        'cd /opt/regno && if command -v docker >/dev/null 2>&1; then sudo docker compose down -v --remove-orphans; else echo "[wipe] docker not installed yet, nothing to wipe"; fi',
+      );
     }
 
     // 5. Deploy (installs Docker/Node if needed, builds, seeds).
