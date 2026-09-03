@@ -43,6 +43,9 @@ fi
 step "3/7 — fetching the repo"
 if [ ! -d "$APP_DIR/.git" ]; then
   git clone "$REPO_URL" "$APP_DIR"
+else
+  # Repo already present — pull so re-running this script always picks up the latest fixes.
+  git -C "$APP_DIR" pull --ff-only
 fi
 cd "$APP_DIR"
 
