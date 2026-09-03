@@ -80,6 +80,16 @@
     load();
   }
 
+  async function copyError(text: string | null | undefined) {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      message = 'Error message copied to clipboard';
+    } catch {
+      error = 'Could not copy — clipboard access denied';
+    }
+  }
+
   onMount(() => {
     load();
     timer = setInterval(load, 5000);
@@ -122,7 +132,11 @@
               class="tag"
               class:signal={a.status === 'healthy'}
               class:error={a.status === 'error'}
-              title={a.status === 'error' ? a.error ?? 'Unknown error' : undefined}
+              title={a.status === 'error' ? `${a.error ?? 'Unknown error'} (click to copy)` : undefined}
+              role={a.status === 'error' ? 'button' : undefined}
+              tabindex={a.status === 'error' ? 0 : undefined}
+              on:click={() => a.status === 'error' && copyError(a.error)}
+              on:keydown={(e) => { if (a.status === 'error' && (e.key === 'Enter' || e.key === ' ')) copyError(a.error); }}
             >
               {a.status}
             </span>
