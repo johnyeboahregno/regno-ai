@@ -2,11 +2,12 @@
   import { afterUpdate, onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { theme, THEMES, type Theme } from '@regno/ui';
+  import { marked } from 'marked';
   import type { PageData } from './$types.js';
 
   export let data: PageData;
 
-  type LineKind = 'cmd' | 'info' | 'ok' | 'err' | 'muted' | 'banner';
+  type LineKind = 'cmd' | 'info' | 'ok' | 'err' | 'muted' | 'banner' | 'md';
 
   interface Line {
     id: number;
@@ -146,6 +147,11 @@
   afterUpdate(() => {
     if (out) out.scrollTop = out.scrollHeight;
   });
+
+  function renderMarkdown(md: string): string {
+    return marked.parse(md, { async: false }) as string;
+  }
+
   function fmtTokens(n: number | undefined): string {
     const v = n ?? 0;
     if (v >= 1_000_000) return (v / 1_000_000).toFixed(2) + 'M';
@@ -388,7 +394,7 @@
           }
           if (result?.status === 'complete') {
             push('ok', '✔ complete');
-            pushMany('info', result.output || '(done — no output)');
+            push('md', result.output || '(done — no output)');
           } else if (result?.status === 'failed') {
             push('err', '✖ failed: ' + (result.error || 'execution failed'));
           } else {
@@ -646,7 +652,11 @@
   <div class="term">
     <div class="output" bind:this={out}>
       {#each lines as line}
-        <div class="line {line.kind}">{line.text || ' '}</div>
+        {#if line.kind === 'md'}
+          <div class="line md">{@html renderMarkdown(line.text)}</div>
+        {:else}
+          <div class="line {line.kind}">{line.text || ' '}</div>
+        {/if}
       {/each}
       {#if busy}
         <div class="line info"><span class="blink">▌</span> working…</div>
@@ -860,6 +870,63 @@
   .line.err { color: var(--danger); }
   .line.muted { color: var(--ink-faint); }
   .line.banner { color: var(--signal); text-shadow: 0 0 10px var(--signal-glow); }
+
+  /* Rendered markdown (architect "ask" output) */
+  .line.md {
+    white-space: normal;
+    word-break: break-word;
+  }
+  .line.md :global(h1),
+  .line.md :global(h2),
+  .line.md :global(h3),
+  .line.md :global(h4) {
+    margin: 0.65em 0 0.35em;
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .line.md :global(h1) { font-size: 1.35em; }
+  .line.md :global(h2) { font-size: 1.2em; }
+  .line.md :global(h3) { font-size: 1.08em; }
+  .line.md :global(h4) { font-size: 1em; }
+  .line.md :global(p) { margin: 0.4em 0; }
+  .line.md :global(ul),
+  .line.md :global(ol) { margin: 0.4em 0 0.4em 1.4em; padding: 0; }
+  .line.md :global(li) { margin: 0.2em 0; }
+  .line.md :global(code) {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    background: var(--bg-alt);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .line.md :global(pre) {
+    margin: 0.6em 0;
+    padding: 10px 12px;
+    background: var(--bg-deep);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  .line.md :global(pre code) {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 12.5px;
+  }
+  .line.md :global(a) { color: var(--signal); text-decoration: none; }
+  .line.md :global(a:hover) { text-decoration: underline; }
+  .line.md :global(blockquote) {
+    margin: 0.5em 0;
+    padding-left: 12px;
+    border-left: 2px solid var(--signal);
+    color: var(--ink-dim);
+  }
+  .line.md :global(hr) { border: none; border-top: 1px solid var(--line); margin: 0.8em 0; }
+  .line.md :global(table) { border-collapse: collapse; margin: 0.6em 0; }
+  .line.md :global(th),
+  .line.md :global(td) { border: 1px solid var(--line); padding: 4px 8px; text-align: left; }
 
   .input-row {
     display: flex;
