@@ -3,10 +3,11 @@
 
   interface Tech { slug: string; label: string; icon: string }
   interface Sma {
-    slug: string; name: string; description: string; focusTags: string[]; technologies: string[]; createdAt: string | null;
+    slug: string; name: string; description: string; focusTags: string[]; technologies: string[]; disciplines: string[]; languages: string[]; createdAt: string | null;
   }
 
   let step = 0;
+  let editingSlug = '';
   let name = '';
   let description = '';
   let focusTagsText = '';
@@ -19,6 +20,8 @@
   let message = '';
   let smas: Sma[] = [];
   let deleting = '';
+
+  $: editing = !!editingSlug;
 
   async function load() {
     try {
@@ -79,6 +82,66 @@
     }
   }
 
+  function resetForm() {
+    name = '';
+    description = '';
+    focusTagsText = '';
+    selectedDisciplines = [];
+    selectedLanguages = [];
+    editingSlug = '';
+    step = 0;
+  }
+
+  function startCreate() {
+    resetForm();
+    step = 1;
+  }
+
+  function startEdit(s: Sma) {
+    error = '';
+    message = '';
+    editingSlug = s.slug;
+    name = s.name;
+    description = s.description ?? '';
+    focusTagsText = (s.focusTags ?? []).join(', ');
+    selectedDisciplines = s.disciplines ?? [];
+    selectedLanguages = s.languages ?? [];
+    step = 1;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function update() {
+    if (!editingSlug) return;
+    busy = true;
+    error = '';
+    message = '';
+    const focusTags = focusTagsText.split(',').map((t) => t.trim()).filter(Boolean);
+    try {
+      const r = await fetch(`/api/agents/${encodeURIComponent(editingSlug)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          description,
+          focusTags,
+          disciplines: selectedDisciplines,
+          languages: selectedLanguages,
+          technologies: [...selectedDisciplines, ...selectedLanguages],
+        }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        message = `SMA "${d.name}" updated.`;
+        resetForm();
+        load();
+      } else error = d.error ?? 'Failed';
+    } catch {
+      error = 'Failed to update SMA';
+    } finally {
+      busy = false;
+    }
+  }
+
   async function remove(s: Sma) {
     if (!window.confirm(`Delete SMA "${s.name}"?`)) return;
     deleting = s.slug;
@@ -116,15 +179,15 @@
 
 <div class="card mb" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
   <div>
-    <div class="eyebrow blue">Create an SMA</div>
-    <p class="muted small mt">A profile you can select when running an architect job.</p>
+    <div class="eyebrow blue">{editing ? 'Edit SMA' : 'Create an SMA'}</div>
+    <p class="muted small mt">{editing ? 'Update the active expert profile.' : 'A profile you can select when running an architect job.'}</p>
   </div>
-  <button class="btn solid" on:click={() => (step = 1)}>Create SMA</button>
+  <button class="btn solid" on:click={startCreate}>{editing ? 'Cancel edit' : 'Create SMA'}</button>
 </div>
 
 {#if step === 1}
   <div class="card mb">
-    <div class="eyebrow blue mb">Step 1 · Name &amp; focus</div>
+    <div class="eyebrow blue mb">Step 1 · {editing ? 'Edit name &amp; focus' : 'Name &amp; focus'}</div>
     <label for="aname">Name</label>
     <input class="input mb" id="aname" bind:value={name} placeholder="e.g. F1 Race Engineer" />
     <label for="adesc">Description</label>
@@ -163,7 +226,7 @@
 
     <div class="mt" style="display:flex; gap:12px;">
       <button class="btn ghost" on:click={() => (step = 1)}>Back</button>
-      <button class="btn solid" on:click={create} disabled={busy}>{busy ? 'Creating…' : 'Create SMA'}</button>
+      <button class="btn solid" on:click={editing ? update : create} disabled={busy}>{busy ? (editing ? 'Saving…' : 'Creating…') : (editing ? 'Save changes' : 'Create SMA')}</button>
     </div>
   </div>
 {/if}
@@ -180,6 +243,9 @@
           <td>{s.technologies?.join(', ') || '—'}</td>
           <td>
             {#if s.slug !== 'base'}
+              <button class="btn ghost" on:click={() => startEdit(s)} disabled={deleting === s.slug} style="padding:6px 12px; margin-right:8px;">
+                Edit
+              </button>
               <button class="btn ghost" on:click={() => remove(s)} disabled={deleting === s.slug} style="padding:6px 12px;">
                 {deleting === s.slug ? 'Deleting…' : 'Delete'}
               </button>
