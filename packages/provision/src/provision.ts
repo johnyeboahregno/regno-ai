@@ -134,6 +134,15 @@ export async function provisionArchitect(slug: string, onEvent: ProvisionEvent):
         auth,
         'cd /opt/regno && if command -v docker >/dev/null 2>&1; then sudo docker compose down -v --remove-orphans; else echo "[wipe] docker not installed yet, nothing to wipe"; fi',
       );
+      // A leftover k3s install (from the retired k3s deploy path) runs its own neo4j/redis/etc.
+      // pods bound directly to the same host ports via containerd — completely outside Docker,
+      // so no Docker cleanup above can ever free them. Tear it down fully if present.
+      log('wipe-k3s', 'Removing any leftover k3s install (containerd-bound ports Docker cleanup can\'t see)');
+      await sshExec(
+        { host, sshUser, sshPort },
+        auth,
+        'if [ -x /usr/local/bin/k3s-uninstall.sh ]; then sudo /usr/local/bin/k3s-uninstall.sh; elif [ -x /usr/local/bin/k3s-agent-uninstall.sh ]; then sudo /usr/local/bin/k3s-agent-uninstall.sh; else echo "[wipe] no k3s install found"; fi',
+      );
     }
 
     // 5. Deploy (installs Docker/Node if needed, builds, seeds).
