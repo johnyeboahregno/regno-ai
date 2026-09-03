@@ -7,3 +7,4 @@ export * from './sync.js';
 export * from './credentials.js';
 export * from './architects.js';
 export * from './usage.js';
+export * from './llm-preferences.js';

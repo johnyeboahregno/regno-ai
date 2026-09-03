@@ -40,6 +40,8 @@ export interface ExecutionSettings {
   /** Subject Matter Expert (SMA) slug — centers this job's knowledge on the SMA's focus area. */
   sma?: string;
   provider?: 'openai' | 'anthropic' | 'google' | 'deepseek';
+  /** Inferred LLM routing context used when resolving provider preferences. */
+  llmContext?: 'default' | 'coding' | 'debugging' | 'research' | 'writing' | 'analysis' | 'fast';
   /** When true (default), failed provider calls fall through to the next configured provider. */
   fallback?: boolean;
   model?: string;

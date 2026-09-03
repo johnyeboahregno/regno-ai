@@ -3,7 +3,7 @@
 // GET  /api/executions — list recent executions.
 import { json } from '@sveltejs/kit';
 import { enqueueOrchestrate } from '@regno/flow';
-import { getDb } from '@regno/db';
+import { getDb, resolveLlmSettingsForPrompt } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { requireSession } from '@regno/auth';
 
@@ -21,7 +21,11 @@ export async function POST({ request, cookies }) {
     return json({ ok: false, error: 'prompt is required' }, { status: 400 });
   }
 
-  const job = await enqueueOrchestrate({ prompt, settings: body.settings ?? {} });
+  const llm = await resolveLlmSettingsForPrompt(prompt, body.settings ?? {});
+  const job = await enqueueOrchestrate({
+    prompt,
+    settings: { ...body.settings, provider: llm.provider, model: llm.model, fallback: llm.fallback, llmContext: llm.llmContext },
+  });
   return json({ ok: true, jobId: job.id });
 }
 
