@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { Icon } from '@regno/ui';
   import ArchitectWizard from '$lib/architects/ArchitectWizard.svelte';
   import ProgressModal from '$lib/architects/ProgressModal.svelte';
   import { wizardOpen, openWizard, closeWizard } from '$lib/architects/store.js';
@@ -51,6 +52,11 @@
     if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
     if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
     return `${Math.floor(secs / 86400)}d ago`;
+  }
+
+  const SERVICE_ICONS: Record<string, string> = { mongo: 'database', redis: 'redis', qdrant: 'qdrant', neo4j: 'neo4j' };
+  function serviceIcon(name: string): string {
+    return SERVICE_ICONS[name.toLowerCase()] ?? 'database';
   }
 
   async function relaunch(slug: string) {
@@ -143,9 +149,11 @@
           </td>
           <td>
             {#if a.telemetry}
-              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 {#each a.telemetry.services as s}
-                  <span class="tag" class:signal={s.online} class:error={!s.online}>{s.name}</span>
+                  <span class="tag icon-tag" class:signal={s.online} class:error={!s.online} title="{s.name}: {s.online ? 'online' : 'offline'}{s.detail ? ' — ' + s.detail : ''}">
+                    <Icon name={serviceIcon(s.name)} size={14} />
+                  </span>
                 {/each}
               </div>
               <div class="faint small">v{a.telemetry.version} · {a.telemetry.status} · seen {relative(a.lastSeenAt)}</div>
@@ -157,13 +165,13 @@
           </td>
           <td style="white-space:nowrap;">
             {#if a.status === 'draft'}
-              <button class="btn ghost" style="padding:6px 12px;" on:click={() => relaunch(a.slug)}>Launch</button>
+              <button class="btn ghost icon-btn" title="Launch" aria-label="Launch" on:click={() => relaunch(a.slug)}><Icon name="refresh" size={16} /></button>
             {:else if a.status === 'error'}
-              <button class="btn ghost" style="padding:6px 12px; border-color:var(--danger); color:var(--danger);" on:click={() => relaunch(a.slug)}>Redeploy</button>
+              <button class="btn ghost icon-btn" style="border-color:var(--danger); color:var(--danger);" title="Redeploy" aria-label="Redeploy" on:click={() => relaunch(a.slug)}><Icon name="refresh" size={16} /></button>
             {:else if a.status !== 'provisioning'}
-              <button class="btn ghost" style="padding:6px 12px;" on:click={() => redeploy(a.slug)}>Redeploy</button>
+              <button class="btn ghost icon-btn" title="Redeploy" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
             {/if}
-            <button class="btn ghost" style="padding:6px 12px;" on:click={() => (pendingDelete = a.slug)}>Delete</button>
+            <button class="btn ghost icon-btn" title="Delete" aria-label="Delete" on:click={() => (pendingDelete = a.slug)}><Icon name="trash" size={16} /></button>
           </td>
         </tr>
       {/each}
@@ -213,4 +221,6 @@
   .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line-soft); }
   .x { background: transparent; border: 0; color: var(--ink-faint); font-size: 18px; cursor: pointer; }
   .x:hover { color: var(--ink); }
+  .icon-tag { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; }
+  .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; }
 </style>

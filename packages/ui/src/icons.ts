@@ -52,6 +52,17 @@ export const ICONS: Record<string, string> = {
   palette:
     '<circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>',
 
+  refresh:
+    '<polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>',
+  trash:
+    '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>',
+  redis:
+    '<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path>',
+  qdrant:
+    '<path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path>',
+  neo4j:
+    '<circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><line x1="8" y1="7.5" x2="10.5" y2="16"></line><line x1="16" y1="7.5" x2="13.5" y2="16"></line><line x1="8.5" y1="6" x2="15.5" y2="6"></line>',
+
   // ── Architect age gimmick (theme-aware via stroke="currentColor") ─────────────────────
   'architect-age':
     '<path d="M5 3h14"></path><path d="M5 21h14"></path><path d="M6.5 3v3.2c0 1.4 1 2.6 2 3.4L11 12l-2.5 2.4c-1 .8-2 2-2 3.4V21"></path><path d="M17.5 3v3.2c0 1.4-1 2.6-2 3.4L13 12l2.5 2.4c1 .8 2 2 2 3.4V21"></path>',
