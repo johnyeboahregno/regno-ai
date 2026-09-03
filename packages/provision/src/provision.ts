@@ -89,7 +89,7 @@ export async function provisionArchitect(slug: string, onEvent: ProvisionEvent):
   const { host, sshUser, sshPort, wipe } = architect.target;
   const auth: SshAuth = { privateKey: secrets.SSH_KEY, password: secrets.SSH_PASSWORD };
   const repoUrl = secrets.REPO_URL || process.env.REPO_URL || '';
-  const envPayload = buildEnvPayload(architect.env, secrets, slug);
+  const envPayload = buildEnvPayload(architect.env, secrets, slug, architect.domain);
 
   const emit = (event: string, data: unknown) => onEvent(`provision:${event}`, { slug, ...(data as object) });
 

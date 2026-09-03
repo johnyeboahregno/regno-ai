@@ -157,7 +157,8 @@ else
 fi
 
 step "8/8 — Cloudflare DNS (optional)"
-if [ -n "${CF_API_TOKEN:-}" ]; then
+DOMAIN="${DOMAIN:-}"
+if [ -n "${CF_API_TOKEN:-}" ] && [ -n "$DOMAIN" ]; then
   SLUG_DOMAIN="$(echo "$DOMAIN" | cut -d. -f1)"
   ROOT_DOMAIN="${DOMAIN#"$SLUG_DOMAIN".}"
   if [ -z "${SERVER_IP:-}" ]; then
@@ -169,9 +170,9 @@ if [ -n "${CF_API_TOKEN:-}" ]; then
     echo "[deploy] skipped Cloudflare DNS — could not determine public IP (set SERVER_IP)"
   fi
 else
-  echo "[deploy] skipped Cloudflare DNS — CF_API_TOKEN not set"
+  echo "[deploy] skipped Cloudflare DNS — CF_API_TOKEN or DOMAIN not set"
 fi
 
 echo
-echo "[deploy] done ✅  Regno Architect Me is up at https://$DOMAIN"
+echo "[deploy] done ✅  Regno Architect Me is up at https://${DOMAIN:-<no domain set>}"
 docker compose ps

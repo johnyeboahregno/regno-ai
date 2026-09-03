@@ -26,6 +26,7 @@ export function buildEnvPayload(
   env: Record<string, string>,
   secrets: Record<string, string>,
   slug?: string,
+  domain?: string,
 ): string {
   const merged: Record<string, string> = {};
   for (const [k, v] of Object.entries(env)) if (v !== undefined && v !== null) merged[k] = String(v);
@@ -34,6 +35,9 @@ export function buildEnvPayload(
     if (v !== undefined && v !== null && String(v) !== '') merged[k] = String(v);
   }
   for (const [k, v] of Object.entries(DB_DEFAULTS)) if (!merged[k]) merged[k] = v;
+  // deploy.sh's Cloudflare DNS step (and Caddy's TLS host) reads $DOMAIN directly — without it,
+  // `set -u` makes deploy.sh crash with "DOMAIN: unbound variable" at the final step.
+  if (domain && !merged.DOMAIN) merged.DOMAIN = domain;
 
   // Architect → Mothership telemetry wiring (see docs/engineering/31-architect-telemetry.md).
   // The Mothership reports its own public URL; each Architect needs to know who it is
