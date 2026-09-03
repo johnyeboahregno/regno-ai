@@ -3,6 +3,7 @@
   import { Icon } from '@regno/ui';
   import ArchitectWizard from '$lib/architects/ArchitectWizard.svelte';
   import ProgressModal from '$lib/architects/ProgressModal.svelte';
+  import ArchitectDetailsModal from '$lib/architects/ArchitectDetailsModal.svelte';
   import { wizardOpen, openWizard, closeWizard } from '$lib/architects/store.js';
 
   type Architect = {
@@ -32,6 +33,7 @@
   let deleteConfirmText = '';
   let progressSlug: string | null = null;
   let progressJobId: string | undefined = undefined;
+  let detailsSlug: string | null = null;
   let timer: ReturnType<typeof setInterval> | null = null;
 
   async function load() {
@@ -134,12 +136,14 @@
     </thead>
     <tbody>
       {#each architects as a}
-        <tr>
+        <tr class="row-click" role="button" tabindex="0" on:click={() => (detailsSlug = a.slug)} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') detailsSlug = a.slug; }}>
           <td>
             <div class="mono">{a.slug}</div>
             <div class="faint small">{a.developer?.name || '—'}</div>
           </td>
-          <td class="mono">{a.domain}</td>
+          <td class="mono">
+            <a href="https://{a.domain}" target="_blank" rel="noopener noreferrer" on:click|stopPropagation>{a.domain}</a>
+          </td>
           <td class="mono small">{a.target?.sshUser}@{a.target?.host}:{a.target?.sshPort}</td>
           <td>
             <span
@@ -149,8 +153,8 @@
               title={a.status === 'error' ? `${a.error ?? 'Unknown error'} (click to copy)` : undefined}
               role={a.status === 'error' ? 'button' : undefined}
               tabindex={a.status === 'error' ? 0 : undefined}
-              on:click={() => a.status === 'error' && copyError(a.error)}
-              on:keydown={(e) => { if (a.status === 'error' && (e.key === 'Enter' || e.key === ' ')) copyError(a.error); }}
+              on:click={(e) => { e.stopPropagation(); if (a.status === 'error') copyError(a.error); }}
+              on:keydown={(e) => { if (a.status === 'error' && (e.key === 'Enter' || e.key === ' ')) { e.stopPropagation(); copyError(a.error); } }}
             >
               {a.status}
             </span>
@@ -171,7 +175,7 @@
               <span class="faint small">{a.status === 'healthy' ? 'awaiting first report…' : '—'}</span>
             {/if}
           </td>
-          <td style="white-space:nowrap;">
+          <td style="white-space:nowrap;" on:click|stopPropagation>
             {#if a.status === 'draft'}
               <button class="btn ghost icon-btn" title="Launch" aria-label="Launch" on:click={() => relaunch(a.slug)}><Icon name="refresh" size={16} /></button>
             {:else if a.status === 'error'}
@@ -199,6 +203,10 @@
 
 {#if progressSlug}
   <ProgressModal slug={progressSlug} jobId={progressJobId} on:close={() => { progressSlug = null; load(); }} />
+{/if}
+
+{#if detailsSlug}
+  <ArchitectDetailsModal slug={detailsSlug} on:close={() => (detailsSlug = null)} />
 {/if}
 
 {#if pendingDelete}
@@ -242,4 +250,6 @@
   .x:hover { color: var(--ink); }
   .icon-tag { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; }
   .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; }
+  .row-click { cursor: pointer; }
+  .row-click:hover { background: var(--panel-hover, rgba(255,255,255,0.03)); }
 </style>

@@ -60,7 +60,19 @@ export interface ArchitectTelemetryRecord {
   /** Full Regno Standard document set from the last heartbeat (see packages/shared). */
   docs: Record<string, unknown>[];
   summary: ArchitectTelemetrySummary;
+  /** Bounded time series (most recent ~200 heartbeats) for trend charts. */
+  history?: ArchitectTelemetryHistoryPoint[];
   receivedAt: Date;
+}
+
+/** One point in the telemetry trend line — kept small since it's appended every heartbeat. */
+export interface ArchitectTelemetryHistoryPoint {
+  at: Date;
+  status: 'healthy' | 'degraded' | 'error';
+  uptimeSeconds: number;
+  memPercent: number;
+  servicesOnline: number;
+  servicesTotal: number;
 }
 
 export interface ArchitectRecord {
@@ -171,16 +183,27 @@ export async function recordArchitectTelemetry(
 ): Promise<void> {
   const db = await getDb();
   const now = new Date();
-  const record: ArchitectTelemetryRecord = {
+  const record: Omit<ArchitectTelemetryRecord, 'history'> = {
     slug,
     configDocId: input.configDocId,
     docs: input.docs,
     summary: { ...input.summary, receivedAt: now },
     receivedAt: now,
   };
-  await db.collection(Collections.ARCHITECT_TELEMETRY).updateOne(
+  const historyPoint: ArchitectTelemetryHistoryPoint = {
+    at: now,
+    status: input.summary.status,
+    uptimeSeconds: input.summary.uptimeSeconds,
+    memPercent: input.summary.memPercent,
+    servicesOnline: input.summary.services.filter((s) => s.online).length,
+    servicesTotal: input.summary.services.length,
+  };
+  await db.collection<ArchitectTelemetryRecord>(Collections.ARCHITECT_TELEMETRY).updateOne(
     { slug },
-    { $set: record },
+    {
+      $set: record,
+      $push: { history: { $each: [historyPoint], $slice: -200 } },
+    },
     { upsert: true },
   );
   await db.collection(Collections.ARCHITECTS).updateOne(
