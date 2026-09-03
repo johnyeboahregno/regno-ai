@@ -106,6 +106,13 @@ step "6/7 — building + starting the stack"
 # with "address already in use". Never touched here: volumes (no -v), so data survives
 # a normal redeploy; only the wizard's explicit "wipe" flag removes volumes.
 docker compose --env-file .env.prod down --remove-orphans 2>/dev/null || true
+# Belt-and-braces: also force-remove any container (from an older/differently-named
+# compose project, or started outside compose) still holding a port this stack needs —
+# project-scoped `down` above only touches containers labeled for THIS project.
+for port in 27017 6333 6334 7474 7687 6379 3000 3002; do
+  ids="$(docker ps -q --filter "publish=$port")"
+  [ -n "$ids" ] && docker rm -f $ids 2>/dev/null || true
+done
 docker compose --env-file .env.prod up -d --build
 
 step "7/8 — initializing + seeding (host → localhost DB ports)"
