@@ -29,6 +29,7 @@
   let error = '';
   let message = '';
   let pendingDelete: string | null = null;
+  let deleteConfirmText = '';
   let progressSlug: string | null = null;
   let progressJobId: string | undefined = undefined;
   let timer: ReturnType<typeof setInterval> | null = null;
@@ -71,18 +72,25 @@
   async function redeploy(slug: string) {
     error = '';
     message = '';
-    const r = await fetch(`/api/architects/${slug}/launch`, { method: 'POST' });
+    // Explicitly force wipe:false — a redeploy must only rebuild/restart the apps, never
+    // touch data, even if "wipe" was ticked once at creation and is still saved on the target.
+    const r = await fetch(`/api/architects/${slug}/launch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wipe: false }),
+    });
     const d = await r.json();
     if (d.ok) { progressSlug = slug; progressJobId = d.jobId; load(); }
     else error = d.error ?? 'Failed to redeploy';
   }
 
   async function confirmDelete() {
-    if (!pendingDelete) return;
+    if (!pendingDelete || deleteConfirmText !== pendingDelete) return;
     const slug = pendingDelete;
     pendingDelete = null;
+    deleteConfirmText = '';
     await fetch(`/api/architects/${slug}`, { method: 'DELETE' });
-    message = `Deleted "${slug}"`;
+    message = `Deleted "${slug}" from the Mothership registry`;
     load();
   }
 
@@ -167,11 +175,11 @@
             {#if a.status === 'draft'}
               <button class="btn ghost icon-btn" title="Launch" aria-label="Launch" on:click={() => relaunch(a.slug)}><Icon name="refresh" size={16} /></button>
             {:else if a.status === 'error'}
-              <button class="btn ghost icon-btn" style="border-color:var(--danger); color:var(--danger);" title="Redeploy" aria-label="Redeploy" on:click={() => relaunch(a.slug)}><Icon name="refresh" size={16} /></button>
+              <button class="btn ghost icon-btn" style="border-color:var(--danger); color:var(--danger);" title="Redeploy (apps only, no data wipe)" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
             {:else if a.status !== 'provisioning'}
-              <button class="btn ghost icon-btn" title="Redeploy" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
+              <button class="btn ghost icon-btn" title="Redeploy (apps only, no data wipe)" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
             {/if}
-            <button class="btn ghost icon-btn" title="Delete" aria-label="Delete" on:click={() => (pendingDelete = a.slug)}><Icon name="trash" size={16} /></button>
+            <button class="btn ghost icon-btn" title="Delete" aria-label="Delete" on:click={() => { pendingDelete = a.slug; deleteConfirmText = ''; }}><Icon name="trash" size={16} /></button>
           </td>
         </tr>
       {/each}
@@ -197,17 +205,28 @@
   <div class="modal-backdrop" on:click={() => (pendingDelete = null)}>
     <div class="modal" role="dialog" aria-modal="true" aria-label="Delete Architect" on:click|stopPropagation>
       <div class="modal-head">
-        <span class="eyebrow">Delete Architect</span>
+        <span class="eyebrow" style="color:var(--danger);">Delete Architect</span>
         <button class="x" on:click={() => (pendingDelete = null)}>✕</button>
       </div>
       <div class="modal-body">
-        <p style="margin:0; color:var(--ink-dim);">
-          Delete Architect <span class="mono">{pendingDelete}</span>? This removes its blueprint and stored secrets.
+        <p style="margin:0 0 10px; color:var(--ink);">
+          You're about to delete <span class="mono">{pendingDelete}</span> from the Mothership.
         </p>
+        <ul style="margin:0 0 10px; padding-left:18px; color:var(--ink-dim); font-size:13px; line-height:1.6;">
+          <li>Permanently erases its blueprint, target config, and stored secrets (SSH key/password, API keys) here — <strong>this cannot be undone</strong>.</li>
+          <li>You will lose the ability to redeploy, monitor, or manage it from this dashboard.</li>
+        </ul>
+        <p style="margin:0 0 14px; padding:10px 12px; border-radius:8px; background:var(--signal-bg); color:var(--ink);">
+          <strong>What this does NOT do:</strong> it does not SSH into <span class="mono">{pendingDelete}</span>'s server, and does not stop, wipe, or delete anything running there — its containers and databases keep running untouched until you manually tear them down on that box.
+        </p>
+        <label for="delete-confirm" style="display:block; font-size:12px; color:var(--ink-dim); margin-bottom:6px;">
+          Type <span class="mono">{pendingDelete}</span> to confirm:
+        </label>
+        <input id="delete-confirm" class="input mono" bind:value={deleteConfirmText} placeholder={pendingDelete} autocomplete="off" />
       </div>
       <div class="modal-foot">
         <button class="btn ghost" on:click={() => (pendingDelete = null)}>Cancel</button>
-        <button class="btn danger" on:click={confirmDelete}>Delete</button>
+        <button class="btn danger" on:click={confirmDelete} disabled={deleteConfirmText !== pendingDelete}>Delete permanently</button>
       </div>
     </div>
   </div>

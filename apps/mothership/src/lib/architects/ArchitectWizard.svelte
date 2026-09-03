@@ -154,7 +154,11 @@
       if (!sd.ok) { error = sd.error ?? 'Failed to store secrets'; return; }
 
       // 3. Launch.
-      const launched = await fetch(`/api/architects/${slug}/launch`, { method: 'POST' });
+      const launched = await fetch(`/api/architects/${slug}/launch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wipe: form.wipe }),
+      });
       const ld = await launched.json();
       if (!ld.ok) { error = ld.error ?? 'Failed to launch'; return; }
 

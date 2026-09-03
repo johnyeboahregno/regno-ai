@@ -6,7 +6,7 @@ import { Queue } from 'bullmq';
 import { getRedis } from '@regno/db';
 import { Queues } from '@regno/shared';
 
-export function enqueueProvision(payload: { slug: string }) {
+export function enqueueProvision(payload: { slug: string; wipe?: boolean }) {
   const q = new Queue(Queues.PROVISION, { connection: getRedis() });
   return q.add('provision', payload);
 }

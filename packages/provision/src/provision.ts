@@ -74,7 +74,7 @@ async function sshExec(
   throw new Error('No SSH key or password provided');
 }
 
-export async function provisionArchitect(slug: string, onEvent: ProvisionEvent): Promise<void> {
+export async function provisionArchitect(slug: string, onEvent: ProvisionEvent, wipeOverride?: boolean): Promise<void> {
   const architect = await getArchitectBySlug(slug);
   if (!architect) throw new Error(`Architect "${slug}" not found`);
 
@@ -86,7 +86,12 @@ export async function provisionArchitect(slug: string, onEvent: ProvisionEvent):
     throw new Error(`Stored secrets for "${slug}" are malformed`);
   }
 
-  const { host, sshUser, sshPort, wipe } = architect.target;
+  const { host, sshUser, sshPort } = architect.target;
+  // A redeploy (existing healthy/error Architect) must never wipe by default — only an explicit
+  // per-call override (the wizard's initial "wipe existing deployment" checkbox) should nuke data.
+  // Falling back to the persisted `target.wipe` flag here would silently re-wipe on every single
+  // future redeploy, since that flag is saved once at creation and never cleared.
+  const wipe = wipeOverride ?? architect.target.wipe;
   const auth: SshAuth = { privateKey: secrets.SSH_KEY, password: secrets.SSH_PASSWORD };
   const repoUrl = secrets.REPO_URL || process.env.REPO_URL || '';
   const envPayload = buildEnvPayload(architect.env, secrets, slug, architect.domain);

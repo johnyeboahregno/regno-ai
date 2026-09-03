@@ -16,13 +16,13 @@ export function startProvisionWorker(connection: ConnectionOptions | Redis) {
   const worker = new Worker(
     Queues.PROVISION,
     async (job) => {
-      const { slug } = (job.data ?? {}) as { slug?: string };
+      const { slug, wipe } = (job.data ?? {}) as { slug?: string; wipe?: boolean };
       if (!slug) throw new Error('job.data.slug is required');
       const redis = getRedis();
       const onEvent = (event: string, data: unknown) => {
         void redis.publish(EVENTS_CHANNEL, JSON.stringify({ event, data })).catch(() => {});
       };
-      await provisionArchitect(slug, onEvent);
+      await provisionArchitect(slug, onEvent, wipe);
     },
     { connection, concurrency: 2 },
   );
