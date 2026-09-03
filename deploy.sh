@@ -131,11 +131,13 @@ set -a
 # shellcheck disable=SC1091
 source .env.prod
 set +a
-export MONGO_URI="mongodb://localhost:27017/regno"
+# Mongo runs with root auth enabled (MONGO_INITDB_ROOT_USERNAME/PASSWORD in docker-compose.yml) —
+# an unauthenticated URI here fails every seed script with "createIndexes requires authentication".
+export MONGO_URI="mongodb://regno:${MONGO_PASSWORD}@localhost:27017/regno?authSource=admin"
 export QDRANT_URL="http://localhost:6333"
 export NEO4J_URI="bolt://localhost:7687"
 export NEO4J_USER="neo4j"
-export NEO4J_PASSWORD="changeme"
+export NEO4J_PASSWORD="${NEO4J_PASSWORD:-changeme}"
 export REDIS_URL="redis://localhost:6379"
 
 echo "[deploy] waiting for databases to be ready…"
