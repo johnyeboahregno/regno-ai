@@ -50,12 +50,15 @@ export async function PUT({ params, request, cookies }) {
     };
   }
   if (body.target) {
+    const mode = body.target.mode === 'k3s' ? 'k3s' : body.target.mode === 'server' ? 'server' : architect.target.mode;
     patch.target = {
       host: String(body.target.host ?? architect.target.host).trim(),
       sshUser: String(body.target.sshUser ?? architect.target.sshUser).trim() || 'root',
       sshPort: Number(body.target.sshPort ?? architect.target.sshPort) || 22,
-      mode: body.target.mode === 'k3s' ? 'k3s' : body.target.mode === 'server' ? 'server' : architect.target.mode,
+      mode,
       wipe: body.target.wipe !== undefined ? Boolean(body.target.wipe) : architect.target.wipe,
+      cluster: mode === 'k3s' ? String(body.target.cluster ?? architect.target.cluster ?? '').trim() || undefined : undefined,
+      namespace: mode === 'k3s' ? String(body.target.namespace ?? architect.target.namespace ?? '').trim() || undefined : undefined,
     };
   }
   if (body.env) patch.env = body.env;

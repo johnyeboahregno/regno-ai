@@ -1,7 +1,8 @@
 /**
  * Build the `.env.prod` payload written to a target machine. Merges non-secret
  * config with decrypted secrets and the same DB defaults `deploy.sh` assumes.
- * SSH credentials (SSH_KEY / SSH_PASSWORD) are provisioner-only and excluded.
+ * Provisioner-only secrets (SSH_KEY / SSH_PASSWORD / KUBECONFIG / CF_*) are excluded —
+ * they are consumed by the Mothership, never shipped to the target.
  */
 const DB_DEFAULTS: Record<string, string> = {
   MONGO_POOL_SIZE: '50',
@@ -11,7 +12,7 @@ const DB_DEFAULTS: Record<string, string> = {
   REDIS_URL: 'redis://redis:6379',
 };
 
-const PROVISIONER_ONLY = new Set(['SSH_KEY', 'SSH_PASSWORD', 'CF_API_TOKEN', 'CF_ZONE_ID']);
+const PROVISIONER_ONLY = new Set(['SSH_KEY', 'SSH_PASSWORD', 'CF_API_TOKEN', 'CF_ZONE_ID', 'KUBECONFIG']);
 
 // deploy.sh does `source .env.prod` as a real shell script (to load vars for the seed step),
 // so any value containing spaces/`$`/backticks/quotes must be shell-quoted — an unquoted value

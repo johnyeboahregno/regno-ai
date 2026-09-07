@@ -53,6 +53,11 @@
 | 19 | [`19-cicd.md`](./19-cicd.md) | GitHub Actions → k3s deploy + validation |
 | 20 | [`20-sma-subject-matter-experts.md`](./20-sma-subject-matter-experts.md) | SMA = selectable expert profile for architect jobs |
 | 21 | [`21-key-rotation.md`](./21-key-rotation.md) | Rotating/add the AI provider API keys |
+| 30 | [`30-mothership-deploy.md`](./30-mothership-deploy.md) | Deploying the Mothership (control plane) |
+| 31 | [`31-architect-telemetry.md`](./31-architect-telemetry.md) | Architect → Mothership heartbeat telemetry |
+| 32 | [`32-mothership-app-split.md`](./32-mothership-app-split.md) | Mothership as its own app (not a web mode) |
+| 33 | [`33-architect-console.md`](./33-architect-console.md) | Per-Architect cluster console (k3s namespaces) |
+| 34 | [`34-mothership-seed.md`](./34-mothership-seed.md) | Re-seed an Architect's data (docs brain, no rebuild) |
 
 ## Golden rule
 

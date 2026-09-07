@@ -16,6 +16,11 @@ RUN npm run build -w @regno/mothership
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
+# kubectl — drives the per-Architect cluster console (/app/architects/<slug>/console).
+# Pinned to a stable release for reproducibility; k3s is broadly compatible with any recent client.
+RUN apk add --no-cache curl ca-certificates \
+ && curl -fsSL -o /usr/local/bin/kubectl https://dl.k8s.io/release/v1.30.2/bin/linux/amd64/kubectl \
+ && chmod +x /usr/local/bin/kubectl
 COPY --from=build /app/apps/mothership/build ./build
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages

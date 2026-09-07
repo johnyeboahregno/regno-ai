@@ -62,7 +62,27 @@ bootstrap + seed scripts.
 
 ---
 
-## 3. Bootstrap (manual, if you prefer step-by-step)
+## 3. Redeploy (if deploy.sh fails)
+
+If the initial `deploy.sh` failed (e.g. Docker conflicts, missing API keys, network timeout), use the **redeploy helper**:
+
+```bash
+bash redeploy.sh
+```
+
+This script will:
+1. Prompt for SSH connection details (user@host) and SSH key path
+2. Clean up Docker containers and restart the daemon
+3. Re-run `deploy.sh` with API keys you provide
+
+The redeploy script safely handles:
+- Lingering containers (from interrupted deploys)
+- Port conflicts (removes containers holding ports)
+- Missing API keys (prompts you to enter them)
+
+---
+
+## 4. Bootstrap (manual, if you prefer step-by-step)
 
 ```bash
 # Install Docker
@@ -100,7 +120,7 @@ node scripts/seed-history.mjs   # your repos → code + commits (needs OPENAI_AP
 
 ---
 
-## 4. Verify
+## 5. Verify
 
 ```bash
 docker compose ps                     # all services Up
@@ -121,7 +141,7 @@ curl -s -X POST https://DOMAIN/api/executions \
 
 ---
 
-## 5. Backups (recommended)
+## 6. Backups (recommended)
 
 ```bash
 # MongoDB
@@ -137,7 +157,7 @@ Add a cron job for nightly dumps + copy off-box (e.g. OVHcloud Object Storage / 
 
 ---
 
-## 6. Monitoring
+## 7. Monitoring
 
 ```bash
 docker compose ps            # status
@@ -147,7 +167,7 @@ docker compose logs -f       # follow all logs
 
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Fix |
 |---|---|

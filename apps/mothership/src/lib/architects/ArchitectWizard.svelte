@@ -24,6 +24,10 @@
     sshPort: 22,
     mode: 'server' as 'server' | 'k3s',
     wipe: false,
+    // k3s namespace mode only — the shared-cluster console (option A) scope.
+    kubeContext: '',
+    kubeNamespace: '',
+    kubeconfig: '',
     sshAuth: 'key' as 'key' | 'password',
     sshKey: '',
     sshPassword: '',
@@ -113,6 +117,9 @@
     set('GITHUB_TOKEN', form.githubToken);
     set('DOCKERHUB_USERNAME', form.dockerUser);
     set('DOCKERHUB_TOKEN', form.dockerToken);
+    // Mothership-side kubeconfig for the per-Architect cluster console. Stored in
+    // the vault only — excluded from .env.prod (PROVISIONER_ONLY in @regno/provision).
+    if (form.mode === 'k3s') set('KUBECONFIG', form.kubeconfig.replace(/\r/g, '').trim());
     return s;
   }
 
@@ -131,6 +138,9 @@
         sshPort: form.sshPort,
         mode: form.mode,
         wipe: form.wipe,
+        ...(form.mode === 'k3s'
+          ? { cluster: form.kubeContext.trim() || undefined, namespace: form.kubeNamespace.trim() || undefined }
+          : {}),
       };
       const env = buildEnv();
       const secrets = buildSecrets();
@@ -271,6 +281,26 @@
             </label>
           </div>
         </div>
+
+        {#if form.mode === 'k3s'}
+          <div class="mt" style="padding:12px; border:1px solid var(--line-soft); border-radius:10px;">
+            <div class="eyebrow blue mb">k3s namespace console scope</div>
+            <div class="grid grid-2">
+              <div>
+                <label for="a-kctx">Cluster context (from kubeconfig)</label>
+                <input class="input mono" id="a-kctx" bind:value={form.kubeContext} placeholder="k3s-87" />
+              </div>
+              <div>
+                <label for="a-kns">Namespace</label>
+                <input class="input mono" id="a-kns" bind:value={form.kubeNamespace} placeholder="dev-john" />
+              </div>
+            </div>
+            <div class="mt">
+              <label for="a-kubeconfig">Kubeconfig (YAML — mothership-side secret, never sent to the box)</label>
+              <textarea class="input mono" id="a-kubeconfig" rows="7" bind:value={form.kubeconfig} placeholder="apiVersion: v1&#10;clusters:&#10;- cluster:&#10;    server: https://139.99.148.87:6443&#10;  name: k3s-87&#10;contexts:&#10;- context:&#10;    cluster: k3s-87&#10;    user: k3s-87&#10;    namespace: dev-john&#10;  name: k3s-87&#10;current-context: k3s-87&#10;users:&#10;- name: k3s-87&#10;  user:&#10;    token: ..."></textarea>
+            </div>
+          </div>
+        {/if}
         <div class="mt">
           <div style="display:flex; gap:16px; margin-bottom:8px;">
             <label class="check-label"><input type="radio" bind:group={form.sshAuth} value="key" /> SSH private key</label>
@@ -366,6 +396,9 @@
               <tr><td class="muted">Domain</td><td class="mono">{slugPreview()}</td></tr>
               <tr><td class="muted">Developer</td><td>{form.name || '—'}</td></tr>
               <tr><td class="muted">Target</td><td class="mono">{form.sshUser}@{form.host || '—'}:{form.sshPort} ({form.mode})</td></tr>
+              {#if form.mode === 'k3s'}
+                <tr><td class="muted">k3s scope</td><td class="mono">context {form.kubeContext || '—'} / ns {form.kubeNamespace || '—'}{form.kubeconfig ? ' · kubeconfig set' : ''}</td></tr>
+              {/if}
               <tr><td class="muted">Wipe first</td><td>{form.wipe ? 'yes' : 'no'}</td></tr>
               <tr><td class="muted">AI keys</td><td class="mono">
                 {[form.openai && 'openai', form.anthropic && 'anthropic', form.google && 'google', form.deepseek && 'deepseek'].filter(Boolean).join(', ') || 'none'}

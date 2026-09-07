@@ -11,7 +11,7 @@
     domain: string;
     status: string;
     developer: { name: string; email: string; github: string };
-    target: { host: string; sshUser: string; sshPort: number; mode: string; wipe: boolean };
+    target: { host: string; sshUser: string; sshPort: number; mode: string; wipe: boolean; cluster?: string; namespace?: string };
     error: string | null;
     lastSeenAt: string | null;
     online: boolean | null;
@@ -71,7 +71,12 @@
   <div class="modal wide" role="dialog" aria-modal="true" aria-label="Architect details" on:click|stopPropagation>
     <div class="modal-head">
       <span class="eyebrow blue">Architect <span class="mono">{slug}</span></span>
-      <button class="x" on:click={close}>✕</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        {#if architect?.target?.mode === 'k3s'}
+          <a class="btn ghost console-link" href="/app/architects/{slug}/console">Cluster console</a>
+        {/if}
+        <button class="x" on:click={close}>✕</button>
+      </div>
     </div>
     <div class="modal-body">
       {#if loading}
@@ -92,6 +97,9 @@
           <div>
             <div class="section-label">Target</div>
             <p class="mono small">{architect.target?.sshUser}@{architect.target?.host}:{architect.target?.sshPort} ({architect.target?.mode})</p>
+            {#if architect.target?.mode === 'k3s'}
+              <p class="faint small mono">context {architect.target?.cluster || '—'} · ns {architect.target?.namespace || '—'}</p>
+            {/if}
           </div>
           <div>
             <div class="section-label">Status</div>
@@ -152,4 +160,5 @@
   .section-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px; }
   .mt { margin-top: 14px; }
   .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+  a.console-link { text-decoration: none; font-size: 12px; padding: 6px 12px; }
 </style>

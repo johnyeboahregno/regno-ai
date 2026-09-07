@@ -63,6 +63,8 @@ export async function POST({ request, cookies }) {
     sshPort: Number(body.target?.sshPort ?? 22) || 22,
     mode: (body.target?.mode === 'k3s' ? 'k3s' : 'server') as ArchitectMode,
     wipe: Boolean(body.target?.wipe),
+    cluster: body.target?.mode === 'k3s' ? String(body.target?.cluster ?? '').trim() || undefined : undefined,
+    namespace: body.target?.mode === 'k3s' ? String(body.target?.namespace ?? '').trim() || undefined : undefined,
   };
   if (!target.host) return json({ ok: false, error: 'target.host is required' }, { status: 400 });
 

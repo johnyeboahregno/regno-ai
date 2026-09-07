@@ -10,6 +10,7 @@ import { Collections } from '@regno/shared';
 export type ArchitectStatus =
   | 'draft'
   | 'provisioning'
+  | 'seeding'
   | 'healthy'
   | 'degraded'
   | 'error'
@@ -29,6 +30,14 @@ export interface ArchitectTarget {
   sshPort: number;
   mode: ArchitectMode;
   wipe: boolean;
+  /**
+   * k3s namespace mode only: the kubeconfig context name of the shared cluster
+   * this Architect's namespace lives on (e.g. "k3s-87"). Used by the per-Architect
+   * cluster console (docs/engineering/33-architect-console.md).
+   */
+  cluster?: string;
+  /** k3s namespace mode only: the namespace this Architect maps to (e.g. "dev-john"). */
+  namespace?: string;
 }
 
 export interface ArchitectServiceTelemetry {
@@ -147,8 +156,8 @@ export async function setArchitectStatus(
   const set: Record<string, unknown> = { status, updatedAt: new Date() };
   if (opts.jobId !== undefined) set.jobId = opts.jobId;
   if (opts.error !== undefined) set.error = opts.error;
-  // Fresh provisioning run → clear any previous run's progress log.
-  if (status === 'provisioning') set.progress = [];
+  // Fresh provisioning/seeding run → clear any previous run's progress log.
+  if (status === 'provisioning' || status === 'seeding') set.progress = [];
   await db.collection(Collections.ARCHITECTS).updateOne({ slug }, { $set: set });
 }
 

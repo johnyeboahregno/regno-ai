@@ -62,6 +62,9 @@ export const ICONS: Record<string, string> = {
     '<path d="M12 2 2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path>',
   neo4j:
     '<circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><line x1="8" y1="7.5" x2="10.5" y2="16"></line><line x1="16" y1="7.5" x2="13.5" y2="16"></line><line x1="8.5" y1="6" x2="15.5" y2="6"></line>',
+  // Upload/ingest glyph — "seed the data layer" (mothership Architect seed action).
+  seed:
+    '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>',
 
   // ── Architect age gimmick (theme-aware via stroke="currentColor") ─────────────────────
   'architect-age':

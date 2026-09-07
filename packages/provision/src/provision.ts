@@ -169,3 +169,96 @@ export async function provisionArchitect(slug: string, onEvent: ProvisionEvent, 
     throw err;
   }
 }
+
+/**
+ * Re-seed an Architect's data layer WITHOUT redeploying or restarting the stack.
+ *
+ * SSHes to the box, (re)writes .env.prod from the vault (so the latest stored
+ * keys — OPENAI_API_KEY, GITHUB_TOKEN — land on the box), then runs the same
+ * idempotent seed sequence deploy.sh uses, straight against the already-running
+ * databases on localhost:
+ *
+ *   init-db → seed-agents → seed-profile → seed-brain (docs corpus → knowledge
+ *   base) → seed-history → seed-github (when GITHUB_TOKEN is present).
+ *
+ * Safe to run any time on a provisioned Architect (healthy or error) — every
+ * script upserts, so re-running never duplicates data. Consumed by the provision
+ * worker for `seed` jobs; progress events are prefixed `seed:`.
+ */
+export async function seedArchitect(slug: string, onEvent: ProvisionEvent): Promise<void> {
+  const architect = await getArchitectBySlug(slug);
+  if (!architect) throw new Error(`Architect "${slug}" not found`);
+  if (architect.status === 'draft') {
+    throw new Error(`Architect "${slug}" is still a draft — provision it before seeding`);
+  }
+
+  const secretsRaw = await revealCredentialByName(`architect:${slug}:env`);
+  let secrets: Record<string, string> = {};
+  try {
+    secrets = secretsRaw ? (JSON.parse(secretsRaw) as Record<string, string>) : {};
+  } catch {
+    throw new Error(`Stored secrets for "${slug}" are malformed`);
+  }
+
+  const { host, sshUser, sshPort } = architect.target;
+  const auth: SshAuth = { privateKey: secrets.SSH_KEY, password: secrets.SSH_PASSWORD };
+  const envPayload = buildEnvPayload(architect.env, secrets, slug, architect.domain);
+
+  const emit = (event: string, data: unknown) => onEvent(`seed:${event}`, { slug, ...(data as object) });
+  const log = (stage: string, label: string, data: unknown = {}) => {
+    emit(stage, data);
+    void appendArchitectProgress(slug, { stage, label }).catch(() => {});
+  };
+
+  // Shell prefix run before each seed script: cd into the app dir, source the box's
+  // .env.prod (exported), then point host-run scripts at the published localhost DB
+  // ports — the same env deploy.sh step 7 builds. Values such as ${MONGO_PASSWORD}
+  // expand on the REMOTE shell (they are single-quoted here), never locally.
+  const env = [
+    'cd /opt/regno',
+    'set -a',
+    '. ./.env.prod',
+    'set +a',
+    'export MONGO_URI="mongodb://regno:${MONGO_PASSWORD}@localhost:27017/regno?authSource=admin"',
+    'export QDRANT_URL="http://localhost:6333"',
+    'export NEO4J_URI="bolt://localhost:7687"',
+    'export NEO4J_USER="neo4j"',
+    'export NEO4J_PASSWORD="${NEO4J_PASSWORD:-changeme}"',
+    'export REDIS_URL="redis://localhost:6379"',
+  ].join(' && ');
+
+  const runSeed = async (stage: string, label: string, script: string) => {
+    log(stage, label);
+    await sshExec({ host, sshUser, sshPort }, auth, `${env} && ${script}`);
+  };
+
+  try {
+    await setArchitectStatus(slug, 'seeding');
+    log('start', `Seeding ${architect.domain} data layer`, { host });
+
+    // 1. (Re)write .env.prod from the vault so the seed scripts use the latest keys.
+    log('env', 'Writing .env.prod (latest stored keys)');
+    await sshExec({ host, sshUser, sshPort }, auth, 'cat > /opt/regno/.env.prod', envPayload);
+
+    // 2. Idempotent seed sequence — no container restart, no downtime.
+    await runSeed('init', 'Bootstrap indexes / Qdrant collections / Neo4j constraints', 'node scripts/init-db.mjs');
+    await runSeed('agents', 'Seeding agents', 'node scripts/seed-agents.mjs');
+    await runSeed('profile', 'Seeding user profile', 'node scripts/seed-profile.mjs');
+    await runSeed('brain', 'Seeding docs corpus (docs/ → knowledge base)', 'node scripts/seed-brain.mjs');
+    await runSeed('history', 'Seeding repo history', 'node scripts/seed-history.mjs');
+    await runSeed(
+      'github',
+      'Seeding GitHub org repos',
+      'if [ -n "$GITHUB_TOKEN" ]; then node scripts/seed-github.mjs; else echo "[seed] no GITHUB_TOKEN — skipping GitHub org"; fi',
+    );
+
+    await setArchitectStatus(slug, 'healthy', { error: null });
+    log('done', 'Seed complete — brain & data refreshed');
+  } catch (err) {
+    const message = (err as Error).message;
+    await setArchitectStatus(slug, 'error', { error: message });
+    emit('error', { error: message });
+    void appendArchitectProgress(slug, { stage: 'error', label: message }).catch(() => {});
+    throw err;
+  }
+}

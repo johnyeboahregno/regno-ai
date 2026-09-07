@@ -7,7 +7,7 @@
 import { Worker, type ConnectionOptions } from 'bullmq';
 import { getRedis } from '@regno/db';
 import { Queues } from '@regno/shared';
-import { provisionArchitect } from '@regno/provision';
+import { provisionArchitect, seedArchitect } from '@regno/provision';
 import type Redis from 'ioredis';
 
 const EVENTS_CHANNEL = 'regno:events';
@@ -22,12 +22,15 @@ export function startProvisionWorker(connection: ConnectionOptions | Redis) {
       const onEvent = (event: string, data: unknown) => {
         void redis.publish(EVENTS_CHANNEL, JSON.stringify({ event, data })).catch(() => {});
       };
-      await provisionArchitect(slug, onEvent, wipe);
+      // 'seed' jobs re-seed the data layer (docs brain etc.) without a redeploy;
+      // everything else on this queue is a full provision/deploy.
+      if (job.name === 'seed') await seedArchitect(slug, onEvent);
+      else await provisionArchitect(slug, onEvent, wipe);
     },
     { connection, concurrency: 2 },
   );
 
-  worker.on('completed', (job) => console.log('[provision] done', job.id));
-  worker.on('failed', (job, err) => console.error('[provision] failed', job?.id, err.message));
+  worker.on('completed', (job) => console.log(`[provision:${job.name}] done`, job.id));
+  worker.on('failed', (job, err) => console.error(`[provision:${job?.name}] failed`, job?.id, err.message));
   return worker;
 }

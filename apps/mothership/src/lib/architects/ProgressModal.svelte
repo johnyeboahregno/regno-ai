@@ -3,6 +3,9 @@
 
   export let slug: string;
   export let jobId: string | undefined = undefined;
+  // Generic verb-based copy so one modal serves provisioning, redeploys and data seeds.
+  export let title = 'Redeploying';
+  export let doneText = 'Deployed successfully.';
 
   const dispatch = createEventDispatcher();
 
@@ -51,9 +54,9 @@
 </script>
 
 <div class="modal-backdrop" on:click={close}>
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Deployment progress" on:click|stopPropagation>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="{title} progress" on:click|stopPropagation>
     <div class="modal-head">
-      <span class="eyebrow blue">Redeploying <span class="mono">{slug}</span></span>
+      <span class="eyebrow blue">{title} <span class="mono">{slug}</span></span>
       <button class="x" on:click={close}>✕</button>
     </div>
     <div class="modal-body">
@@ -75,7 +78,7 @@
         <p class="faint small">Waiting for progress…</p>
       {/if}
       {#if phase === 'error' && statusError}<p class="error small">{statusError}</p>{/if}
-      {#if phase === 'done'}<p class="ok small">Deployed successfully.</p>{/if}
+      {#if phase === 'done'}<p class="ok small">{doneText}</p>{/if}
     </div>
     <div class="modal-foot">
       <button class="btn ghost" on:click={close}>{phase === 'running' ? 'Run in background' : 'Close'}</button>

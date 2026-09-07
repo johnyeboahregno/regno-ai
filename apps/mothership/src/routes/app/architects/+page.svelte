@@ -11,7 +11,7 @@
     domain: string;
     status: string;
     developer: { name: string; email: string; github: string };
-    target: { host: string; sshUser: string; sshPort: number; mode: string; wipe: boolean };
+    target: { host: string; sshUser: string; sshPort: number; mode: string; wipe: boolean; cluster?: string; namespace?: string };
     error: string | null;
     lastSeenAt: string | null;
     online: boolean | null;
@@ -33,6 +33,8 @@
   let deleteConfirmText = '';
   let progressSlug: string | null = null;
   let progressJobId: string | undefined = undefined;
+  let progressTitle = 'Redeploying';
+  let progressDone = 'Deployed successfully.';
   let detailsSlug: string | null = null;
   let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -67,8 +69,13 @@
     message = '';
     const r = await fetch(`/api/architects/${slug}/launch`, { method: 'POST' });
     const d = await r.json();
-    if (d.ok) { progressSlug = slug; progressJobId = d.jobId; load(); }
-    else error = d.error ?? 'Failed to launch';
+    if (d.ok) {
+      progressSlug = slug;
+      progressJobId = d.jobId;
+      progressTitle = 'Redeploying';
+      progressDone = 'Deployed successfully.';
+      load();
+    } else error = d.error ?? 'Failed to launch';
   }
 
   async function redeploy(slug: string) {
@@ -82,8 +89,27 @@
       body: JSON.stringify({ wipe: false }),
     });
     const d = await r.json();
-    if (d.ok) { progressSlug = slug; progressJobId = d.jobId; load(); }
-    else error = d.error ?? 'Failed to redeploy';
+    if (d.ok) {
+      progressSlug = slug;
+      progressJobId = d.jobId;
+      progressTitle = 'Redeploying';
+      progressDone = 'Deployed successfully.';
+      load();
+    } else error = d.error ?? 'Failed to redeploy';
+  }
+
+  async function seed(slug: string) {
+    error = '';
+    message = '';
+    const r = await fetch(`/api/architects/${slug}/seed`, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      progressSlug = slug;
+      progressJobId = d.jobId;
+      progressTitle = 'Seeding';
+      progressDone = 'Seed complete — brain & data refreshed';
+      load();
+    } else error = d.error ?? 'Failed to seed';
   }
 
   async function confirmDelete() {
@@ -176,12 +202,18 @@
             {/if}
           </td>
           <td style="white-space:nowrap;" on:click|stopPropagation>
+            {#if a.target?.mode === 'k3s'}
+              <a class="btn ghost icon-btn" title="Cluster console (kubectl in this Architect's namespace)" aria-label="Cluster console" href="/app/architects/{a.slug}/console"><Icon name="cli" size={16} /></a>
+            {/if}
             {#if a.status === 'draft'}
               <button class="btn ghost icon-btn" title="Launch" aria-label="Launch" on:click={() => relaunch(a.slug)}><Icon name="refresh" size={16} /></button>
-            {:else if a.status === 'error'}
-              <button class="btn ghost icon-btn" style="border-color:var(--danger); color:var(--danger);" title="Redeploy (apps only, no data wipe)" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
-            {:else if a.status !== 'provisioning'}
-              <button class="btn ghost icon-btn" title="Redeploy (apps only, no data wipe)" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
+            {:else if a.status !== 'provisioning' && a.status !== 'seeding'}
+              <button class="btn ghost icon-btn" title="Seed data — re-run init / agents / profile / docs brain / history (no rebuild)" aria-label="Seed data" on:click={() => seed(a.slug)}><Icon name="seed" size={16} /></button>
+              {#if a.status === 'error'}
+                <button class="btn ghost icon-btn" style="border-color:var(--danger); color:var(--danger);" title="Redeploy (apps only, no data wipe)" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
+              {:else}
+                <button class="btn ghost icon-btn" title="Redeploy (apps only, no data wipe)" aria-label="Redeploy" on:click={() => redeploy(a.slug)}><Icon name="refresh" size={16} /></button>
+              {/if}
             {/if}
             <button class="btn ghost icon-btn" title="Delete" aria-label="Delete" on:click={() => { pendingDelete = a.slug; deleteConfirmText = ''; }}><Icon name="trash" size={16} /></button>
           </td>
@@ -202,7 +234,7 @@
 {/if}
 
 {#if progressSlug}
-  <ProgressModal slug={progressSlug} jobId={progressJobId} on:close={() => { progressSlug = null; load(); }} />
+  <ProgressModal slug={progressSlug} jobId={progressJobId} title={progressTitle} doneText={progressDone} on:close={() => { progressSlug = null; load(); }} />
 {/if}
 
 {#if detailsSlug}
