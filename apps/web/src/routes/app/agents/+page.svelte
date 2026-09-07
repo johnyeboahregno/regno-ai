@@ -5,6 +5,9 @@
   interface Sma {
     slug: string; name: string; description: string; focusTags: string[]; technologies: string[]; disciplines: string[]; languages: string[]; createdAt: string | null;
   }
+  interface Builtin {
+    slug: string; name: string; icon: string; description: string; focusTags: string[]; disciplines: string[]; languages: string[];
+  }
 
   let step = 0;
   let editingSlug = '';
@@ -19,6 +22,7 @@
   let error = '';
   let message = '';
   let smas: Sma[] = [];
+  let builtins: Builtin[] = [];
   let deleting = '';
 
   $: editing = !!editingSlug;
@@ -33,7 +37,10 @@
         disciplines = tr.disciplines ?? [];
         languages = tr.languages ?? [];
       }
-      if (sr.ok) smas = sr.smas;
+      if (sr.ok) {
+        smas = sr.smas;
+        builtins = sr.builtins ?? [];
+      }
     } catch {
       /* ignore */
     }
@@ -77,6 +84,34 @@
       } else error = d.error ?? 'Failed';
     } catch {
       error = 'Failed to create SMA';
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function activate(b: Builtin) {
+    busy = true;
+    error = '';
+    message = '';
+    try {
+      const r = await fetch('/api/agents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: b.name,
+          description: b.description,
+          focusTags: b.focusTags,
+          disciplines: b.disciplines,
+          languages: b.languages,
+        }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        message = `Activated "${d.name}" — it's now in your available SMAs.`;
+        load();
+      } else error = d.error ?? 'Failed to activate';
+    } catch {
+      error = 'Failed to activate SMA';
     } finally {
       busy = false;
     }
@@ -169,9 +204,9 @@
 </script>
 
 <div class="page-head">
-  <div class="eyebrow blue">Admin · Subject Matter Experts</div>
-  <h1>Subject Matter Experts (SMA)</h1>
-  <p>One architect, many lenses. An <strong>SMA</strong> is a selectable expert profile for architect jobs — focused on a specific area (e.g. an F1 Race Engineer centered on F1, telemetry and aero). It is <strong>not</strong> a new stack.</p>
+  <div class="eyebrow blue">Admin · Subject Matter Agents</div>
+  <h1>Subject Matter Agents (SMA)</h1>
+  <p>One architect, many lenses. An <strong>SMA</strong> is a selectable agent profile for architect jobs — focused on a specific area (e.g. an F1 Race Engineer centered on F1, telemetry and aero). It is <strong>not</strong> a new stack.</p>
 </div>
 
 {#if message}<p class="ok mb">{message}</p>{/if}
@@ -231,7 +266,24 @@
   </div>
 {/if}
 
-<div class="eyebrow blue mb mt2">Subject Matter Experts</div>
+<div class="eyebrow blue mb mt2">Built-in SMAs</div>
+<p class="muted small mb">Activate a built-in Subject Matter Agent to add it to your available SMAs.</p>
+<div class="grid grid-3">
+  {#each builtins as b}
+    <div class="panel mb" style="padding:16px; display:flex; flex-direction:column; gap:8px;">
+      <div style="font-size:22px;">{b.icon}</div>
+      <div class="eyebrow blue">{b.name}</div>
+      <p class="muted small" style="margin:0;">{b.description}</p>
+      <p class="mono small" style="margin:0;">{b.focusTags?.join(', ') || '—'}</p>
+      <button class="btn ghost" style="margin-top:auto;" on:click={() => activate(b)} disabled={busy}>Activate</button>
+    </div>
+  {/each}
+  {#if builtins.length === 0}
+    <p class="faint">All built-in SMAs are already activated.</p>
+  {/if}
+</div>
+
+<div class="eyebrow blue mb mt2">Subject Matter Agents</div>
 <div class="panel" style="overflow-x:auto;">
   <table>
     <thead><tr><th>Name</th><th>Focus</th><th>Technologies</th><th></th></tr></thead>

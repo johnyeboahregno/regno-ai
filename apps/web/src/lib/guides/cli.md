@@ -21,7 +21,7 @@ Useful shortcuts while typing:
 | --- | --- |
 | `help` / `help <cmd>` | list commands, or show details for one |
 | `ask <prompt…>` | send a prompt to your Regno Architect (aliases: `architect`, `run`) |
-| `agents` | list Subject Matter Experts (alias: `smas`) |
+| `agents` | list Subject Matter Agents (alias: `smas`) |
 | `sma <slug>` | switch the active SMA used by `ask` |
 | `execs [limit]` | list recent executions (alias: `history`) |
 | `health` | report database / queue / SMTP / usage status (alias: `status`) |

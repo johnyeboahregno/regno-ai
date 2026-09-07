@@ -51,7 +51,7 @@
 | 17 | [`17-agent-wizard-spawner.md`](./17-agent-wizard-spawner.md) | Create agents + spawn namespaces |
 | 18 | [`18-architect-brain-model.md`](./18-architect-brain-model.md) | Architect = full stack + own brain + base knowledge |
 | 19 | [`19-cicd.md`](./19-cicd.md) | GitHub Actions → k3s deploy + validation |
-| 20 | [`20-sma-subject-matter-experts.md`](./20-sma-subject-matter-experts.md) | SMA = selectable expert profile for architect jobs |
+| 20 | [`20-sma-subject-matter-agents.md`](./20-sma-subject-matter-agents.md) | SMA = selectable agent profile for architect jobs |
 | 21 | [`21-key-rotation.md`](./21-key-rotation.md) | Rotating/add the AI provider API keys |
 | 30 | [`30-mothership-deploy.md`](./30-mothership-deploy.md) | Deploying the Mothership (control plane) |
 | 31 | [`31-architect-telemetry.md`](./31-architect-telemetry.md) | Architect → Mothership heartbeat telemetry |

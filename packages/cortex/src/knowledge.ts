@@ -29,7 +29,7 @@ export interface SourceDocument {
   title: string;
   content: string;
   domain: string;
-  /** Topic tags — used by Subject Matter Experts to center knowledge on their focus area. */
+  /** Topic tags — used by Subject Matter Agents to center knowledge on their focus area. */
   tags?: string[];
 }
 

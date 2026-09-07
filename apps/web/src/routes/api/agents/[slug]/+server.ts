@@ -1,21 +1,9 @@
-// /api/agents/[slug] — update/delete a Subject Matter Expert (SMA).
+// /api/agents/[slug] — update/delete a Subject Matter Agent (SMA).
 import { json } from '@sveltejs/kit';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { requireSession } from '@regno/auth';
-
-function slugify(name: string): string {
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-
-function parseTags(input: unknown): string[] {
-  const list = Array.isArray(input)
-    ? input
-    : typeof input === 'string' && input.trim()
-      ? input.split(',')
-      : [];
-  return Array.from(new Set(list.map((t) => String(t).trim()).filter(Boolean)));
-}
+import { slugify, parseTags } from '$lib/server/sma.js';
 
 export async function PUT({ params, request, cookies }) {
   const user = await requireSession(cookies);

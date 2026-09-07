@@ -5,7 +5,7 @@
  */
 import { parseArgs } from 'node:util';
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -15,6 +15,7 @@ const ROOT = process.env.REGNO_ROOT ?? process.cwd();
 const AUTH_DIR = join(homedir(), '.regno');
 const AUTH_FILE = join(AUTH_DIR, 'auth.json');
 const HISTORY_FILE = join(AUTH_DIR, 'history.jsonl');
+const STATE_FILE = join(AUTH_DIR, 'state.json');
 // In-memory cap for arrow-key recall inside a session. The history file itself
 // is append-only and never trimmed — every command is kept forever.
 const HISTORY_SIZE = 100_000;
@@ -172,6 +173,119 @@ async function api(path: string, opts: RequestInit = {}) {
   return { status: res.status, json, res };
 }
 
+// ── Active SMA (a client-side selection, just like the web app's localStorage) ──
+// SMAs are chosen per execution via settings.sma; there is no server-side global
+// "active SMA". We keep this CLI's selection in ~/.regno/state.json so `ask`/`run`
+// can send it and `sma create` can auto-switch after creating an SMA from a file.
+interface CliState {
+  activeSma?: string;
+}
+
+function readState(): CliState {
+  try {
+    return JSON.parse(readFileSync(STATE_FILE, 'utf8')) as CliState;
+  } catch {
+    return {};
+  }
+}
+
+function writeState(state: CliState): void {
+  mkdirSync(AUTH_DIR, { recursive: true });
+  writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
+
+function activeSmaSlug(): string {
+  return (readState().activeSma ?? '').trim();
+}
+
+/** Fetch SMAs from the server (slug + name). */
+async function listSmas(): Promise<Array<{ slug: string; name: string }>> {
+  const { status, json } = await api('/api/agents');
+  if (status !== 200) {
+    console.error('failed:', json.error ?? json.raw);
+    return [];
+  }
+  return (json.agents as Array<{ slug: string; name: string }>) ?? [];
+}
+
+/** Persist the CLI's active SMA locally after confirming it exists on the server. */
+async function setActiveSma(slug: string, silent = false): Promise<boolean> {
+  if (!slug.trim()) {
+    if (!silent) console.error('usage: regno sma <slug> — e.g. regno sma security');
+    return false;
+  }
+  const smas = await listSmas();
+  const known = smas.some((a) => a.slug === slug) || slug === 'base';
+  if (!known) {
+    if (!silent) {
+      console.error(`unknown SMA "${slug}" — pick one of: ${['base', ...smas.map((a) => a.slug)].join(', ')}`);
+    }
+    return false;
+  }
+  writeState({ ...readState(), activeSma: slug });
+  const found = smas.find((a) => a.slug === slug);
+  if (!silent) console.log(`active SMA set to ${found ? `${found.slug} (${found.name})` : slug}`);
+  return true;
+}
+
+/** Normalise a path pasted into the terminal (drag-and-drop often adds quotes). */
+function cleanPath(p: string): string {
+  let s = p.trim();
+  if (s.length >= 2 && ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'")))) {
+    s = s.slice(1, -1);
+  }
+  if (s === '~') return homedir();
+  if (s.startsWith('~/') || s.startsWith('~\\')) return join(homedir(), s.slice(2));
+  return s;
+}
+
+/** True when the argument is an existing file (i.e. a dropped prompt file). */
+function isExistingFile(p: string): boolean {
+  const cleaned = cleanPath(p);
+  if (!cleaned) return false;
+  try {
+    return existsSync(cleaned) && statSync(cleaned).isFile();
+  } catch {
+    return false;
+  }
+}
+
+/** Read a prompt file and ask the server to create (then activate) an SMA from it. */
+async function createSmaFromFile(file: string): Promise<void> {
+  const p = cleanPath(file);
+  if (!p) {
+    console.error('usage: regno <sma|agents> create --file <path-to-prompt-file>');
+    console.error('or drop a prompt file path directly: regno sma <path-to-file>');
+    return;
+  }
+  if (!existsSync(p)) {
+    console.error(`file not found: ${p}`);
+    return;
+  }
+  const prompt = readFileSync(p, 'utf8');
+  if (!prompt.trim()) {
+    console.error(`file is empty: ${p}`);
+    return;
+  }
+  console.log(`creating SMA from ${p} (${prompt.length} chars)…`);
+  const { status, json } = await api('/api/agents', {
+    method: 'POST',
+    body: JSON.stringify({ prompt, source: 'cli' }),
+  });
+  if (status !== 200) {
+    console.error('create failed:', json.error ?? json.raw);
+    return;
+  }
+  const slug = String(json.slug ?? '');
+  const name = String(json.name ?? slug);
+  console.log(`SMA created: ${name} (${slug})`);
+  if (await setActiveSma(slug, true)) {
+    console.log(`switched active SMA → ${slug}`);
+  } else {
+    console.log(`created ${slug} — run \`regno sma ${slug}\` to make it the active SMA`);
+  }
+}
+
 function help(): void {
   console.log(`regno — Regno Architect Me CLI
 
@@ -199,9 +313,12 @@ Commands:
   pattern add --name --description    Store a CORTEX pattern (three-store sync)
   developer add --slug --name         Register a developer flavour identity
   persona create --slug --name       Create a persona (base + developer flavour)
-  agents                              List Subject Matter Experts (SMAs)
+  agents                              List Subject Matter Agents (SMAs)
+  agents create --file <path>         Create an SMA from a prompt file (alias)
   execs                               List recent executions
-  sma                                 View or switch the active SMA
+  sma [slug]                          View or switch the active SMA (stored locally)
+  sma create --file <path>            Create an SMA from a prompt file (LLM-derived)
+  sma <file>                          Create an SMA by dropping a prompt file path
   health                              Report system, database and usage status
   theme                               View or switch the UI theme
   whoami                              Print current session identity
@@ -247,6 +364,7 @@ async function runCli(args: string[]): Promise<void> {
       'rate-limit-ms': { type: 'string' },
       phases: { type: 'string' },
       'seed-id': { type: 'string' },
+      file: { type: 'string' },
       'no-llm': { type: 'boolean' },
       'no-assets': { type: 'boolean' },
       help: { type: 'boolean', short: 'h' },
@@ -293,9 +411,12 @@ async function runCli(args: string[]): Promise<void> {
         return;
       }
       const depth = values.depth ?? 'quick';
+      const sma = activeSmaSlug();
+      const settings: Record<string, unknown> = { analysisDepth: depth };
+      if (sma && sma !== 'base') settings.sma = sma;
       const { status, json } = await api('/api/executions', {
         method: 'POST',
-        body: JSON.stringify({ prompt, settings: { analysisDepth: depth } }),
+        body: JSON.stringify({ prompt, settings }),
       });
       if (status !== 200) {
         console.error('run failed:', json.error ?? json.raw);
@@ -610,44 +731,51 @@ async function runCli(args: string[]): Promise<void> {
     }
 
     case 'agents': {
-      const { status, json } = await api('/api/agents');
-      if (status !== 200) {
-        console.error('failed:', json.error ?? json.raw);
+      if (sub === 'create') {
+        const file = String(values.file ?? '').trim() || String(positionals[2] ?? '').trim();
+        await createSmaFromFile(file);
         return;
       }
-      const agents = (json.agents as Array<{ slug: string; name: string }>) ?? [];
-      if (!agents.length) {
+      if (sub && isExistingFile(sub)) {
+        // Dropped a prompt file directly: `regno agents <path-to-file>`.
+        await createSmaFromFile(sub);
+        return;
+      }
+      const smas = await listSmas();
+      if (!smas.length) {
         console.log('(no agents registered)');
         return;
       }
-      for (const a of agents) console.log(`${a.slug}\t${a.name}`);
+      for (const a of smas) console.log(`${a.slug}\t${a.name}`);
       return;
     }
 
     case 'sma': {
-      if (sub === 'switch' || sub) {
-        // Switch SMA
-        const target = sub ?? '';
-        const { status, json } = await api('/api/sma/switch', {
-          method: 'POST',
-          body: JSON.stringify({ slug: target }),
-        });
-        if (status !== 200) {
-          console.error('switch failed:', json.error ?? json.raw);
-          return;
-        }
-        const current = json.current as { slug: string; name: string };
-        console.log(`switched to ${current.slug} (${current.name})`);
+      if (sub === 'create') {
+        const file = String(values.file ?? '').trim() || String(positionals[2] ?? '').trim();
+        await createSmaFromFile(file);
         return;
       }
-      // View current SMA
-      const { status, json } = await api('/api/sma');
-      if (status !== 200) {
-        console.error('failed:', json.error ?? json.raw);
+      if (sub === 'switch') {
+        // `regno sma switch <slug>` — explicit form.
+        await setActiveSma(String(positionals[2] ?? '').trim());
         return;
       }
-      const current = json.current as { slug: string; name: string };
-      console.log(`active SMA: ${current.slug} (${current.name})`);
+      if (sub && isExistingFile(sub)) {
+        // Dropped a prompt file directly: `regno sma <path-to-file>`.
+        await createSmaFromFile(sub);
+        return;
+      }
+      if (sub) {
+        // `regno sma <slug>` — switch the active SMA (stored locally).
+        await setActiveSma(sub);
+        return;
+      }
+      // View the active SMA.
+      const slug = activeSmaSlug() || 'base';
+      const smas = await listSmas();
+      const found = smas.find((a) => a.slug === slug);
+      console.log(`active SMA: ${found ? `${found.slug} (${found.name})` : slug}`);
       return;
     }
 
@@ -717,9 +845,12 @@ async function runCli(args: string[]): Promise<void> {
         return;
       }
       const depth = values.depth ?? 'quick';
+      const sma = activeSmaSlug();
+      const settings: Record<string, unknown> = { analysisDepth: depth };
+      if (sma && sma !== 'base') settings.sma = sma;
       const { status, json } = await api('/api/executions', {
         method: 'POST',
-        body: JSON.stringify({ prompt, settings: { analysisDepth: depth } }),
+        body: JSON.stringify({ prompt, settings }),
       });
       if (status !== 200) {
         console.error('ask failed:', json.error ?? json.raw);

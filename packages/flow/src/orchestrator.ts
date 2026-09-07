@@ -52,7 +52,7 @@ export async function runExecution(
   const tools = buildTools(repoRoot, agent.capabilities?.tools ?? []);
   const toolHelp = tools.map((t) => `${t.name}: ${t.description}`).join('\n');
 
-  // 3.4. Subject Matter Expert — the lens for this job (focus area + knowledge centering).
+  // 3.4. Subject Matter Agent — the lens for this job (focus area + knowledge centering).
   const sma = await loadSma(settings.sma);
   if (sma) emit('v2_sma', { sma: sma.slug, focusTags: sma.focusTags ?? [] });
 

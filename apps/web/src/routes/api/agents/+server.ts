@@ -1,23 +1,17 @@
-// /api/agents — list + create Subject Matter Experts (SMA).
-// An SMA is a selectable expert profile for architect jobs — NOT a new stack/namespace.
+// /api/agents — list + create Subject Matter Agents (SMA).
+// An SMA is a selectable agent profile for architect jobs — NOT a new stack/namespace.
 // The single architect is the whole application; an SMA just changes the lens/focus of a job.
+//
+// POST accepts either:
+//   { name, description?, focusTags?, disciplines?, languages?, technologies?, developer? }
+//   — the classic structured form (used by the /app/agents admin UI + built-in activation), OR
+//   { prompt } — a freeform brief (e.g. a prompt file dumped into the CLI via
+//   `regno sma create --file <path>`); the LLM derives the structured profile.
 import { json } from '@sveltejs/kit';
 import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { requireSession } from '@regno/auth';
-
-function slugify(name: string): string {
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-
-function parseTags(input: unknown): string[] {
-  const list = Array.isArray(input)
-    ? input
-    : typeof input === 'string' && input.trim()
-      ? input.split(',')
-      : [];
-  return Array.from(new Set(list.map((t) => String(t).trim()).filter(Boolean)));
-}
+import { slugify, upsertSma, normalizeSma, inferSmaFromPrompt, BUILTIN_SMAS } from '$lib/server/sma.js';
 
 export async function GET({ cookies }) {
   const user = await requireSession(cookies);
@@ -49,7 +43,10 @@ export async function GET({ cookies }) {
       createdAt: null,
     });
   }
-  return json({ ok: true, smas });
+  // Built-in SMA templates the user hasn't activated yet (activating = POST).
+  const activated = new Set(smas.map((s) => s.slug));
+  const builtins = BUILTIN_SMAS.filter((b) => !activated.has(b.slug));
+  return json({ ok: true, smas, builtins });
 }
 
 export async function POST({ request, cookies }) {
@@ -65,43 +62,47 @@ export async function POST({ request, cookies }) {
     languages?: string[];
     technologies?: string[];
     developer?: string;
+    prompt?: string;
   };
+
+  const db = await getDb();
+
+  // Freeform prompt → LLM-derive the profile (used by `regno sma create --file`).
+  const prompt = String(body.prompt ?? '').trim();
+  if (prompt && !String(body.name ?? '').trim()) {
+    let inferred: Awaited<ReturnType<typeof inferSmaFromPrompt>>;
+    try {
+      inferred = await inferSmaFromPrompt(prompt);
+    } catch (err) {
+      console.error('[api/agents] prompt → SMA inference failed:', (err as Error).message);
+      const msg = (err as Error).message ?? 'unknown error';
+      // "no API keys configured" surfaces from @regno/ai chatWithFallback.
+      const status = /API keys|key/i.test(msg) ? 503 : 422;
+      return json({ ok: false, error: `Could not create SMA from prompt: ${msg}` }, { status });
+    }
+    const name = inferred.name;
+    const slug = slugify(name);
+    if (!slug) return json({ ok: false, error: 'LLM did not produce a usable name' }, { status: 422 });
+    if (slug === 'base') return json({ ok: false, error: 'SMA name cannot resolve to base' }, { status: 422 });
+    const created = await upsertSma(db, {
+      name,
+      description: inferred.description,
+      focusTags: inferred.focusTags,
+      disciplines: inferred.disciplines,
+      languages: inferred.languages,
+      technologies: [...inferred.disciplines, ...inferred.languages],
+      developer: 'base',
+    });
+    return json({ ok: true, slug: created.slug, name: created.name, inferred: true });
+  }
+
+  // Classic structured create (upsert semantics preserved).
   const name = String(body.name ?? '').trim();
   if (!name) return json({ ok: false, error: 'name is required' }, { status: 400 });
   const slug = slugify(name);
   if (!slug) return json({ ok: false, error: 'name must contain letters/numbers' }, { status: 400 });
 
-  const focusTags = parseTags(body.focusTags);
-  const disciplines = Array.isArray(body.disciplines) ? body.disciplines.map(String) : [];
-  const languages = Array.isArray(body.languages) ? body.languages.map(String) : [];
-  const technologies = Array.from(
-    new Set([
-      ...(Array.isArray(body.technologies) ? body.technologies.map(String) : []),
-      ...disciplines,
-      ...languages,
-    ]),
-  );
-  const developer = String(body.developer ?? 'base').trim() || 'base';
-
-  const db = await getDb();
-  const now = new Date();
-  await db.collection(Collections.SMAS).updateOne(
-    { slug },
-    {
-      $set: {
-        slug,
-        name,
-        description: String(body.description ?? '').trim(),
-        focusTags,
-        disciplines,
-        languages,
-        technologies,
-        developer,
-        updatedAt: now,
-      },
-      $setOnInsert: { createdAt: now },
-    },
-    { upsert: true },
-  );
+  const def = normalizeSma(body);
+  await upsertSma(db, def);
   return json({ ok: true, slug, name });
 }

@@ -272,7 +272,7 @@
     },
     agents: {
       usage: '',
-      desc: 'list Subject Matter Experts (SMAs)',
+      desc: 'list Subject Matter Agents (SMAs)',
       detail: 'List the available SMAs — expert lenses for architect jobs.\n\n  agents\n\nAliases: smas.',
       async run() {
         try {
@@ -283,7 +283,7 @@
             return;
           }
           smas = d.smas;
-          push('info', `Subject Matter Experts (${smas.length}):`);
+          push('info', `Subject Matter Agents (${smas.length}):`);
           for (const s of smas) {
             const active = s.slug === sma;
             push(active ? 'ok' : 'info', `  ${s.slug.padEnd(16)} ${s.name}${active ? '  ◄ active' : ''}`);

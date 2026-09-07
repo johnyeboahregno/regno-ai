@@ -8,8 +8,8 @@ The per-developer **cloning** model. Terminology clarified (2026-08-30):
 
 - **Architect** = the whole application. Making another architect = deploy a whole new copy of
   this repo (see [`15-per-developer-cloning.md`](./15-per-developer-cloning.md)).
-- **SMA (Subject Matter Expert)** = a selectable expert profile for architect jobs, centered on
-  a focus area. See [`20-sma-subject-matter-experts.md`](./20-sma-subject-matter-experts.md).
+- **SMA (Subject Matter Agent)** = a selectable expert profile for architect jobs, centered on
+  a focus area. See [`20-sma-subject-matter-agents.md`](./20-sma-subject-matter-agents.md).
 - **Persona** = the old name for a developer-flavour profile; it is now the `developer` field
   on an SMA (style overlay), not a separate concept.
 

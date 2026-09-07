@@ -7,7 +7,7 @@ import { getDb } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { keywordSearch } from '@regno/cortex';
 
-/** A Subject Matter Expert — a selectable profile for architect jobs. */
+/** A Subject Matter Agent — a selectable profile for architect jobs. */
 export interface SmaProfile {
   slug: string;
   name: string;
@@ -60,15 +60,15 @@ export async function buildContext(needs: string[], opts: BuildContextOptions = 
     blocks.push(`## BASE STANDARDS (non-negotiable — follow these always)\n${text}`);
   }
 
-  // Subject Matter Expert — the lens for this job (focus area + knowledge centering).
+  // Subject Matter Agent — the lens for this job (focus area + knowledge centering).
   if (sma) {
     const focus = (sma.focusTags ?? []).filter(Boolean);
-    let text = `You are acting as the Subject Matter Expert **${sma.name}**.`;
+    let text = `You are acting as the Subject Matter Agent **${sma.name}**.`;
     if (sma.description) text += `\n\n${sma.description}`;
     if (focus.length) {
       text += `\n\nFocus areas: ${focus.map((t) => `\`${t}\``).join(', ')}. Center your reasoning and knowledge on these areas, while remaining free to draw on all available knowledge when needed.`;
     }
-    blocks.push(`## SUBJECT MATTER EXPERT\n${text}`);
+    blocks.push(`## SUBJECT MATTER AGENT\n${text}`);
   }
 
   // Developer flavour — learned from their code, filtered by developer.

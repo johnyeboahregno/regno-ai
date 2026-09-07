@@ -21,7 +21,7 @@ export const Collections = {
   PERSONAS: 'personas',
   ARTIFACTS: 'artifacts',
   AGENTS: 'agents',
-  // Subject Matter Experts — selectable expert profiles for architect jobs. Same store as the
+  // Subject Matter Agents — selectable agent profiles for architect jobs. Same store as the
   // former "architect agents"; the concept was corrected from "stack-per-agent" to "expert lens".
   SMAS: 'agents',
   CORTEX: 'cortex',

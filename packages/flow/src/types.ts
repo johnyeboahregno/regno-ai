@@ -37,7 +37,7 @@ export interface ExecutionSettings {
   analysisDepth?: AnalysisDepth;
   forceAgent?: string;
   developer?: string;
-  /** Subject Matter Expert (SMA) slug — centers this job's knowledge on the SMA's focus area. */
+  /** Subject Matter Agent (SMA) slug — centers this job's knowledge on the SMA's focus area. */
   sma?: string;
   provider?: 'openai' | 'anthropic' | 'google' | 'deepseek';
   /** Inferred LLM routing context used when resolving provider preferences. */

@@ -4,7 +4,7 @@
 
 ## What an SMA is
 
-> **Subject Matter Expert (SMA)** — a selectable expert profile for architect jobs, centered on
+> **Subject Matter Agent (SMA)** — a selectable agent profile for architect jobs, centered on
 > a focus area (e.g. an F1 Race Engineer centered on F1, telemetry and aero). Knowledge is shared
 > across all jobs, but an SMA *centers* its knowledge on its focus tags. An SMA is **not** a new
 > stack — there is exactly **one** architect (this application).

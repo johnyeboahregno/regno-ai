@@ -3,6 +3,47 @@
 > Documentation is the point of this system. Every change below is recorded so the build is
 > reproducible and reviewable. (See `VISION.md` for the north star.)
 
+## 2026-09-07 — Built-in SMAs + drop-a-file + "Subject Matter Agent" terminology
+
+- **Built-in SMAs**: `/app/agents` now shows ~12 predefined Subject Matter Agents (F1 Race
+  Engineer, Cloud Security Architect, Data Engineer, ML Engineer, DevOps, Frontend, Backend,
+  Embedded, Robotics, Mobile, Rust, Go). Hitting **Activate** copies the template into the
+  `agents` store so it appears in the available-SMA list. Templates live in
+  `apps/web/src/lib/server/sma.ts` (`BUILTIN_SMAS`); `GET /api/agents` now returns `smas` plus
+  `builtins` (the not-yet-activated ones).
+- **CLI drop-a-file**: `regno sma <path>` and `regno agents <path>` now detect a dropped prompt
+  file path directly (surrounding quotes / `~` / backslashes are normalised) and create the SMA
+  from it — no `create` subcommand needed. `regno sma create --file <path>` still works.
+- **Terminology**: SMA = **Subject Matter Agent** (was "Subject Matter Expert") corrected across
+  code, UI and docs; `docs/engineering/20-sma-subject-matter-experts.md` renamed to
+  `20-sma-subject-matter-agents.md`.
+
+## 2026-09-07 — CLI: create an SMA from a prompt file
+
+The standalone `regno` CLI can now turn a freeform **prompt file** into a Subject Matter Agent
+(SMA) without touching the admin UI:
+
+```bash
+regno sma create --file f1-race-engineer.md
+regno agents create --file f1-race-engineer.md   # alias
+regno sma create ./f1-race-engineer.md            # positional path works too
+```
+
+- **Server** (`apps/web`): `POST /api/agents` now accepts `{ prompt }` (alongside the classic
+  structured form). The server LLM-derives the profile via `chatWithFallback` —
+  name, description, focus tags, and disciplines/languages constrained to the known catalog —
+  then upserts it (owner-only). New shared helper `apps/web/src/lib/server/sma.ts` hosts the
+  technology catalog (`slugify`/`parseTags`/`upsertSma`/`inferSmaFromPrompt`); `/api/technologies`
+  and `/api/agents/[slug]` now import from it (DRY).
+- **CLI** (`packages/cli`): added `sma create` / `agents create --file`, which reads the file,
+  creates the SMA, then **auto-switches** the active SMA. The platform keeps the active SMA as a
+  client-side, per-execution selection (`settings.sma`, mirroring the web app's `localStorage`),
+  so the CLI now stores its active SMA in `~/.regno/state.json`; `regno sma [slug]` views/switches
+  it locally, and `regno ask`/`run` attach `settings.sma` automatically. (This replaces the CLI's
+  previous calls to the nonexistent `/api/sma` + `/api/sma/switch` endpoints.)
+- Guides: `docs/engineering/20-sma-subject-matter-agents.md` + new User Guide
+  `apps/web/src/lib/guides/cli-create-sma.md`.
+
 ## 2026-08-31 — Fix `/app` SSR crash (`window` in `onDestroy`)
 
 Every `/app/*` page returned HTTP 500 with `ReferenceError: window is not defined` in the shared
@@ -129,7 +170,7 @@ refreshers can find it:
 - Build verified: `npm run check -w @regno/web` = 0 errors; production build bundles
   `pages/app/guides/_page.svelte.js`.
 
-## 2026-08-30 — SMA: "Architects" corrected to Subject Matter Experts
+## 2026-08-30 — SMA: "Architects" corrected to Subject Matter Agents
 
 Correcting the "Regno Architects" concept: there is **one** architect (the whole app), and what
 was a per-"architect" k3s namespace spawner is now **SMA** — a selectable expert profile.
@@ -143,7 +184,7 @@ was a per-"architect" k3s namespace spawner is now **SMA** — a selectable expe
 - **Flow** — `ExecutionSettings.sma`; `buildContext` injects the SMA (description + focus areas)
   and centers `knowledgeFacts` retrieval on the focus tags; `loadSma()` loads the profile.
 - **Chat** — the "Persona" selector is now an **SMA** selector (developer flavour is an SMA field).
-- Docs: new `docs/engineering/20-sma-subject-matter-experts.md`; corrected 13/17/18/19 + VISION.
+- Docs: new `docs/engineering/20-sma-subject-matter-agents.md`; corrected 13/17/18/19 + VISION.
 
 ## 2026-08-30 — Recall & Serve, Phase C: observability (served vs LLM-call counters)
 

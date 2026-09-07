@@ -76,6 +76,8 @@ catalog in `apps/web/src/lib/server/sma.ts`) and upserts the SMA.
 regno sma create --file f1-race-engineer.md    # LLM-derived profile
 regno agents create --file f1-race-engineer.md # alias
 regno sma create ./f1-race-engineer.md         # positional path also works
+regno sma ./f1-race-engineer.md                # drop the file path directly
+regno agents ./f1-race-engineer.md             # same, via the alias
 ```
 
 On success the CLI prints the new `slug` and **auto-switches** the active SMA.

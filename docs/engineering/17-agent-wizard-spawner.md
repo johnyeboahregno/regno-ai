@@ -3,7 +3,7 @@
 > Status: retired · Last updated: 2026-09-02
 
 The former namespace spawner created k3s environments from the `/app/agents` surface. It has
-been removed. `/app/agents` now manages Subject Matter Expert profiles, not infrastructure.
+been removed. `/app/agents` now manages Subject Matter Agent profiles, not infrastructure.
 
 ## Current path
 

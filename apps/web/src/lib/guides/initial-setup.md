@@ -62,7 +62,7 @@ npm run db:init && npm run db:seed
 
 Your learned style is a **developer flavour** — a style overlay that emulates your code but
 **never** overrides base standards. In the SMA model, the flavour lives on a **Subject Matter
-Expert** profile (see `docs/engineering/20-sma-subject-matter-experts.md`):
+Agent** profile (see `docs/engineering/20-sma-subject-matter-agents.md`):
 
 1. In **System → SMA** (`/app/agents`), create an SMA (e.g. "F1 Race Engineer").
 2. Give it **focus tags** (e.g. `F1`, `telemetry`, `aerodynamics`) — retrieval **boosts** docs
@@ -70,7 +70,7 @@ Expert** profile (see `docs/engineering/20-sma-subject-matter-experts.md`):
 3. Optionally set a **developer** on the SMA (your learned flavour) plus **disciplines /
    languages** (injects the matching best-practice standards).
 4. In `/app/chat`, select the SMA for a job — a `v2_sma` event fires and the context includes a
-   "Subject Matter Expert" + focused-knowledge block.
+   "Subject Matter Agent" + focused-knowledge block.
 
 To ingest your code as a developer flavour:
 
@@ -135,4 +135,4 @@ auto-writes an insight memory the *next* run reads back.
 | Recall & Serve decision layer | `packages/cortex/src/recall.ts` |
 | Code ingestion | `scripts/seed-history.mjs`, `scripts/seed-github.mjs` |
 | SMA profiles (focus + flavour) | `/app/agents` + `/api/agents` |
-| Subject Matter Expert model | `docs/engineering/20-sma-subject-matter-experts.md` |
+| Subject Matter Agent model | `docs/engineering/20-sma-subject-matter-agents.md` |
