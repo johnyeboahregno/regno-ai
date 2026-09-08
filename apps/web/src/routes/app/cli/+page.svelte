@@ -43,6 +43,7 @@
   let smas: Array<{ slug: string; name: string; developer?: string }> = [
     { slug: 'base', name: 'Base Regno Architect', developer: 'base' },
   ];
+  $: activeSmaName = smas.find((s) => s.slug === sma)?.name ?? sma;
 
   const local = (data.user.email.split('@')[0] || 'you').toLowerCase();
   const promptText = `${local}@regno:~$`;
@@ -316,6 +317,49 @@
     scrollToBottom();
   }
 
+  // ---- tiny quote-aware arg parsing (used by the `ingest` command) --------
+  function splitArgs(line: string): string[] {
+    const tokens: string[] = [];
+    let cur = '';
+    let quote: '"' | "'" | null = null;
+    for (const ch of line) {
+      if (quote) {
+        if (ch === quote) quote = null;
+        else cur += ch;
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        quote = ch;
+        continue;
+      }
+      if (/\s/.test(ch)) {
+        if (cur) { tokens.push(cur); cur = ''; }
+        continue;
+      }
+      cur += ch;
+    }
+    if (cur) tokens.push(cur);
+    return tokens;
+  }
+
+  function parseFlags(tokens: string[]): Record<string, string | boolean> {
+    const flags: Record<string, string | boolean> = {};
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t.startsWith('--')) {
+        const key = t.slice(2);
+        const next = tokens[i + 1];
+        if (next !== undefined && !next.startsWith('--')) {
+          flags[key] = next;
+          i++;
+        } else {
+          flags[key] = true;
+        }
+      }
+    }
+    return flags;
+  }
+
   // ---- command registry ----------------------------------------------------
   interface Cmd {
     usage: string;
@@ -349,7 +393,10 @@
         push('info', 'Available commands:');
         const names = Object.keys(commands).sort();
         for (const n of names) {
-          push('cmd', `  ${n.padEnd(12)} ${commands[n].desc}`);
+          const c = commands[n];
+          const usage = (c.usage ?? '').trim();
+          push('cmd', `  ${n}${usage ? ' ' + usage : ''}`);
+          push('muted', `      ${c.desc}`);
         }
         push('muted', '');
         push('muted', 'Tips:  ↑/↓ recall history   ·   Tab autocomplete   ·   Ctrl+L clear   ·   "help <cmd>" for details   ·   drop a prompt file to create an SMA');
@@ -497,6 +544,87 @@ Aliases: smas. You can also drop a prompt file onto the terminal to create an SM
           }
         } catch {
           push('err', 'cannot reach the server');
+        }
+      },
+    },
+    ingest: {
+      usage: '--url <url> [--description <desc>] [--max-pages <n>] [--depth <n>] [--no-llm] [--no-assets]',
+      desc: 'crawl & ingest a website into CORTEX',
+      detail:
+        'Crawl a website and ingest it into the CORTEX brain (knowledge, facts, entities, vectors).\n\n  ingest --url https://example.com --description "What the site is"\n\nOptions: --name, --domain, --max-pages <n>, --depth <n>, --no-llm, --no-assets.\n\nThis fires the same ingestion pipeline as `regno ingest` / `npm run db:ingest-site`.',
+      async run(args, raw) {
+        const rest = raw.includes(' ') ? raw.slice(raw.indexOf(' ') + 1).trim() : '';
+        const flags = parseFlags(splitArgs(rest));
+        const url = String(flags.url ?? '').trim();
+        if (!url) {
+          push('err', 'usage: ingest --url <url> [--description <desc>] [--max-pages <n>] [--depth <n>] [--no-llm] [--no-assets]');
+          return;
+        }
+        if (busy) {
+          push('err', 'a job is already running — wait for it to finish');
+          return;
+        }
+        busy = true;
+        push('info', `» starting ingestion of ${url}…`);
+        try {
+          const r = await fetch('/api/knowledge/ingest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url,
+              description: flags.description ? String(flags.description) : undefined,
+              name: flags.name ? String(flags.name) : undefined,
+              domain: flags.domain ? String(flags.domain) : undefined,
+              maxPages: flags['max-pages'] ? Number(flags['max-pages']) : undefined,
+              depth: flags.depth ? Number(flags.depth) : undefined,
+              llm: flags['no-llm'] ? false : undefined,
+              assets: flags['no-assets'] ? false : undefined,
+            }),
+          });
+          const d = await r.json();
+          if (!d.ok) {
+            push('err', 'ingest rejected: ' + (d.error ?? 'unknown error'));
+            return;
+          }
+          const seedId = d.seedId as string;
+          push('info', `» seed ${seedId} started — polling for progress…`);
+          let status: {
+            status?: string;
+            phase?: string;
+            progress?: number;
+            documentsIngested?: number;
+            facts?: number;
+            entities?: number;
+            vectors?: number;
+            grade?: string;
+            error?: string;
+            url?: string;
+          } | null = null;
+          let lastPhase = '';
+          for (let i = 0; i < 180; i++) {
+            await new Promise((res) => setTimeout(res, 2000));
+            const rr = await fetch(`/api/knowledge/ingest/${seedId}`);
+            const rd = await rr.json();
+            if (rd.ok && rd.status) status = rd.status;
+            if (status && (status.status === 'done' || status.status === 'failed')) break;
+            if (status && status.phase && status.phase !== lastPhase) {
+              lastPhase = status.phase;
+              const pct = Math.round((status.progress ?? 0) * 100);
+              push('muted', `  ${status.phase} ${pct}% · ${status.documentsIngested ?? 0} docs · ${status.facts ?? 0} facts`);
+            }
+          }
+          if (status?.status === 'done') {
+            push('ok', `✔ ingested ${status.url ?? url}`);
+            push('info', `  ${status.documentsIngested ?? 0} docs · ${status.facts ?? 0} facts · ${status.entities ?? 0} entities · ${status.vectors ?? 0} vectors${status.grade ? ` · grade ${status.grade}` : ''}`);
+          } else if (status?.status === 'failed') {
+            push('err', '✖ ingestion failed: ' + (status.error || 'unknown error'));
+          } else {
+            push('err', '✖ ingestion is still running — check the CORTEX page for the latest status');
+          }
+        } catch {
+          push('err', 'cannot reach the server');
+        } finally {
+          busy = false;
         }
       },
     },
@@ -842,6 +970,11 @@ You can also drop a prompt file onto the terminal.`,
         </div>
       {/each}
     </div>
+    <div class="sma-footer">
+      <div class="rail-kicker">Active SMA</div>
+      <div class="sma-value">{activeSmaName}</div>
+      <div class="sma-slug">{sma}</div>
+    </div>
   </aside>
 
   <div class="crt" aria-hidden="true"></div>
@@ -1004,6 +1137,25 @@ You can also drop a prompt file onto the terminal.`,
   .delete-session:hover {
     border-color: var(--danger);
     color: var(--danger);
+  }
+
+  .sma-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .sma-value {
+    margin-top: 3px;
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .sma-slug {
+    margin-top: 2px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--signal);
   }
 
   /* scanlines + subtle vignette flicker (theme-neutral CRT effect) */
