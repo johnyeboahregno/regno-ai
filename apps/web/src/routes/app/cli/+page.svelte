@@ -33,6 +33,7 @@
   let nextId = 1;
   let sessions: CliSession[] = [];
   let activeSessionId = '';
+  let dragOver = false;
 
   let out: HTMLDivElement;
   let inputEl: HTMLInputElement;
@@ -165,6 +166,156 @@
     return d.toISOString().slice(0, 16).replace('T', ' ');
   }
 
+  // ---- SMA create / built-ins (mirrors the standalone `regno` CLI) --------
+  function readFileText(file: File): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ''));
+      reader.onerror = () => resolve('');
+      reader.readAsText(file);
+    });
+  }
+
+  /** Refresh the cached SMA list from the server (best-effort). */
+  async function refreshSmas(): Promise<void> {
+    try {
+      const r = await fetch('/api/agents');
+      const d = await r.json();
+      if (d.ok && Array.isArray(d.smas)) smas = d.smas;
+    } catch {
+      /* offline — keep the local list */
+    }
+  }
+
+  /** Create an SMA from freeform prompt text (inline command or a dropped file). */
+  async function createSmaFromPrompt(promptTextArg: string, sourceName = ''): Promise<void> {
+    const prompt = (promptTextArg ?? '').trim();
+    if (!prompt) {
+      push('err', 'nothing to create from — provide a prompt or drop a file.');
+      return;
+    }
+    if (busy) {
+      push('err', 'a job is already running — wait for it to finish');
+      return;
+    }
+    busy = true;
+    push('info', sourceName ? `» creating SMA from ${sourceName}…` : '» creating SMA from prompt…');
+    try {
+      const r = await fetch('/api/agents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, source: 'cli' }),
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        push('err', 'create failed: ' + (d.error ?? 'unknown error'));
+        return;
+      }
+      const slug = d.slug as string;
+      const name = (d.name ?? slug) as string;
+      push('ok', `SMA created: ${name} (${slug})`);
+      await refreshSmas();
+      sma = slug;
+      localStorage.setItem('regno.cli.sma', sma);
+      push('ok', `switched active SMA → ${slug}`);
+    } catch {
+      push('err', 'cannot reach the server');
+    } finally {
+      busy = false;
+    }
+  }
+
+  /** List built-in SMA templates available to activate. */
+  async function listBuiltins(): Promise<void> {
+    try {
+      const r = await fetch('/api/agents');
+      const d = await r.json();
+      const builtins: Array<{ slug: string; name: string; icon?: string }> = d.builtins ?? [];
+      if (!builtins.length) {
+        push('muted', 'all built-in SMAs are already activated.');
+        return;
+      }
+      push('info', `Built-in SMAs (${builtins.length}) — activate with "agents activate <slug>":`);
+      for (const b of builtins) {
+        push('info', `  ${b.slug.padEnd(24)} ${b.name}`);
+      }
+    } catch {
+      push('err', 'cannot reach the server');
+    }
+  }
+
+  /** Activate a built-in SMA template (copies it into the available list). */
+  async function activateBuiltin(slug: string): Promise<void> {
+    if (!slug) {
+      push('err', 'usage: agents activate <slug>');
+      return;
+    }
+    if (busy) {
+      push('err', 'a job is already running — wait for it to finish');
+      return;
+    }
+    busy = true;
+    try {
+      const r = await fetch('/api/agents');
+      const d = await r.json();
+      const builtin = (d.builtins ?? []).find((b: { slug: string }) => b.slug === slug);
+      if (!builtin) {
+        push('err', `unknown built-in SMA: ${slug} — run "agents builtins" to list them`);
+        return;
+      }
+      const c = await fetch('/api/agents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: builtin.name,
+          description: builtin.description,
+          focusTags: builtin.focusTags,
+          disciplines: builtin.disciplines,
+          languages: builtin.languages,
+        }),
+      });
+      const cd = await c.json();
+      if (!cd.ok) {
+        push('err', 'activate failed: ' + (cd.error ?? 'unknown error'));
+        return;
+      }
+      push('ok', `activated ${cd.name} (${cd.slug})`);
+      await refreshSmas();
+    } catch {
+      push('err', 'cannot reach the server');
+    } finally {
+      busy = false;
+    }
+  }
+
+  // ---- drag & drop (drop a prompt file to create an SMA) -------------------
+  function onDragOver(e: DragEvent) {
+    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
+      e.preventDefault();
+      dragOver = true;
+    }
+  }
+  function onDragLeave(e: DragEvent) {
+    if (e.relatedTarget == null) dragOver = false;
+  }
+  async function onDrop(e: DragEvent) {
+    e.preventDefault();
+    dragOver = false;
+    const files = e.dataTransfer?.files;
+    if (!files || !files.length) return;
+    const file = files[0];
+    const text = await readFileText(file);
+    if (!text.trim()) {
+      push('err', 'could not read the dropped file');
+      return;
+    }
+    push('cmd', `${promptText} sma create (dropped ${file.name})`);
+    history = [...history, `sma create (dropped ${file.name})`];
+    persistSessions();
+    await createSmaFromPrompt(text, file.name);
+    scrollToBottom();
+  }
+
   // ---- command registry ----------------------------------------------------
   interface Cmd {
     usage: string;
@@ -201,7 +352,7 @@
           push('cmd', `  ${n.padEnd(12)} ${commands[n].desc}`);
         }
         push('muted', '');
-        push('muted', 'Tips:  ↑/↓ recall history   ·   Tab autocomplete   ·   Ctrl+L clear   ·   "help <cmd>" for details');
+        push('muted', 'Tips:  ↑/↓ recall history   ·   Tab autocomplete   ·   Ctrl+L clear   ·   "help <cmd>" for details   ·   drop a prompt file to create an SMA');
       },
     },
     clear: {
@@ -271,10 +422,34 @@
       },
     },
     agents: {
-      usage: '',
-      desc: 'list Subject Matter Agents (SMAs)',
-      detail: 'List the available SMAs — expert lenses for architect jobs.\n\n  agents\n\nAliases: smas.',
-      async run() {
+      usage: '[create|builtins|activate]',
+      desc: 'list, create, or activate SMAs (drop a file to create)',
+      detail: `Manage Subject Matter Agents.
+
+  agents                    list available SMAs
+  agents builtins           list built-in SMAs
+  agents activate <slug>    activate a built-in SMA
+  agents create <prompt…>   create an SMA from a prompt (alias of sma create)
+
+Aliases: smas. You can also drop a prompt file onto the terminal to create an SMA.`,
+      async run(args) {
+        if (args[0] === 'create') {
+          const prompt = args.slice(1).join(' ').trim();
+          if (!prompt) {
+            push('err', 'usage: agents create <prompt…> — or drop a prompt file onto the terminal');
+            return;
+          }
+          await createSmaFromPrompt(prompt);
+          return;
+        }
+        if (args[0] === 'builtins') {
+          await listBuiltins();
+          return;
+        }
+        if (args[0] === 'activate') {
+          await activateBuiltin(args[1] ?? '');
+          return;
+        }
         try {
           const r = await fetch('/api/agents');
           const d = await r.json();
@@ -283,10 +458,14 @@
             return;
           }
           smas = d.smas;
+          const builtinCount = Array.isArray(d.builtins) ? d.builtins.length : 0;
           push('info', `Subject Matter Agents (${smas.length}):`);
           for (const s of smas) {
             const active = s.slug === sma;
             push(active ? 'ok' : 'info', `  ${s.slug.padEnd(16)} ${s.name}${active ? '  ◄ active' : ''}`);
+          }
+          if (builtinCount) {
+            push('muted', `  ${builtinCount} built-in SMA${builtinCount === 1 ? '' : 's'} available — "agents builtins" to activate`);
           }
         } catch {
           push('err', 'cannot reach the server');
@@ -322,11 +501,25 @@
       },
     },
     sma: {
-      usage: '[slug]',
-      desc: 'view or switch the active SMA',
-      detail:
-        'View or switch the SMA used by architect jobs.\n\n  sma          show active SMA\n  sma <slug>   switch SMA (run "agents" to list)',
+      usage: '[slug|create]',
+      desc: 'view/switch the active SMA, or create one from a prompt',
+      detail: `View or switch the SMA used by architect jobs, or create a new SMA from a prompt.
+
+  sma              show active SMA
+  sma <slug>       switch SMA (run "agents" to list)
+  sma create <p…>  create an SMA from a prompt (LLM-derived)
+
+You can also drop a prompt file onto the terminal.`,
       async run(args) {
+        if (args[0] === 'create') {
+          const prompt = args.slice(1).join(' ').trim();
+          if (!prompt) {
+            push('err', 'usage: sma create <prompt…> — or drop a prompt file onto the terminal');
+            return;
+          }
+          await createSmaFromPrompt(prompt);
+          return;
+        }
         if (!args[0]) {
           push('info', `active SMA: ${sma}`);
           return;
@@ -616,9 +809,13 @@
 
 <div
   class="cli-wrap"
+  class:drop-active={dragOver}
   role="application"
   aria-label="Regno command line interface"
   on:click={focusInput}
+  on:dragover={onDragOver}
+  on:dragleave={onDragLeave}
+  on:drop={onDrop}
 >
   <aside class="session-rail" aria-label="CLI sessions">
     <div class="rail-head">
@@ -677,6 +874,12 @@
       />
     </div>
   </div>
+
+  {#if dragOver}
+    <div class="drop-overlay">
+      <div class="drop-hint">Drop prompt file to create an SMA</div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -955,6 +1158,30 @@
 
   .blink { animation: blink 1s steps(2, start) infinite; }
   @keyframes blink { to { visibility: hidden; } }
+
+  .drop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--signal) 12%, transparent);
+    border: 2px dashed var(--signal);
+    border-radius: 10px;
+  }
+  .drop-hint {
+    padding: 14px 22px;
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 0 40px var(--signal-glow);
+  }
+  .cli-wrap.drop-active { cursor: copy; }
 
   :global(:root[data-theme='light']) .cli-wrap {
     background: var(--panel);
