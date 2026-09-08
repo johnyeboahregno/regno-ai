@@ -11,7 +11,7 @@ export const DEFAULT_AGENT: AgentDef = {
   slug: 'general-assistant',
   name: 'General Assistant',
   triggers: [],
-  capabilities: { tools: ['read', 'grep', 'knowledgeBase'] },
+  capabilities: { tools: ['read', 'grep', 'findFiles', 'knowledgeBase', 'webSearch', 'dataSourceQuery', 'cortexPattern', 'todoWrite'] },
   planTemplate: {
     depthStrategy: 'auto',
     phases: [

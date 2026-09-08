@@ -8,6 +8,7 @@
 import type { Db } from 'mongodb';
 import { GridFSBucket } from 'mongodb';
 import { Collections } from '@regno/shared';
+import { describeImage } from '@regno/ai';
 import type { CrawledPage } from './types.js';
 
 const ASSET_RE = /\.(png|jpe?g|gif|webp|svg|avif|pdf|ico)([?#].*)?$/i;
@@ -61,19 +62,37 @@ export async function ingestAssets(
     if (!buf.length || buf.length > MAX_BYTES) continue;
 
     const filename = `${domain}/${new URL(url).pathname.split('/').pop() ?? 'asset'}`;
+    let fileId: unknown = null;
     try {
-      await new Promise<void>((resolve, reject) => {
+      fileId = await new Promise<unknown>((resolve, reject) => {
         const stream = bucket.openUploadStream(filename, {
           metadata: { sourceUrl: url, domain, seedId, contentType: res.headers.get('content-type') ?? '', size: buf.length, pendingVision: true },
         });
         stream.on('error', (err) => reject(err));
-        stream.on('finish', () => resolve());
+        stream.on('finish', () => resolve(stream.id));
         stream.end(buf);
       });
       stored++;
       onStage?.(`Assets: stored ${stored}/${candidates.length} (${url})`);
     } catch {
       /* skip failed upload */
+    }
+
+    // Vision description — fills in the previously-text-only asset description.
+    if (fileId && opts.vision && /\.(png|jpe?g|gif|webp|avif)$/i.test(url)) {
+      try {
+        const description = await describeImage(
+          url,
+          'Describe this image in one concise paragraph for a knowledge base.',
+        );
+        await files.updateOne(
+          { _id: fileId },
+          { $set: { 'metadata.pendingVision': false, 'metadata.description': description } },
+        );
+        onStage?.(`Assets: described ${url}`);
+      } catch {
+        /* vision unavailable — keep pendingVision: true */
+      }
     }
   }
 
@@ -88,7 +107,7 @@ export async function ingestAssets(
     }
   }
 
-  if (opts.vision) onStage?.('Assets: vision describe skipped — @regno/ai gateway is text-only (stored with pendingVision: true)');
+  if (opts.vision) onStage?.(`Assets: ${stored} stored to GridFS ${BUCKET} (vision describe attempted)`);
   else onStage?.(`Assets: ${stored} stored to GridFS ${BUCKET}`);
   return stored;
 }

@@ -86,8 +86,18 @@ function emitUsage(
   });
 }
 
-/** Embed text with OpenAI text-embedding-3-small (matches the docs' Qdrant collections). */
-export async function embed(text: string, model = 'text-embedding-3-small'): Promise<number[]> {
+/**
+ * Embed text. Defaults to OpenAI text-embedding-3-small (matches the docs'
+ * Qdrant collections). Pass provider:'google' (with model text-embedding-004)
+ * to use Google embeddings. Anthropic and DeepSeek expose no public embedding
+ * API, so only OpenAI and Google are supported here.
+ */
+export async function embed(
+  text: string,
+  model = 'text-embedding-3-small',
+  provider: Provider = 'openai',
+): Promise<number[]> {
+  if (provider === 'google') return embedGoogle(text, model || 'text-embedding-004');
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error('OPENAI_API_KEY is not set');
   const res = await fetch('https://api.openai.com/v1/embeddings', {
@@ -103,6 +113,66 @@ export async function embed(text: string, model = 'text-embedding-3-small'): Pro
   const u = json.usage;
   if (u) emitUsage({ provider: 'openai', model, kind: 'embed' }, u.prompt_tokens ?? u.total_tokens ?? 0, 0);
   return json.data[0].embedding;
+}
+
+/** Embed text with Google's text-embedding-004 (Gemini embedding API). */
+async function embedGoogle(text: string, model: string): Promise<number[]> {
+  const key = process.env.GOOGLE_AI_API_KEY;
+  if (!key) throw new Error('GOOGLE_AI_API_KEY is not set');
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: { parts: [{ text }] } }),
+    },
+  );
+  if (!res.ok) throw new Error(`Google embeddings error ${res.status}: ${await res.text()}`);
+  const json = (await res.json()) as { embedding?: { values?: number[] } };
+  const values = json.embedding?.values ?? [];
+  if (!values.length) throw new Error('Google embeddings returned no values');
+  return values;
+}
+
+/**
+ * Describe an image with OpenAI vision (gpt-4o-mini). Returns a plain-text
+ * description suitable for storing alongside an ingested asset. Throws when
+ * OPENAI_API_KEY is unset or the image is unreachable.
+ */
+export async function describeImage(imageUrl: string, prompt: string): Promise<string> {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error('OPENAI_API_KEY is not set');
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: imageUrl } },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    }),
+  });
+  if (!res.ok) throw new Error(`OpenAI vision error ${res.status}: ${await res.text()}`);
+  const json = (await res.json()) as {
+    choices: Array<{ message: { content: string } }>;
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
+  };
+  const u = json.usage;
+  if (u) {
+    emitUsage(
+      { provider: 'openai', model: 'gpt-4o-mini', kind: 'chat' },
+      u.prompt_tokens ?? 0,
+      u.completion_tokens ?? 0,
+    );
+  }
+  return json.choices[0].message.content;
 }
 
 /** Multi-provider chat — dispatches on opts.provider (defaults to openai). */

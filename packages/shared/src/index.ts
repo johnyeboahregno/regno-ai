@@ -52,6 +52,7 @@ export const Collections = {
   VISION_NARRATIONS: 'vision_narrations',
   SHOWCASES: 'showcases',
   AI_USAGE: 'ai_usage',
+  SENTINEL_METRICS: 'sentinel_metrics',
 } as const;
 
 /** Qdrant collections (see docs/DB_SCHEMA.md §3) */

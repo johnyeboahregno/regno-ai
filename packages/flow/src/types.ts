@@ -63,5 +63,7 @@ export interface ExecutionResult {
   depth: AnalysisDepth;
   output: string;
   finalScore: number;
-  phases: Array<{ name: string; output: string }>;
+  /** Total wall-clock duration of the run in milliseconds. */
+  durationMs?: number;
+  phases: Array<{ name: string; output: string; durationMs?: number }>;
 }

@@ -3,13 +3,14 @@
  *   route → plan → phase loop (tools + context) → refine loop → persist + wisdom.
  */
 import { randomUUID, createHash } from 'node:crypto';
-import { getDb, reinforceWisdom } from '@regno/db';
+import { getDb, reinforceWisdom, recordSentinelActivity } from '@regno/db';
 import { Collections } from '@regno/shared';
 import { chatWithFallback } from '@regno/ai';
 import { remember, recallBest, shouldServe } from '@regno/cortex';
 import { DEFAULT_AGENT, loadAgent, routePrompt } from './agent.js';
 import { createPlanFromAgent, selectComposeFirstDepth } from './plan.js';
-import { buildTools } from './tools.js';
+import { buildTools, type ToolState } from './tools.js';
+import { runToolLoop } from './toolLoop.js';
 import { buildContext, loadSma } from './context.js';
 import { gradeOutput } from './quality.js';
 import { documentExecution } from './documentation.js';
@@ -27,6 +28,7 @@ export async function runExecution(
   executionId: string = randomUUID(),
 ): Promise<ExecutionResult> {
   const emit = (event: string, data: unknown) => onEvent?.(event, { executionId, ...(data as object) });
+  const startedAt = Date.now();
 
   // 1. Agent routing
   let agent: AgentDef;
@@ -49,8 +51,8 @@ export async function runExecution(
 
   // 3. Tools
   const repoRoot = process.env.CORTEX_REPO_ROOT ?? process.cwd();
-  const tools = buildTools(repoRoot, agent.capabilities?.tools ?? []);
-  const toolHelp = tools.map((t) => `${t.name}: ${t.description}`).join('\n');
+  const toolState: ToolState = { todos: [] };
+  const tools = buildTools(repoRoot, agent.capabilities?.tools ?? [], toolState);
 
   // 3.4. Subject Matter Agent — the lens for this job (focus area + knowledge centering).
   const sma = await loadSma(settings.sma);
@@ -63,7 +65,7 @@ export async function runExecution(
   const promptHash = createHash('sha256').update(prompt).digest('hex').slice(0, 16);
 
   // 4. Phase loop — serve from memory when confident, else a single strong LLM pass per phase.
-  const phaseResults: Array<{ name: string; output: string }> = [];
+  const phaseResults: Array<{ name: string; output: string; durationMs: number }> = [];
   let finalOutput = '';
   let finalScore = 0;
   let servedPhases = 0;
@@ -96,6 +98,7 @@ export async function runExecution(
   if (!taskServed) {
     for (const phase of plan.phases) {
       emit('v2_phase_progress', { phase: phase.name, status: 'running' });
+      const phaseStarted = Date.now();
       let output: string | null = null;
 
       // Per-phase recall: a strong prior answer for this task+phase skips the LLM.
@@ -120,24 +123,33 @@ export async function runExecution(
 
       if (output === null) {
         const ctx = await buildContext(phase.needs, { developer, technologies: agent.technologies, sma, prompt });
-        output = await chatWithFallback(
-          [
-            {
-              role: 'system',
-              content: `You are the agent "${agent.name}". Complete the phase "${phase.name}" using any tools you are given (describe tool calls as needed).\nAvailable tools:\n${toolHelp}`,
-            },
-            {
-              role: 'user',
-              content: `${ctx ? `Context:\n${ctx}\n\n` : ''}Task: ${prompt}\nPhase: ${phase.name}`,
-            },
-          ],
-          { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
-        );
-        llmCalls++;
+        const task = `${ctx ? `Context:\n${ctx}\n\n` : ''}Task: ${prompt}\nPhase: ${phase.name}`;
+        if (tools.length > 0) {
+          const loop = await runToolLoop({
+            system: `You are the agent "${agent.name}". Complete the phase "${phase.name}".`,
+            task,
+            tools,
+            provider: settings.provider,
+            model: settings.model,
+            fallback: settings.fallback,
+            taskId: executionId,
+          });
+          output = loop.output;
+          llmCalls += loop.llmCalls;
+        } else {
+          output = await chatWithFallback(
+            [
+              { role: 'system', content: `You are the agent "${agent.name}". Complete the phase "${phase.name}".` },
+              { role: 'user', content: task },
+            ],
+            { provider: settings.provider, model: settings.model, taskId: executionId, fallback: settings.fallback },
+          );
+          llmCalls++;
+        }
       }
 
       finalOutput = output;
-      phaseResults.push({ name: phase.name, output });
+      phaseResults.push({ name: phase.name, output, durationMs: Date.now() - phaseStarted });
       emit('v2_phase_progress', { phase: phase.name, status: 'done' });
     }
   }
@@ -178,7 +190,24 @@ export async function runExecution(
     llmCalls,
     servedPhases,
     servedFrom,
+    startedAt: new Date(startedAt),
+    durationMs: Date.now() - startedAt,
     createdAt: new Date(),
+  });
+
+  await recordSentinelActivity({
+    executionId,
+    event: 'execution_completed',
+    data: {
+      agentSlug: agent.slug,
+      depth,
+      startedAt: new Date(startedAt).toISOString(),
+      durationMs: Date.now() - startedAt,
+      llmCalls,
+      servedPhases,
+      finalScore,
+      phases: phaseResults,
+    },
   });
 
   if (taskServed || servedPhases > 0) {
@@ -206,6 +235,7 @@ export async function runExecution(
     depth,
     output: finalOutput,
     finalScore,
+    durationMs: Date.now() - startedAt,
     phases: phaseResults,
   };
 

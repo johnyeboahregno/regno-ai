@@ -221,7 +221,8 @@ export async function graphSearch(query: string, limit = 6): Promise<GraphNode[]
       { terms, limit },
     )) as Array<{ id: string; name: string; tags: string[] }>;
     return rows.map((r) => ({ id: r.id, name: r.name ?? r.id, tags: r.tags ?? [] }));
-  } catch {
+  } catch (e) {
+    console.warn('[cortex] neo4j graph search unavailable (returning []):', (e as Error).message);
     return [];
   }
 }

@@ -90,12 +90,52 @@ function parseSitemap(xml: string, base: string): string[] {
 }
 
 async function tryFetch(url: string, timeoutMs = 15000): Promise<Response | null> {
+  // Optional headless rendering for JS-heavy pages (env-gated, off by default).
+  if (process.env.CORTEX_CRAWLER_HEADLESS === '1') {
+    const rendered = await renderHeadless(url, timeoutMs);
+    if (rendered) return rendered;
+  }
   try {
     return await fetch(url, {
       headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' },
       signal: AbortSignal.timeout(timeoutMs),
       redirect: 'follow',
     });
+  } catch {
+    return null;
+  }
+}
+
+let warnedHeadless = false;
+
+/**
+ * Optional headless renderer (Playwright-style) exposed as a small HTTP service:
+ * POST {renderBase}/render  {url} → rendered HTML. When CORTEX_CRAWLER_HEADLESS=1
+ * is set but no renderer is configured, we warn once and fall back to static
+ * fetch (the renderer is intentionally not bundled into the default image).
+ */
+async function renderHeadless(url: string, timeoutMs: number): Promise<Response | null> {
+  const base = (process.env.CORTEX_HEADLESS_RENDER_URL ?? '').trim().replace(/\/+$/, '');
+  if (!base) {
+    if (!warnedHeadless) {
+      warnedHeadless = true;
+      console.warn(
+        '[ingest] CORTEX_CRAWLER_HEADLESS=1 but CORTEX_HEADLESS_RENDER_URL is unset — falling back to static HTML fetch',
+      );
+    }
+    return null;
+  }
+  try {
+    const res = await fetch(`${base}/render`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    if (!html || html.length < 200) return null;
+    return new Response(html, { status: 200, headers: { 'content-type': 'text/html' } });
   } catch {
     return null;
   }

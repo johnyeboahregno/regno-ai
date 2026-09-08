@@ -2,6 +2,7 @@ export * from './types.js';
 export * from './agent.js';
 export * from './plan.js';
 export * from './tools.js';
+export * from './toolLoop.js';
 export * from './context.js';
 export * from './quality.js';
 export * from './queue.js';
