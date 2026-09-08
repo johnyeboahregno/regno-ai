@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CORTEX — the living brain</title>
+<style>
+  :root {
+    --bg: #080b12;
+    --ink: #e6ebf5;
+    --dim: #8b95ab;
+    --line: #1c2233;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 700px at 50% -10%, #11182a 0%, var(--bg) 55%) fixed, var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 48px;
+  }
+  header { text-align: center; margin-bottom: 8px; }
+  header h1 {
+    font-size: 22px; margin: 0; letter-spacing: .04em;
+    background: linear-gradient(90deg, #67e8f9, #c084fc, #fb7185);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  header p { color: var(--dim); font-size: 13px; margin: 6px 0 0; }
+  .stage { width: min(1080px, 100%); position: relative; }
+  svg { width: 100%; height: auto; display: block; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    margin-top: 14px; max-width: 980px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: rgba(255,255,255,.02);
+    border-radius: 999px; padding: 5px 11px; font-size: 11.5px; color: var(--dim);
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .flow line, .flow path { animation: dash linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -60; } }
+  .neuron { animation: breathe 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes breathe {
+    0%, 100% { opacity: .55; }
+    50% { opacity: 1; }
+  }
+  .note { color: #5b6478; font-size: 11.5px; text-align: center; margin-top: 12px; }
+  #tooltip {
+    position: fixed; z-index: 50; pointer-events: none; max-width: 320px;
+    background: rgba(13,17,28,0.97); border: 1px solid #2a3550; border-radius: 12px;
+    padding: 13px 15px; font-size: 12.5px; color: #e6ebf5;
+    box-shadow: 0 14px 44px rgba(0,0,0,.55);
+    opacity: 0; transform: translateY(4px); transition: opacity .15s ease, transform .15s ease;
+  }
+  #tooltip.show { opacity: 1; transform: translateY(0); }
+  #tooltip .t-title { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }
+  #tooltip .t-sub { color: #8b95ab; font-size: 11.5px; margin-bottom: 8px; }
+  #tooltip .t-flow { color: #9fb0cc; font-size: 11.5px; line-height: 1.7; }
+  .dim { opacity: .12 !important; transition: opacity .22s ease; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>CORTEX — the living brain</h1>
+    <p>Every store is a region; every link is a neural pathway firing signals through the system.</p>
+  </header>
+
+  <div class="stage">
+    <svg id="brain" viewBox="0 0 1000 760" role="img" aria-label="CORTEX neural brain"></svg>
+  </div>
+
+  <div id="tooltip" role="tooltip"></div>
+
+  <div class="legend" id="legend"></div>
+  <div class="note">Hover a neuron to trace its region · pulses flow from Ingestion → Facts → Entities → Memories → Patterns → Recall &amp; Serve</div>
+
+<script>
+  const regions = [
+    { id: 'ingest',   label: 'Ingestion',       stores: 'cortex_index · knowledge_staging', color: '#22d3ee', cx: 230, cy: 540, r: 150, n: 14 },
+    { id: 'facts',    label: 'Facts',           stores: 'cortex_knowledge_facts',           color: '#fbbf24', cx: 390, cy: 300, r: 135, n: 12 },
+    { id: 'entities', label: 'Entities',        stores: 'cortex_entities',                  color: '#a78bfa', cx: 520, cy: 175, r: 130, n: 12 },
+    { id: 'memories', label: 'Memories',        stores: 'cortex_agent_memories · cortex_wisdom', color: '#f472b6', cx: 540, cy: 430, r: 175, n: 16 },
+    { id: 'patterns', label: 'Patterns',        stores: 'cortex_patterns',                  color: '#34d399', cx: 780, cy: 270, r: 145, n: 14 },
+    { id: 'graph',    label: 'Graph',           stores: 'Neo4j · relationships',            color: '#60a5fa', cx: 800, cy: 515, r: 125, n: 12 },
+    { id: 'recall',   label: 'Recall & Serve', stores: 'decision layer · 0-LLM gate',    color: '#fb7185', cx: 620, cy: 55,  r: 125, n: 10 },
+  ];
+
+  const descriptions = {
+    ingest:   'Crawls sites and ingests raw pages into cortex_index, chunking + embedding into Qdrant doc_search.',
+    facts:    'LLM-extracted atomic facts (cortex_knowledge_facts), confidence-scored and keyed for dedupe.',
+    entities: 'Named entities (cortex_entities) mirrored into Neo4j graph nodes.',
+    memories: 'The compounding loop: operational wisdom (cortex_agent_memories) + vector wisdom (cortex_wisdom).',
+    patterns: 'Proven approaches in cortex_patterns, synced across Mongo → Qdrant → Neo4j.',
+    graph:    'Neo4j relationship graph — concept traversal and lineage.',
+    recall:   'Decision layer: recallBest() + shouldServe() answer from memory with 0 LLM calls.',
+  };
+  const tractInfo = {
+    'ingest→facts':     'raw documents → extracted atomic facts (encoding)',
+    'ingest→memories':  'new knowledge → consolidated memories',
+    'facts→entities':   'facts link to named entities',
+    'entities→memories':'concepts reinforce episodic wisdom',
+    'memories→patterns':'repeated success abstracts into patterns',
+    'patterns→recall':  'matched pattern → served answer (0 LLM)',
+    'entities→graph':   'entities written to Neo4j nodes',
+    'graph→patterns':   'graph traversal surfaces patterns',
+    'memories→recall':  'memory candidate → decision gate',
+    'facts→memories':   'facts compound into wisdom',
+  };
+
+  // The "neuropaths" — main tracts between regions (thick, animated).
+  const tracts = [
+    ['ingest', 'facts',    '#67e8f9'],
+    ['ingest', 'memories', '#f0abfc'],
+    ['facts',   'entities','#fbbf24'],
+    ['entities','memories','#a78bfa'],
+    ['memories','patterns','#f472b6'],
+    ['patterns','recall',  '#34d399'],
+    ['entities','graph',   '#a78bfa'],
+    ['graph',   'patterns','#60a5fa'],
+    ['memories','recall',  '#fb7185'],
+    ['facts',   'memories','#fbbf24'],
+  ];
+
+  // Deterministic PRNG so the brain is stable between loads.
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rnd = mulberry32(20260908);
+
+  const byId = Object.fromEntries(regions.map((r) => [r.id, r]));
+  const svg = document.getElementById('brain');
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  };
+
+  // --- Brain silhouette (two lobes + brainstem) ---
+  svg.appendChild(el('path', {
+    d: 'M370 120 C 220 150 150 300 175 460 C 190 560 270 630 390 640 L 390 690 L 470 690 L 470 640 C 590 650 810 590 830 460 C 850 300 760 150 630 120 C 550 105 450 105 370 120 Z',
+    fill: 'rgba(124,58,237,0.05)', stroke: 'rgba(148,163,184,0.14)', 'stroke-width': 1.5,
+  }));
+  // corpus callosum hint (bridge between lobes)
+  svg.appendChild(el('path', {
+    d: 'M 330 260 Q 500 200 670 260', fill: 'none',
+    stroke: 'rgba(148,163,184,0.10)', 'stroke-width': 8, 'stroke-linecap': 'round',
+  }));
+
+  // --- Generate neurons per region ---
+  const nodes = [];
+  for (const reg of regions) {
+    for (let i = 0; i < reg.n; i++) {
+      const ang = rnd() * Math.PI * 2;
+      const rad = Math.sqrt(rnd()) * reg.r;
+      nodes.push({
+        region: reg.id,
+        x: reg.cx + Math.cos(ang) * rad * 1.15,
+        y: reg.cy + Math.sin(ang) * rad * 0.82,
+      });
+    }
+  }
+
+  // --- Local synaptic mesh within each region ---
+  const local = el('g');
+  for (const reg of regions) {
+    const group = nodes.filter((n) => n.region === reg.id);
+    for (let i = 0; i < group.length; i++) {
+      const a = group[i];
+      for (let j = i + 1; j < group.length; j++) {
+        if (rnd() < 0.28) {
+          const b = group[j];
+          local.appendChild(el('line', {
+            x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+            stroke: reg.color, 'stroke-opacity': 0.10, 'stroke-width': 0.6,
+          }));
+        }
+      }
+    }
+  }
+  svg.appendChild(local);
+
+  // --- Main neuropaths (thick flowing tracts) ---
+  const tractLayer = el('g');
+  for (const [s, t, color] of tracts) {
+    const a = byId[s], b = byId[t];
+    const mx = (a.cx + b.cx) / 2 + (rnd() - 0.5) * 60;
+    const my = (a.cy + b.cy) / 2 + (rnd() - 0.5) * 60;
+    const d = `M ${a.cx} ${a.cy} Q ${mx} ${my} ${b.cx} ${b.cy}`;
+    const key = `${s}→${t}`;
+    tractLayer.appendChild(el('path', {
+      d, fill: 'none', stroke: color, 'stroke-opacity': 0.14,
+      'stroke-width': 5, 'stroke-linecap': 'round', 'pointer-events': 'stroke',
+      'data-tract': key,
+    }));
+    tractLayer.appendChild(el('path', {
+      d, fill: 'none', stroke: color, 'stroke-opacity': 0.9,
+      'stroke-width': 1.8, 'stroke-linecap': 'round',
+      'stroke-dasharray': '3 26', class: 'flow',
+      style: `animation-duration: ${2.2 + rnd() * 2}s`,
+      'pointer-events': 'stroke', 'data-tract': key,
+    }));
+  }
+  svg.appendChild(tractLayer);
+
+  // --- Neurons ---
+  const neuronLayer = el('g');
+  for (const n of nodes) {
+    const reg = byId[n.region];
+    const g = el('g', { class: 'neuron', style: `animation-delay: ${(rnd() * 3.2).toFixed(2)}s` });
+    g.appendChild(el('circle', { cx: n.x, cy: n.y, r: 4.2, fill: reg.color, 'fill-opacity': 0.9 }));
+    g.appendChild(el('circle', { cx: n.x, cy: n.y, r: 8, fill: 'none', stroke: reg.color, 'stroke-opacity': 0.35, 'stroke-width': 1 }));
+    g.appendChild(el('circle', { cx: n.x, cy: n.y, r: 14, fill: 'rgba(0,0,0,0)', 'pointer-events': 'all' }));
+    g.appendChild(el('title', { 'textContent': `${reg.label} — ${reg.stores}` }));
+    g.setAttribute('data-region', n.region);
+    neuronLayer.appendChild(g);
+  }
+  svg.appendChild(neuronLayer);
+
+  // --- Region labels ---
+  const labelEls = [];
+  for (const reg of regions) {
+    const title = el('text', {
+      x: reg.cx, y: reg.cy, 'text-anchor': 'middle', fill: reg.color,
+      'font-size': 13, 'font-weight': 700, 'letter-spacing': '0.06em',
+      'textContent': reg.label.toUpperCase(),
+    });
+    title.setAttribute('data-region', reg.id);
+    const sub = el('text', {
+      x: reg.cx, y: reg.cy + 17, 'text-anchor': 'middle', fill: 'rgba(230,235,245,0.42)',
+      'font-size': 10, 'textContent': reg.stores,
+    });
+    sub.setAttribute('data-region', reg.id);
+    labelEls.push(title, sub);
+    svg.appendChild(title);
+    svg.appendChild(sub);
+  }
+
+  // --- Legend ---
+  const legend = document.getElementById('legend');
+  for (const reg of regions) {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML = `<span class="dot" style="background:${reg.color};box-shadow:0 0 10px ${reg.color}"></span><b>${reg.label}</b><span>${reg.stores}</span>`;
+    legend.appendChild(chip);
+  }
+
+  // --- Hover interactivity: hovering shows what each region / pathway does ---
+  const tooltip = document.getElementById('tooltip');
+  const allNeurons = Array.from(document.querySelectorAll('#brain .neuron'));
+  const allTracts = Array.from(document.querySelectorAll('#brain [data-tract]'));
+
+  function positionTooltip(x, y) {
+    const w = Math.min(tooltip.offsetWidth || 300, 300);
+    const h = tooltip.offsetHeight || 0;
+    tooltip.style.left = Math.min(x + 16, window.innerWidth - w - 16) + 'px';
+    tooltip.style.top = Math.min(y + 16, window.innerHeight - h - 16) + 'px';
+  }
+  function showInfo(x, y, html) {
+    tooltip.innerHTML = html;
+    tooltip.classList.add('show');
+    positionTooltip(x, y);
+  }
+  function hideInfo() { tooltip.classList.remove('show'); }
+
+  function clearHighlights() {
+    for (const n of allNeurons) n.classList.remove('dim');
+    for (const t of allTracts) t.classList.remove('dim');
+    for (const l of labelEls) l.classList.remove('dim');
+  }
+
+  for (const n of allNeurons) {
+    const region = n.getAttribute('data-region');
+    const reg = byId[region];
+    n.addEventListener('mouseenter', (ev) => {
+      clearHighlights();
+      const connected = tracts
+        .filter(([s, t]) => s === region || t === region)
+        .map(([s, t]) => `${s}→${t}`);
+      for (const o of allNeurons) if (o.getAttribute('data-region') !== region) o.classList.add('dim');
+      for (const t of allTracts) if (!connected.includes(t.getAttribute('data-tract'))) t.classList.add('dim');
+      for (const l of labelEls) if (l.getAttribute('data-region') !== region) l.classList.add('dim');
+      const flows = connected.map((key) => {
+        const [s, t] = key.split('→');
+        return `<div>${byId[s].label} → ${byId[t].label} · ${tractInfo[key] ?? 'signal'}</div>`;
+      }).join('');
+      showInfo(ev.clientX, ev.clientY,
+        `<div class="t-title" style="color:${reg.color}">${reg.label}</div>` +
+        `<div class="t-sub">${reg.stores}</div>` +
+        `<div style="margin-bottom:8px;line-height:1.55">${descriptions[region] ?? ''}</div>` +
+        `<div class="t-flow"><b style="color:${reg.color}">PATHWAYS</b>${flows}</div>`);
+    });
+    n.addEventListener('mousemove', (ev) => { if (tooltip.classList.contains('show')) positionTooltip(ev.clientX, ev.clientY); });
+    n.addEventListener('mouseleave', () => { clearHighlights(); hideInfo(); });
+  }
+
+  for (const t of allTracts) {
+    const key = t.getAttribute('data-tract');
+    t.addEventListener('mouseenter', (ev) => {
+      clearHighlights();
+      const [s, tt] = key.split('→');
+      for (const o of allTracts) if (o.getAttribute('data-tract') !== key) o.classList.add('dim');
+      for (const n of allNeurons) { const r = n.getAttribute('data-region'); if (r !== s && r !== tt) n.classList.add('dim'); }
+      for (const l of labelEls) { const r = l.getAttribute('data-region'); if (r !== s && r !== tt) l.classList.add('dim'); }
+      showInfo(ev.clientX, ev.clientY,
+        `<div class="t-title">${byId[s].label} → ${byId[tt].label}</div>` +
+        `<div class="t-sub">neural pathway</div>` +
+        `<div class="t-flow">${tractInfo[key] ?? 'signals flow along this path'}</div>`);
+    });
+    t.addEventListener('mousemove', (ev) => { if (tooltip.classList.contains('show')) positionTooltip(ev.clientX, ev.clientY); });
+    t.addEventListener('mouseleave', () => { clearHighlights(); hideInfo(); });
+  }
+</script>
+</body>
+</html>

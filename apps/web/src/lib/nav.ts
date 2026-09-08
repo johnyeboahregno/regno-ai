@@ -39,6 +39,7 @@ export function buildNav(role: string): NavGroup[] {
       items: [
         { href: '/app/oracle', label: 'Oracle', icon: 'oracle' },
         { href: '/app/cortex', label: 'Cortex', icon: 'cortex' },
+        { href: '/app/brain', label: 'Cortex Brain', icon: 'brain' },
         { href: '/app/sentinel', label: 'Sentinel', icon: 'sentinel' },
         { href: '/app/executions', label: 'Executions', icon: 'executions' },
       ],

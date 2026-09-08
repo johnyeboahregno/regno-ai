@@ -12,6 +12,8 @@ export const ICONS: Record<string, string> = {
     '<path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle>',
   cortex:
     '<rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>',
+  brain:
+    '<path d="M12 5a3 3 0 0 0-5.5-1.5A3 3 0 0 0 3 8.5 3 3 0 0 0 4.5 13 3 3 0 0 0 6 16.5 3 3 0 0 0 9 19c.5 0 1-.1 1.4-.3a3 3 0 0 0 3.2 0c.4.2.9.3 1.4.3a3 3 0 0 0 3-2.5 3 3 0 0 0 1.5-3.5A3 3 0 0 0 21 8.5a3 3 0 0 0-3.5-5A3 3 0 0 0 12 5z"></path><circle cx="9" cy="10.5" r="0.4"></circle><circle cx="15" cy="10.5" r="0.4"></circle><circle cx="12" cy="14" r="0.4"></circle>',
   stage:
     '<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline>',
   genesis:
